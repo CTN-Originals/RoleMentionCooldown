@@ -1,0 +1,40 @@
+{
+	"name": "ctn_discordts-template",
+	"author": "CTNOriginals",
+	"version": "0.0.1",
+	"description": "A Template for a discord bot using discordjs in typescript.",
+	"keywords": [
+		"discord",
+		"discord.js",
+		"discordts",
+		"typescript",
+		"ctn",
+		"ctnoriginals",
+		"discord.js-template",
+		"discordts-template",
+		"typescript-template"
+	],
+	"license": "BSD-3-Clause",
+	"main": "dist/index.js",
+	"scripts": {
+		"start:dev": "nodemon src/index.ts",
+		"build": "rimraf ./dist && tsc",
+		"start": "node dist/index.js",
+		"build:start": "npm run build && npm run start"
+	},
+	"dependencies": {
+		"better-console-utilities": "^1.1.0",
+		"discord.js": "^14.14.1",
+		"dotenv": "^16.3.1",
+		"mongoose": "^8.8.2",
+		"snowflake-generator": "^1.0.2",
+		"undici": "^6.6.2"
+	},
+	"devDependencies": {
+		"@types/node": "^20.10.6",
+		"nodemon": "^3.0.2",
+		"rimraf": "^5.0.5",
+		"tsx": "^4.7.0",
+		"typescipt": "^1.0.0"
+	}
+}
