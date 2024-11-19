@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import { APIUser, Channel, Client, Collection, CommandInteraction, EmbedBuilder, Events, Guild, GuildMember, Message, MessageCollector, REST, Routes, TextChannel, User } from 'discord.js';
-import { InteractionResponses } from "discord.js/src/structures/interfaces/InteractionResponses";
+// import { InteractionResponses } from "discord.js/src/structures/interfaces/InteractionResponses";
 
 import { ConsoleInstance } from 'better-console-utilities';
 
@@ -45,14 +45,37 @@ export default {
 	async runTests(client: Client) {
 		const guild: Guild|undefined = client.guilds.cache.get(process.env.DEV_GUILD_ID!);
 		const channel: TextChannel = await devEnvironment.client?.channels.fetch(devEnvironment.channelId) as TextChannel;
-		const collector: MessageCollector = channel!.createMessageCollector({
-			filter: (message) => message.content.includes('test')
-		})
+		// const collector: MessageCollector = channel!.createMessageCollector({
+		// 	filter: (message) => message.content.includes('test')
+		// })
 
-		collector.on('collect', (message) => {
-			if (message.channel.isSendable()) {
-				message.channel.send({content: `${message.author.displayName} said the word!!`});
-			}
-		})
+		// collector.on('collect', (message) => {
+		// 	if (message.channel.isSendable()) {
+		// 		message.channel.send({content: `${message.author.displayName} said the word!!`});
+		// 	}
+		// })
+
+		// const simBaseInteraction = new SimBaseInteraction();
+		// const simInteraction = new SimCommandInteraction({
+		// 	commandName: 'ping',
+		// 	...defaultBaseInteractionArgs,
+		// });
+
+		// // console.log(InteractionResponses.prototype)
+		// // cons.logDefault(simBaseInteraction);
+		// // cons.logDefault(simInteraction);
+		// // cons.logDefault('Command Simulation:', simInteraction.simulate());
+		// simInteraction.simulate()
+		// const simReply = await simInteraction.awaitReply();
+		// let simComponentInteraction: SimBaseComponentInteraction;
+		// if (simReply) {
+		// 	try {
+		// 		simComponentInteraction = new SimStringSelectMenuInteraction({customId: 'string-select-test', message: simReply, values: ['hello']});
+		// 		simComponentInteraction.simulate()
+		// 		cons.logDefault(simComponentInteraction.component)
+		// 	} catch (err) {
+		// 		errorConsole.log(`Error while trying to create SimBaseComponentInteraction`)
+		// 	}
+		// }
 	}
 };
