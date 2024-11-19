@@ -27,13 +27,13 @@ export default {
 		// thisConsole.log(client);
 		
 		// const t0 = performance.now();
-		const devGuildMembers = await client.guilds.cache.get(process.env.DEV_GUILD_ID!)?.members.fetch();
+		// const devGuildMembers = await client.guilds.cache.get(process.env.DEV_GUILD_ID!)?.members.fetch();
 		// const t1 = performance.now();
 		// thisConsole.log(`Fetched ${devGuildMembers?.size} guild members in ${t1 - t0}ms`);
 
 		if (generalData.development) {
 			devEnvironment.client = client;
-			devEnvironment.memberList = devGuildMembers as Collection<string, GuildMember>;
+			// devEnvironment.memberList = devGuildMembers as Collection<string, GuildMember>;
 
 			devEnvironment.guild = client.guilds.cache.get(process.env.DEV_GUILD_ID!);
 			devEnvironment.user = await client.users.fetch(process.env.DEV_TEST_USER_ID!);
