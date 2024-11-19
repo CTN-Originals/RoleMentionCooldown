@@ -1,2 +1,2 @@
-# CTN_DiscordTS-Template
-A Template for a discord bot using discordjs in typescript.
+# Role Mention Cooldown
+A discord bot that allows users to mention a role once, and then applying a cooldown to this role before it can be mentioned again.
