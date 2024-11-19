@@ -105,9 +105,9 @@ export class SimInteractionResponses {
 			} as ISimInteractionReplyOptions;
 		}
 
-		async sendMessage(content: ISimInteractionReplyContent, target?: BaseGuildTextChannel|Message, update: boolean = true): Promise<Message<boolean>> {
+		async sendMessage(content: ISimInteractionReplyContent, target?: TextBasedChannel|Message, update: boolean = true): Promise<Message<boolean>> {
 			// if (!target) target = this.channel as TextBasedChannel;
-			if (!target) target = this.channel as BaseGuildTextChannel;
+			if (!target) target = this.channel as TextBasedChannel;
 
 			if (this.ephemeral) {
 				//? add a silent flag to the reply to indicate that this is an ephemeral message
@@ -118,9 +118,14 @@ export class SimInteractionResponses {
 			content.content = content.content?.replace(/<@!?(\d+)>/g, '`$1`');
 
 			//?? Does this work if the interaction is not in a guild (dm)?
-			return (target instanceof Message) ? (
-				(update) ? target.edit(content as MessageEditOptions) : target.reply(content as MessageReplyOptions)
-			) : target.send(content as MessageReplyOptions);
+			if (target instanceof Message) {
+				return (update) ? target.edit(content as MessageEditOptions) : target.reply(content as MessageReplyOptions)
+			} else {
+				if (!target.isSendable()) {
+					throw EmitError(new Error('Unable to send message to channel'));
+				}
+				return target.send(content as MessageReplyOptions);
+			}
 		}
 		//#endregion
 	//#endregion

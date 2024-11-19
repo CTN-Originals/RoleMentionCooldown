@@ -23,7 +23,7 @@ export const client: Client = new Client({
 	intents: [
 		'Guilds',
 		'GuildMessages',
-		// 'GuildMembers',
+		'GuildMembers',
 		'MessageContent'
 	]
 });

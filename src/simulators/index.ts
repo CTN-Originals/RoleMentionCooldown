@@ -12,7 +12,7 @@ import {
 	User, UserFlagsBitField,
 	UserSelectMenuInteraction
 } from "discord.js";
-import { InteractionResponses } from "discord.js/src/structures/interfaces/InteractionResponses";
+// import { InteractionResponses } from "discord.js/src/structures/interfaces/InteractionResponses";
 import { RawInteractionData } from "discord.js/typings/rawDataTypes";
 
 import { cons } from "..";
@@ -86,7 +86,7 @@ export class SimBaseInteraction extends BaseInteraction {
 			
 			data.member = {
 				user: args.user as unknown as APIGuildMember['user'],
-				roles: args.member.roles as APIGuildMember['roles'],
+				roles: args.member.roles ?? [] as APIGuildMember['roles'],
 				premium_since: null,
 				permissions: '0',
 				pending: args.member.pending,

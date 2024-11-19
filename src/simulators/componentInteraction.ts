@@ -1,5 +1,5 @@
 import { Client, ComponentType, DiscordjsError, DiscordjsErrorCodes, Events, Message, MessageComponent, StringSelectMenuComponent, TextBasedChannel } from "discord.js";
-import { InteractionResponses } from "discord.js/src/structures/interfaces/InteractionResponses";
+// import { InteractionResponses } from "discord.js/src/structures/interfaces/InteractionResponses";
 
 import { Modify } from "../@types";
 import { ISimBaseInteraction, SimBaseInteraction } from ".";
