@@ -4,6 +4,7 @@ import * as fs from 'node:fs';
 import 'dotenv/config';
 
 import { cons } from '.';
+import generalData from './data'
 
 
 class DeployInstruction {
@@ -93,7 +94,7 @@ export async function doDeployCommands(): Promise<boolean> {
 		const instruction = arg.split(' ');
 		const deployInstruction: Partial<DeployInstruction> = {};
 		for (const part of instruction) {
-			const partSplit = part.split('=');
+			const partSplit = part.trim().split('=');
 			const key = partSplit[0];
 			const value = partSplit[1];
 			switch (key) { //TODO make this dynamic (get keys from the class)
@@ -118,12 +119,16 @@ export async function doDeployCommands(): Promise<boolean> {
 		}
 		deployInstructions.push(new DeployInstruction(deployInstruction));
 	}
+	
 	if (deployInstructions.length == 0) {
 		cons.log('[fg=800000]No arguments provided[/>]');
 		process.exit(0);
 	}
 	else {
 		cons.log(`Instructions provided: ${deployInstructions.length}`);
+		if (generalData.development) {
+			cons.log(deployInstructions);
+		}
 	}
 	
 	for (const instruction of deployInstructions) {

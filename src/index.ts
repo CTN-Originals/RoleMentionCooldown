@@ -19,14 +19,11 @@ export const errorConsole = new ConsoleInstance(defaultThemeProfile.clone());
 errorConsole.theme.default = new Theme('#ff0000');
 errorConsole.theme.typeThemes.default = new Theme('#dd0000');
 
-const db = new Database();
-db.connect();
-
 export const client: Client = new Client({
 	intents: [
 		'Guilds',
 		'GuildMessages',
-		'GuildMembers',
+		// 'GuildMembers',
 		'MessageContent'
 	]
 });
@@ -47,6 +44,9 @@ async function Awake() {
 }
 
 async function Start() {
+	const db = new Database();
+	db.connect();
+
 	client.commands = new Collection();
 	
 	const getEventTime = [performance.now()];
@@ -64,5 +64,3 @@ async function Start() {
 }
 
 Awake();
-
-
