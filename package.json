@@ -18,6 +18,7 @@
 	"main": "dist/index.js",
 	"scripts": {
 		"start:dev": "nodemon src/index.ts",
+		"start:tsx": "tsx watch src/index.ts",
 		"build": "rimraf ./dist && tsc",
 		"start": "node dist/index.js",
 		"build:start": "npm run build && npm run start",
