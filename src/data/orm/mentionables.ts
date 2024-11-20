@@ -44,8 +44,7 @@ export namespace Mentionable {
 	
 
 	/** Create a new document for a guild
-	 * @param guildId The GuildID of the server the mentionable is in
-	 * @param id The ID of the mentionable
+	 * @param guildId The GuildID of the server
 	 * @returns The mentionable if found, null otherwise
 	*/
 	export async function create(guildId: string) {
@@ -53,18 +52,26 @@ export namespace Mentionable {
 	}
 
 	/** Once the bot enters a new guild, see if we need to create a new document
-	 * @param guildId The GuildID of the server the mentionable is in
-	 * @param id The ID of the mentionable
-	 * @returns The mentionable if found, null otherwise
+	 * @param guildId The GuildID of the server
 	*/
 	export async function onGuildCreate(guild: Guild): Promise<void> {
 		const doc = await Mentionable.getDocument(guild.id, false);
 		if (doc == null) {
 			await create(guild.id);
-			cons.log(`Created new Mentionables document for ${guild.id}`);
+			cons.log(`[fg=green]Created[/>] new Mentionables document for ${guild.id}`);
 		}
 	}
-	//TODO on guild delete
+
+	/** Once the bot leaves a guild, see if we need to delete a document
+	 * @param guildId The GuildID of the server
+	*/
+	export async function onGuildDelete(guild: Guild): Promise<void> {
+		const doc = await Mentionable.getDocument(guild.id, false);
+		if (doc != null) {
+			await doc.deleteOne({_id: doc._id})
+			cons.log(`[fg=red]Deleted[/>] Mentionables document for ${guild.id}`);
+		}
+	}
 
 	
 	/** Once a mentionable is used, update its times

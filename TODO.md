@@ -11,6 +11,7 @@
 [ ] Admin role, a role that can manage the configurations of this bot
 [ ] Toggle all mentionables, if false, it wont check if any mentionables were mentioned
 [ ] Toggle all mentionables mention permission, if false, all mentionables cant be used nomatter the cooldown
+[ ] /list command to list all mention cooldowns registered
 
 
 # Thecnical
