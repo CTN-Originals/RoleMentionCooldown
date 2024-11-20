@@ -10,7 +10,7 @@ export type IMentionableStorage = {
 
 const MentionablesData = new Schema({
 	_id: String,
-	mentionables: {type: Object, default: {placeholder: {cooldown: 0, lastUsed: 0}}} as SchemaDefinitionProperty,
+	mentionables: {type: Object, default: {placeholder: {cooldown: -1, lastUsed: -1}}} as SchemaDefinitionProperty,
 })
 
 export default model('Mentionables', MentionablesData);
