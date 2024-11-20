@@ -56,7 +56,7 @@ export default {
 		// 	subCommand: 'add',
 		// 	options: [
 		// 		{name: 'role', value: '811667577998671923'},
-		// 		{name: 'cooldown', value: '80s 3d 34h 400m awd23a'}
+		// 		{name: 'cooldown', value: '1.486h'}
 		// 	]
 		// }).execute();
 	}

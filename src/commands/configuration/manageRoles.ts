@@ -2,6 +2,11 @@ import { ChatInputCommandInteraction, CommandInteraction, EmbedBuilder, SlashCom
 
 import generalData from '../../data'
 import { PeriodOfTime } from "../../utils";
+import { Mentionable } from "../../data/orm/mentionables";
+import { EmitError } from "../../events";
+import { ConsoleInstance } from "better-console-utilities";
+
+const thisConsole = new ConsoleInstance();
 
 export default {
 	command: {
@@ -41,19 +46,34 @@ export default {
 			}
 		},
 		async addRole(interaction: ChatInputCommandInteraction) {
+			if (!interaction.guild) {
+				EmitError(new Error(`Interaction did not contain a guild`))
+				return;
+			}
 			const role = interaction.options.get('role', true).value;
 			const cooldown = new PeriodOfTime(interaction.options.get('cooldown', true).value as string)
 
-			await interaction.reply({
-				embeds: [new EmbedBuilder({
-					title: "Registered New Role Cooldown",
-					fields: [
-						{name: 'role', value: `<@&${role}>`, inline: true},
-						{name: 'cooldown', value: `\`${cooldown.toString()}\``, inline: true},
-					]
-				})],
-				ephemeral: !generalData.development
-			});
+			const res = await Mentionable.add(interaction.guild?.id, role as string, {
+				cooldown: cooldown.time,
+				lastUsed: -1
+			})
+
+			if (res) {
+				thisConsole.log(`[fg=green]${interaction.guild.name}[/>] Added new mentionable ${role}: ${res}`)
+	
+				await interaction.reply({
+					embeds: [new EmbedBuilder({
+						title: "Registered New Role Cooldown",
+						fields: [
+							{name: 'role', value: `<@&${role}>`, inline: true},
+							{name: 'cooldown', value: `\`${cooldown.toString()}\``, inline: true},
+						]
+					})],
+					ephemeral: !generalData.development
+				});
+			} else {
+				EmitError(new Error(`[fg=green]${interaction.guild.name}[/>] Attempted to add new mentionable ${role} and was unsuccessfull`))
+			}
 		},
 		async removeRole(interaction: ChatInputCommandInteraction) {},
 	},

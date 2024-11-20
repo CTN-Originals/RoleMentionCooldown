@@ -13,7 +13,8 @@ export namespace Mentionable {
 	export async function get(guildId: string, id: string): Promise<IMentionableItem|null> {
 		const doc = await getDocument(guildId);
 		if (!doc) { return null; }
-		return null
+
+		return doc.mentionables[id]
 	}
 	//TODO getAll
 
@@ -63,6 +64,7 @@ export namespace Mentionable {
 			cons.log(`Created new Mentionables document for ${guild.id}`);
 		}
 	}
+	//TODO on guild delete
 
 	
 	/** Once a mentionable is used, update its times
@@ -87,6 +89,7 @@ export namespace Mentionable {
 		if (!doc) { return false; }
 
 		doc.mentionables[id] = data;
+		doc.markModified('mentionables');
 		await doc.save()
 
 		return true
@@ -99,9 +102,7 @@ export namespace Mentionable {
 	 * @returns Wether or not the data has been saved successfully
 	*/
 	export async function edit(guildId: string, id: string, data: IMentionableItem): Promise<boolean> {
-		const doc = await getDocument(guildId);
-		if (!doc) { return false; }
-		return false
+		return await add(guildId, id, data);
 	}
 
 	/** Remove a mentionable
@@ -112,6 +113,11 @@ export namespace Mentionable {
 	export async function remove(guildId: string, id: string): Promise<boolean> {
 		const doc = await getDocument(guildId);
 		if (!doc) { return false; }
+
+		delete doc.mentionables[id]
+		doc.markModified('mentionables');
+		await doc.save()
+
 		return false
 	}
 
