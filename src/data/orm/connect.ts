@@ -32,10 +32,10 @@ export class Database {
 			const conn = await mongoose.connect(dbURI);
 			this.connection = conn.connection;
 			
-			if (generalData.development) {
-				const ping = await conn.connection.db?.admin().ping();
-				cons.logDefault(ping);
-			}
+			// if (generalData.development) {
+			// 	const ping = await conn.connection.db?.admin().ping();
+			// 	cons.logDefault(ping);
+			// }
 		} catch (error) {
 			cons.log('[st=bold][fg=cyan]Database[/>] connection ERROR:\n');
 			errorConsole.log(error);
