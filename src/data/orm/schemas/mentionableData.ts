@@ -1,4 +1,3 @@
-import { Role } from "discord.js";
 import { Schema, SchemaDefinitionProperty, model } from "mongoose";
 
 export type IMentionableItem = {

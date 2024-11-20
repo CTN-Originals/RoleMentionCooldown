@@ -1,6 +1,8 @@
 import mongoose, { Mongoose } from "mongoose";
 import { EmitError } from "../../events";
 import { default as Database, IMentionableItem, IMentionableStorage } from "./schemas/mentionableData";
+import { Guild } from "discord.js";
+import { cons } from "../..";
 
 export namespace Mentionable {
 	/** Get a mentionable by ID
@@ -13,6 +15,55 @@ export namespace Mentionable {
 		if (!doc) { return null; }
 		return null
 	}
+	//TODO getAll
+
+	/** Get the whole document of a guild
+	 * @param guildId The ID of the guild
+	 * @param errorOnNull Should an error be logged if the document doesnt exist?
+	*/
+	export async function getDocument(guildId: string, errorOnNull: boolean = true) {
+		if (errorOnNull) {
+			try {
+				return Database.findOne({ _id: guildId });
+			} catch (e) {
+				const errMessage = `Attempted to find document of guild (${guildId})\n`;
+				if (e instanceof Error) {
+					e.message = errMessage + e.message
+					EmitError(e);
+				} else {
+					EmitError(new Error(errMessage));
+				}
+				return null;
+			}
+		}
+		else {
+			return Database.findOne({ _id: guildId });
+		}
+	}
+	
+
+	/** Create a new document for a guild
+	 * @param guildId The GuildID of the server the mentionable is in
+	 * @param id The ID of the mentionable
+	 * @returns The mentionable if found, null otherwise
+	*/
+	export async function create(guildId: string) {
+		return await Database.create({_id: guildId}).catch(EmitError);
+	}
+
+	/** Once the bot enters a new guild, see if we need to create a new document
+	 * @param guildId The GuildID of the server the mentionable is in
+	 * @param id The ID of the mentionable
+	 * @returns The mentionable if found, null otherwise
+	*/
+	export async function onGuildCreate(guild: Guild): Promise<void> {
+		const doc = await Mentionable.getDocument(guild.id, false);
+		if (doc == null) {
+			await create(guild.id);
+			cons.log(`Created new Mentionables document for ${guild.id}`);
+		}
+	}
+
 	
 	/** Once a mentionable is used, update its times
 	 * @param guildId The GuildID of the server the mentionable is in
@@ -34,6 +85,10 @@ export namespace Mentionable {
 	export async function add(guildId: string, id: string, data: IMentionableItem): Promise<boolean> {
 		const doc = await getDocument(guildId);
 		if (!doc) { return false; }
+
+		doc.mentionables[id] = data;
+		await doc.save()
+
 		return true
 	}
 
@@ -61,18 +116,5 @@ export namespace Mentionable {
 	}
 
 
-	async function getDocument(guildId: string) {
-		try {
-			return Database.findOne({ _id: guildId });
-		} catch (e) {
-			const errMessage = `Attempted to find document of guild (${guildId})\n`;
-			if (e instanceof Error) {
-				e.message = errMessage + e.message
-				EmitError(e);
-			} else {
-				EmitError(new Error(errMessage));
-			}
-			return null;
-		}
-	}
+	
 }
