@@ -34,7 +34,7 @@ async function Awake() {
 	if (process.argv.includes('--deploy')) {
 		cons.log(process.argv);
 		// const deployScript = require('./deployCommands.ts');
-		await deployScript.doDeployCommands().then(() => {
+		await deployScript.doDeployCommands(process.argv.slice(3)).then(() => {
 			process.exit(0);
 		});
 	}

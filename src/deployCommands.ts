@@ -7,7 +7,7 @@ import { cons } from '.';
 import generalData from './data'
 
 
-class DeployInstruction {
+export class DeployInstruction {
 	public guildId: string | undefined;
 	public deploy: string[]; //? The commands to deploy
 	public deployAll: boolean; //? Whether to deploy all commands or not
@@ -78,7 +78,7 @@ function registerCommand(dir: string, file: string) {
 
 const rest = new REST({ version: '9' }).setToken(token);
 
-export async function doDeployCommands(): Promise<boolean> {
+export async function doDeployCommands(args: string[]|DeployInstruction[]): Promise<boolean> {
 	cons.log('Deploying commands...');
 	getCommandFiles('commands');
 	// console.log(guildId);
@@ -87,38 +87,47 @@ export async function doDeployCommands(): Promise<boolean> {
 	//> deleting all commands: --guild=12345 delete=0987654321,43723374678 --guild=1234567890 deleteAll=true
 	//> deleting all Global commands: --deleteAllGlobal=true
 	
-	const deployInstructions: DeployInstruction[] = [];
-	const args = process.argv.slice(3).join(' ').split('--').slice(1);
-	
-	for (const arg of args) {
-		const instruction = arg.split(' ');
-		const deployInstruction: Partial<DeployInstruction> = {};
-		for (const part of instruction) {
-			const partSplit = part.trim().split('=');
-			const key = partSplit[0];
-			const value = partSplit[1];
-			switch (key) { //TODO make this dynamic (get keys from the class)
-				case 'guild':
-				case 'guildID':
-				case 'guildId': deployInstruction.guildId = value; break;
-				case 'deploy': deployInstruction.deploy = value.split(','); break;
-				case 'deployAll': deployInstruction.deployAll = (value == 'true'); break;
-				case 'deployAllGlobal': deployInstruction.deployAllGlobal = (value == 'true'); break;
-	
-				case 'delete': deployInstruction.deleteCommands = value.split(','); break;
-				case 'deleteAll': deployInstruction.deleteAll = (value == 'true'); break;
-	
-				case 'deleteGlobal': deployInstruction.deleteGlobalCommands = value.split(','); break;
-				case 'deleteAllGlobal': deployInstruction.deleteAllGlobal = (value == 'true') ; break;
-				default: 
-					cons.log(`[fg=red]Unknown argument[/>]: ${part}`);
-					continue;
-			}
-
-			cons.log(`${key}: ${value}`);
-		}
-		deployInstructions.push(new DeployInstruction(deployInstruction));
+	if (args.length == 0) {
+		throw new Error('No arguments were given to deploy');
 	}
+
+	let deployInstructions: DeployInstruction[] = [];
+	if (args[0] instanceof DeployInstruction) {
+		deployInstructions = args as DeployInstruction[];
+	}
+	else {
+		args = args.join(' ').split('--').slice(1);
+		for (const arg of args) {
+			const instruction = arg.split(' ');
+			const deployInstruction: Partial<DeployInstruction> = {};
+			for (const part of instruction) {
+				const partSplit = part.trim().split('=');
+				const key = partSplit[0];
+				const value = partSplit[1];
+				switch (key) { //TODO make this dynamic (get keys from the class)
+					case 'guild':
+					case 'guildID':
+					case 'guildId': deployInstruction.guildId = value; break;
+					case 'deploy': deployInstruction.deploy = value.split(','); break;
+					case 'deployAll': deployInstruction.deployAll = (value == 'true'); break;
+					case 'deployAllGlobal': deployInstruction.deployAllGlobal = (value == 'true'); break;
+		
+					case 'delete': deployInstruction.deleteCommands = value.split(','); break;
+					case 'deleteAll': deployInstruction.deleteAll = (value == 'true'); break;
+		
+					case 'deleteGlobal': deployInstruction.deleteGlobalCommands = value.split(','); break;
+					case 'deleteAllGlobal': deployInstruction.deleteAllGlobal = (value == 'true') ; break;
+					default: 
+						cons.log(`[fg=red]Unknown argument[/>]: ${part}`);
+						continue;
+				}
+	
+				cons.log(`${key}: ${value}`);
+			}
+			deployInstructions.push(new DeployInstruction(deployInstruction));
+		}
+	}
+	
 	
 	if (deployInstructions.length == 0) {
 		cons.log('[fg=800000]No arguments provided[/>]');
