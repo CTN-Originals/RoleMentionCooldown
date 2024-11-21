@@ -162,7 +162,7 @@ export namespace Mentionable {
 	*/
 	export async function remove(guildId: string, id: string): Promise<boolean> {
 		const doc = await getDocument(guildId);
-		if (!doc) { return false; }
+		if (!doc || !Object.keys(doc.mentionables).includes(id)) { return false; }
 
 		delete doc.mentionables[id]
 		doc.markModified('mentionables');

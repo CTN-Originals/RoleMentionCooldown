@@ -40,10 +40,12 @@ export default {
 		async execute(interaction: ChatInputCommandInteraction) {
 			const subCommand = interaction.options.getSubcommand();
 			switch (subCommand) {
-				case 'add': this.addRole(interaction); break;
-				case 'remove': this.removeRole(interaction); break;
+				case 'add': return await this.addRole(interaction);
+				case 'remove': return await this.removeRole(interaction);
 				default: break;
 			}
+
+			return false;
 		},
 		async addRole(interaction: ChatInputCommandInteraction) {
 			if (!interaction.guild) {
@@ -78,7 +80,7 @@ export default {
 				});
 
 			} else {
-				throw new Error(`[fg=green]${interaction.guild.name}[/>] Attempted to add new mentionable ${roleId} and was unsuccessfull`)
+				throw new Error(`"${interaction.guild.name}" Attempted to add new mentionable (${roleId}) and was unsuccessfull`)
 			}
 		},
 		async removeRole(interaction: ChatInputCommandInteraction) {
@@ -86,6 +88,13 @@ export default {
 				throw new Error(`Interaction did not contain guild`)
 			}
 			const roleId = interaction.options.get('role', true).value;
+			if (await Mentionable.get(interaction.guild.id, roleId as string) == null) {
+				await interaction.reply({
+					content: `<@&${roleId}> is not included in the mention cooldown list.`,
+					ephemeral: true
+				});
+				return false;
+			}
 
 			const role = interaction.guild.roles.cache.find(r => r.id == roleId);
 			if (!role) {
@@ -99,11 +108,11 @@ export default {
 				
 				await role.setMentionable(false, 'RoleMentionCooldown - Removed'); //? set the role to mentionable so its able to be used
 				await interaction.reply({
-					content: `Successfully removed mention from the list.\nRole is now set to not being mentionable.`,
-					ephemeral: !generalData.development
+					content: `Successfully removed <@&${roleId}> from the list.\n<@&${roleId}> is now set to not being mentionable.`,
+					ephemeral: true
 				});
 			} else {
-				throw new Error(`[fg=green]${interaction.guild.name}[/>] Attempted to remove mentionable ${roleId} and was unsuccessfull`)
+				throw new Error(`"${interaction.guild.name}" Attempted to remove mentionable (${roleId}) and was unsuccessfull`)
 			}
 		},
 	},

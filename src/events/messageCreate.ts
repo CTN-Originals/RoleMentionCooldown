@@ -3,6 +3,8 @@ import { ChannelType, Events, Guild, Message, PermissionFlagsBits } from "discor
 import { EmitError, eventConsole } from "."
 import { Mentionable } from "../data/orm/mentionables"
 import { getTimestamp } from "../utils"
+import { devEnvironment } from "../data"
+import generalData from '../data'
 
 export default {
 	name: Events.MessageCreate,
@@ -40,9 +42,11 @@ export default {
 					});
 				} else {
 					// await message.delete();
-					message.channel.send({
-						content: `Cooldown time remaining: <t:${getTimestamp(Date.now() + Mentionable.Utils.remainingCooldown(mentionables[key]))}:R>`
-					});
+					if (generalData.development) {
+						message.channel.send({
+							content: `Cooldown remaining: <t:${getTimestamp(Date.now() + Mentionable.Utils.remainingCooldown(mentionables[key]))}:R>`
+						});
+					}
 				}
 			}
 		}

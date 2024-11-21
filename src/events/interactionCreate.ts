@@ -43,7 +43,7 @@ export default {
 			const command = interaction.client.commands.get(interaction[nameKey]);
 			response = await command.execute(interaction);
 		} catch (err) {
-			const errorObject: ErrorObject = await EmitError(err as Error, interaction); //?? does "as Error" fuck this? ever??
+			const errorObject: ErrorObject = await EmitError(err as Error, interaction);
 
 			let content = `There was an error while executing this interaction`
 			if (generalData.development) {
@@ -118,7 +118,7 @@ export default {
 			logMessage.push(`[fg=0080ff]user[/>]: [fg=cyan]${logFields.userName}[/>] (${logFields.userId})`);
 			logMessage.push(`[fg=0080ff]channel[/>]: [fg=ad1b70]${logFields.channelName}[/>] (${logFields.channelId})`);
 
-			if (logFields.response) {
+			if (logFields.response !== '') {
 				logMessage.push(`[fg=0080ff]Response[/>]:`);
 				thisConsole.log('\n' + logMessage.join('\n'), response);
 			}
