@@ -47,8 +47,7 @@ export default {
 		},
 		async addRole(interaction: ChatInputCommandInteraction) {
 			if (!interaction.guild) {
-				EmitError(new Error(`Interaction did not contain a guild`))
-				return;
+				throw new Error(`Interaction did not contain guild`)
 			}
 			const role = interaction.options.get('role', true).value;
 			const cooldown = new PeriodOfTime(interaction.options.get('cooldown', true).value as string)
@@ -72,9 +71,27 @@ export default {
 					ephemeral: !generalData.development
 				});
 			} else {
-				EmitError(new Error(`[fg=green]${interaction.guild.name}[/>] Attempted to add new mentionable ${role} and was unsuccessfull`))
+				throw new Error(`[fg=green]${interaction.guild.name}[/>] Attempted to add new mentionable ${role} and was unsuccessfull`)
 			}
 		},
-		async removeRole(interaction: ChatInputCommandInteraction) {},
+		async removeRole(interaction: ChatInputCommandInteraction) {
+			if (!interaction.guild) {
+				throw new Error(`Interaction did not contain guild`)
+			}
+			const role = interaction.options.get('role', true).value;
+
+			const res = await Mentionable.remove(interaction.guild?.id, role as string)
+
+			if (res) {
+				thisConsole.log(`[fg=green]${interaction.guild.name}[/>] Removed mentionable ${role}: ${res}`)
+	
+				await interaction.reply({
+					content: `Successfully removed mention from the list.`,
+					ephemeral: !generalData.development
+				});
+			} else {
+				throw new Error(`[fg=green]${interaction.guild.name}[/>] Attempted to remove mentionable ${role} and was unsuccessfull`)
+			}
+		},
 	},
 }

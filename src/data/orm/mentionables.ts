@@ -5,19 +5,54 @@ import { Guild } from "discord.js";
 import { cons } from "../..";
 
 export namespace Mentionable {
+	export namespace Utils {
+		/** Check if the mentionable is currently on cooldown
+		 * @param mentionable The mentionable object
+		 * @returns true if the mentionable is currently on cooldown, false otherwise
+		*/
+		export function onCooldown(mentionable: IMentionableItem): boolean {
+			return (mentionable.cooldown + mentionable.lastUsed >= Date.now())
+		}
+
+		/** Get the remaining time in milliseconds of the cooldown
+		 * @param mentionable The mentionable object
+		 * @returns The remaining cooldown time
+		*/
+		export function remainingCooldown(mentionable: IMentionableItem): number {
+			return (mentionable.lastUsed + mentionable.cooldown) - Date.now()
+		}
+	}
+
+
+	//? true if the anything has updated sins getAll() was last called
+	let hasChanged: boolean = true;
+	let mentionablesCache: IMentionableStorage = {};
+
+	/** Get a list of all mentionables in a server
+	 * @param guildId The GuildID of the server the mentionable is in
+	 * @returns An object containing all mentionables
+	*/
+	export async function getAll(guildId: string): Promise<IMentionableStorage|null> {
+		if (hasChanged) {
+			const doc = await getDocument(guildId);
+			if (!doc) { return null; }
+
+			mentionablesCache = doc.mentionables;
+			hasChanged = false;
+		}
+
+		return mentionablesCache;
+	}
+
 	/** Get a mentionable by ID
 	 * @param guildId The GuildID of the server the mentionable is in
 	 * @param id The ID of the mentionable
 	 * @returns The mentionable if found, null otherwise
 	*/
 	export async function get(guildId: string, id: string): Promise<IMentionableItem|null> {
-		const doc = await getDocument(guildId);
-		if (!doc) { return null; }
-
-		return doc.mentionables[id]
+		return await getAll(guildId)[id];
 	}
-	//TODO getAll
-
+	
 	/** Get the whole document of a guild
 	 * @param guildId The ID of the guild
 	 * @param errorOnNull Should an error be logged if the document doesnt exist?
@@ -48,6 +83,7 @@ export namespace Mentionable {
 	 * @returns The mentionable if found, null otherwise
 	*/
 	export async function create(guildId: string) {
+		hasChanged = true;
 		return await Database.create({_id: guildId}).catch(EmitError);
 	}
 
@@ -81,8 +117,14 @@ export namespace Mentionable {
 	*/
 	export async function onUsed(guildId: string, id: string): Promise<boolean> {
 		const doc = await getDocument(guildId);
-		if (!doc) { return false; }
-		return false
+		if (!doc || !doc.mentionables[id]) { return false; }
+
+		doc.mentionables[id].lastUsed = new Date().getTime();
+		doc.markModified('mentionables');
+		await doc.save()
+
+		hasChanged = true;
+		return true;
 	}
 	
 	/** Register a new mentionable
@@ -99,6 +141,7 @@ export namespace Mentionable {
 		doc.markModified('mentionables');
 		await doc.save()
 
+		hasChanged = true;
 		return true
 	}
 
@@ -125,9 +168,7 @@ export namespace Mentionable {
 		doc.markModified('mentionables');
 		await doc.save()
 
-		return false
+		hasChanged = true;
+		return true;
 	}
-
-
-	
 }

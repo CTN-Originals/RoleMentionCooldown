@@ -13,7 +13,7 @@ export default {
 	name: Events.Error,
 	once: false,
 
-	async execute(error: Error, interaction?: CommandInteraction): Promise<ErrorObject> {
+	async execute(error: Error, interaction?: CommandInteraction|ChatInputCommandInteraction): Promise<ErrorObject> {
 		const errorObject = new ErrorObject(error);
 
 		errorConsole.log(errorObject.formatError({
@@ -25,7 +25,7 @@ export default {
 		return errorObject;
 	},
 
-	outputLog(errorObject: ErrorObject, interaction: CommandInteraction) {
+	outputLog(errorObject: ErrorObject, interaction: CommandInteraction|ChatInputCommandInteraction) {
 		const interactionType = getInteractionType(interaction);
 
 		const descriptionLines = [`### ${errorObject.errorMessage}`]

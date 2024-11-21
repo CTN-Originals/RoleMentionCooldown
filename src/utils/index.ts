@@ -93,3 +93,19 @@ export function timeUnits(ms: number): {
 		milliseconds: ms // remainder
 	}
 }
+
+//? discords needs a specific timestamp for their timestamp embeds to work...
+export function getTimestamp(date: Date|number): number {
+	let rawTime = '0';
+
+	if (typeof date == 'number') {
+		rawTime = date.toString()
+	} else {
+		rawTime = date.getTime().toString()
+	}
+
+	const timeSplit = rawTime.split('');
+	const time = timeSplit.splice(0, 10).join('');
+	
+	return parseFloat(time);
+}
