@@ -23,3 +23,10 @@
 - [x] either delete the documents of this guild, or give it a delay time to delete these documents
 [x] once a role cooldown is removed, turn off its permission for safety
 [ ] On startup, interate through all servers, and all mentionables to check if any cooldown might have expired while it was down, and start the callbacks for all that are still on cooldown
+[ ] When a role is added, check if that role is above the bots role, and if so, tell the user this is impossible
+
+
+# Prep for public
+[ ] Make a good landiing page for the bots documentation
+[ ] add a contribution guideline document to the github
+[ ] Create a .env-example file
