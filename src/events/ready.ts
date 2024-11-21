@@ -9,6 +9,8 @@ import { EmitError, customEvents } from '.';
 import { cons, errorConsole, testWebhook } from '..';
 import { testEmbed, validateEmbed } from '../utils/embedUtils';
 import { TODO } from '../@types';
+import { Mentionable } from '../data/orm/mentionables';
+import { default as MentionableData } from '../data/orm/schemas/mentionableData'
 
 // import ErrorHandler from '../handlers/errorHandler';
 
@@ -35,8 +37,27 @@ export default {
 			thisConsole.logDefault('Dev Environment:', devEnvironment);
 		}
 
+		this.Initialize(client);
+
 		// await new Promise(resolve => setTimeout(resolve, 1000));
 		this.runTests(client);
+	},
+
+	async Initialize(client: Client) {
+		client.guilds.cache.forEach(async guild => {
+			let mentionableDoc: typeof MentionableData|unknown = await Mentionable.getDocument(guild.id, false);
+			if (!mentionableDoc) {
+				mentionableDoc = await Mentionable.create(guild.id)
+				if (!mentionableDoc) {
+					EmitError(new Error(`Unable to create document`))
+					return;
+				}
+			}
+
+			for (const role in (mentionableDoc as typeof MentionableData)) {
+				//TODO finish this
+			}
+		})
 	},
 
 	async runTests(client: Client) {

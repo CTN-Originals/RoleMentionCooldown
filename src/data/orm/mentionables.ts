@@ -82,7 +82,7 @@ export namespace Mentionable {
 	 * @param guildId The GuildID of the server
 	 * @returns The mentionable if found, null otherwise
 	*/
-	export async function create(guildId: string) {
+	export async function create(guildId: string): Promise<typeof Database|unknown> {
 		hasChanged = true;
 		return await Database.create({_id: guildId}).catch(EmitError);
 	}
