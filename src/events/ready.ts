@@ -12,6 +12,7 @@ import { TODO } from '../@types';
 import { Mentionable } from '../data/orm/mentionables';
 import { IMentionableStorage, default as MentionableData } from '../data/orm/schemas/mentionableData'
 import { timeUnits } from '../utils';
+import { getListEmbed } from '../commands/info/list';
 
 // import ErrorHandler from '../handlers/errorHandler';
 
@@ -31,7 +32,7 @@ export default {
 			devEnvironment.guild = client.guilds.cache.get(process.env.DEV_GUILD_ID!);
 			devEnvironment.user = await client.users.fetch(process.env.DEV_TEST_USER_ID!);
 			devEnvironment.member = devEnvironment.memberList.get(process.env.DEV_TEST_USER_ID!);
-			devEnvironment.channel = devEnvironment.guild?.channels.cache.get(process.env.DEV_TEST_CHANNEL_ID!);
+			devEnvironment.channel = devEnvironment.guild?.channels.cache.get(process.env.DEV_TEST_CHANNEL_ID!) as TextChannel;
 
 			devEnvironment.restCommands = await client.rest.get(Routes.applicationGuildCommands(process.env.CLIENT_ID!, process.env.DEV_GUILD_ID!)) as {id: string, name: string, type: number, guild_id: string}[];
 
@@ -104,6 +105,14 @@ export default {
 		// 		{name: 'cooldown', value: '1.486h'}
 		// 	]
 		// }).execute();
+		// new FakeInteraction('list').execute();
+		try {
+			const message = await devEnvironment.channel?.messages.fetch().then(list => list.find(m => m.id === '1309304556127260732'))
+			await message?.edit({embeds: [await getListEmbed(devEnvironment.guild!)]})
+		} catch (e) {
+			EmitError(e as Error)
+		}
+		
 	}
 };
 
@@ -155,7 +164,7 @@ class FakeInteraction {
 
 	constructor(
 		public commandName: string,
-		options: FakeInteractionInput
+		options?: FakeInteractionInput
 	) {
 		this.user = {
 			id: process.env.DEV_TEST_USER_ID!,
@@ -167,7 +176,7 @@ class FakeInteraction {
 			name: 'bot-testing',
 		}
 
-		this.options = new FakeInteractionOptions(options.options, options.subCommand);
+		this.options = new FakeInteractionOptions(options?.options, options?.subCommand);
 	}
 
 	public get channelId() { return this.channel.id }

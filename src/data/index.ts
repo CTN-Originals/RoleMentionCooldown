@@ -1,4 +1,4 @@
-import { BaseChannel, Client, Collection, Guild, GuildMember, REST, User } from "discord.js"
+import { BaseChannel, Client, Collection, Guild, GuildMember, TextChannel, User } from "discord.js"
 
 
 export const devEnvironment = {
@@ -11,7 +11,7 @@ export const devEnvironment = {
 	guild: undefined as Guild|undefined,
 	user: undefined as User|undefined,
 	member: undefined as GuildMember|undefined,
-	channel: undefined as BaseChannel|undefined,
+	channel: undefined as TextChannel|undefined,
 
 	memberList: new Collection() as Collection<string, GuildMember>,
 	restCommands: undefined as {id: string, name: string, type: number, guild_id: string}[]|undefined,
