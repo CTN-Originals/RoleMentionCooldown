@@ -49,48 +49,61 @@ export default {
 			if (!interaction.guild) {
 				throw new Error(`Interaction did not contain guild`)
 			}
-			const role = interaction.options.get('role', true).value;
-			const cooldown = new PeriodOfTime(interaction.options.get('cooldown', true).value as string)
+			const roleId = interaction.options.get('role', true).value;
+			const cooldown = new PeriodOfTime(interaction.options.get('cooldown', true).value as string);
 
-			const res = await Mentionable.add(interaction.guild?.id, role as string, {
+			const role = interaction.guild.roles.cache.find(r => r.id == roleId);
+			if (!role) {
+				throw new Error(`Unable to find role (${roleId})`);
+			}
+
+			const res = await Mentionable.add(interaction.guild?.id, roleId as string, {
 				cooldown: cooldown.time,
 				lastUsed: -1
 			})
 
 			if (res) {
-				thisConsole.log(`[fg=green]${interaction.guild.name}[/>] Added new mentionable ${role}: ${res}`)
+				thisConsole.log(`[fg=green]${interaction.guild.name}[/>] Added new mentionable ${roleId}: ${res}`)
 	
+				await role.setMentionable(true, 'RoleMentionCooldown - Registered'); //? set the role to mentionable so its able to be used
 				await interaction.reply({
 					embeds: [new EmbedBuilder({
 						title: "Registered New Role Cooldown",
 						fields: [
-							{name: 'role', value: `<@&${role}>`, inline: true},
+							{name: 'role', value: `<@&${roleId}>`, inline: true},
 							{name: 'cooldown', value: `\`${cooldown.toString()}\``, inline: true},
 						]
 					})],
 					ephemeral: !generalData.development
 				});
+
 			} else {
-				throw new Error(`[fg=green]${interaction.guild.name}[/>] Attempted to add new mentionable ${role} and was unsuccessfull`)
+				throw new Error(`[fg=green]${interaction.guild.name}[/>] Attempted to add new mentionable ${roleId} and was unsuccessfull`)
 			}
 		},
 		async removeRole(interaction: ChatInputCommandInteraction) {
 			if (!interaction.guild) {
 				throw new Error(`Interaction did not contain guild`)
 			}
-			const role = interaction.options.get('role', true).value;
+			const roleId = interaction.options.get('role', true).value;
 
-			const res = await Mentionable.remove(interaction.guild?.id, role as string)
+			const role = interaction.guild.roles.cache.find(r => r.id == roleId);
+			if (!role) {
+				throw new Error(`Unable to find role (${roleId})`);
+			}
+
+			const res = await Mentionable.remove(interaction.guild?.id, roleId as string)
 
 			if (res) {
-				thisConsole.log(`[fg=green]${interaction.guild.name}[/>] Removed mentionable ${role}: ${res}`)
-	
+				thisConsole.log(`[fg=green]${interaction.guild.name}[/>] Removed mentionable ${roleId}: ${res}`)
+				
+				await role.setMentionable(false, 'RoleMentionCooldown - Removed'); //? set the role to mentionable so its able to be used
 				await interaction.reply({
-					content: `Successfully removed mention from the list.`,
+					content: `Successfully removed mention from the list.\nRole is now set to not being mentionable.`,
 					ephemeral: !generalData.development
 				});
 			} else {
-				throw new Error(`[fg=green]${interaction.guild.name}[/>] Attempted to remove mentionable ${role} and was unsuccessfull`)
+				throw new Error(`[fg=green]${interaction.guild.name}[/>] Attempted to remove mentionable ${roleId} and was unsuccessfull`)
 			}
 		},
 	},
