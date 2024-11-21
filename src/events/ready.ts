@@ -5,12 +5,13 @@ import { ConsoleInstance } from 'better-console-utilities';
 
 import generalData from '../data';
 import { devEnvironment } from '../data';
-import { EmitError, customEvents } from '.';
+import { EmitError, customEvents, eventConsole } from '.';
 import { cons, errorConsole, testWebhook } from '..';
 import { testEmbed, validateEmbed } from '../utils/embedUtils';
 import { TODO } from '../@types';
 import { Mentionable } from '../data/orm/mentionables';
-import { default as MentionableData } from '../data/orm/schemas/mentionableData'
+import { IMentionableStorage, default as MentionableData } from '../data/orm/schemas/mentionableData'
+import { timeUnits } from '../utils';
 
 // import ErrorHandler from '../handlers/errorHandler';
 
@@ -53,9 +54,32 @@ export default {
 					return;
 				}
 			}
+			
+			const mentionables = await Mentionable.getAll(guild.id);
+			//?? im unable to use thge mentionableDoc here for some reason...
+			for (const roleId in mentionables) {
+				if (roleId == 'placeholder') { continue; }
 
-			for (const role in (mentionableDoc as typeof MentionableData)) {
-				//TODO finish this
+				const role = guild.roles.cache.find(r => r.id == roleId);
+				if (!role) {
+					EmitError(new Error(`Unable to find role (${roleId})`));
+					return;
+				}
+
+				if (!role.mentionable) {
+					if (Mentionable.Utils.isOncooldown(mentionables[roleId])) {
+						if (generalData.development) {
+							eventConsole.log(`[fg=green]Restarting[/>] cooldown timeout: [fg=${role.hexColor}]${role.name}[/>] | ${Mentionable.Utils.remainingCooldown(mentionables[roleId]) / 1000}s`)
+						}
+						Mentionable.startCooldown(guild, roleId, mentionables[roleId])
+					}
+					else {
+						if (generalData.development) {
+							eventConsole.log(`[fg=red]Expired[/>] cooldown: [fg=${role.hexColor}]${role.name}[/>] | ${Mentionable.Utils.remainingCooldown(mentionables[roleId]) / 1000}s`)
+						}
+						Mentionable.onCooldownExpired(role);
+					}
+				}
 			}
 		})
 	},
