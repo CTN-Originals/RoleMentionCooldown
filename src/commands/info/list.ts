@@ -2,8 +2,8 @@ import { EmbedBuilder, SlashCommandBuilder, CommandInteraction, Guild, ChatInput
 import { validateEmbed } from "../../utils/embedUtils";
 import { Mentionable } from "../../data/orm/mentionables";
 
-import { GeneralData } from '../../data'
-import { getTimeDisplay, getTimestamp, timeUnits } from "../../utils";
+import { ColorTheme, GeneralData } from '../../data'
+import { getTimeDisplay, getTimestamp, hexToBit, timeUnits } from "../../utils";
 
 export type ListType = 'all'|'cooldowns';
 
@@ -86,6 +86,7 @@ export async function getCurrentCooldownsEmbed(guild: Guild, type: ListType): Pr
 			{name: `Role`, value: stats.map(s => `<@&${s[0]}>`).join('\n'), inline: true},
 			{name: `Cooldown`, value: stats.map(s => s[1]).join('\n'), inline: true},
 		],
+		color: hexToBit(ColorTheme.embeds.info.asHex),
 		timestamp: Date.now(),
 		footer: {text: new Date().getSeconds().toString()}
 	})

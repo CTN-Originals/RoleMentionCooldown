@@ -1,10 +1,11 @@
 import { ChatInputCommandInteraction, CommandInteraction, EmbedBuilder, SlashCommandBuilder } from "discord.js";
 
-import { GeneralData } from '../../data'
-import { PeriodOfTime } from "../../utils";
+import { ColorTheme, GeneralData } from '../../data'
+import { hexToBit, PeriodOfTime } from "../../utils";
 import { Mentionable } from "../../data/orm/mentionables";
 import { EmitError } from "../../events";
 import { ConsoleInstance } from "better-console-utilities";
+import { validateEmbed } from "../../utils/embedUtils";
 
 const thisConsole = new ConsoleInstance();
 
@@ -69,13 +70,14 @@ export default {
 	
 				await role.setMentionable(true, 'RoleMentionCooldown - Registered'); //? set the role to mentionable so its able to be used
 				await interaction.reply({
-					embeds: [new EmbedBuilder({
+					embeds: [validateEmbed(new EmbedBuilder({
 						title: "Registered New Role Cooldown",
 						fields: [
 							{name: 'role', value: `<@&${roleId}>`, inline: true},
 							{name: 'cooldown', value: `\`${cooldown.toString()}\``, inline: true},
-						]
-					})],
+						],
+						color: hexToBit(ColorTheme.embeds.reply.asHex),
+					}))],
 					ephemeral: !GeneralData.development
 				});
 			} else {

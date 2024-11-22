@@ -110,12 +110,12 @@ export default {
 		
 		// await devEnvironment.channel?.send({content: '<@&811667577985302534>'})
 
-		try {
-			const message = await DevEnvironment.channel?.messages.fetch().then(list => list.find(m => m.id === '1309304556127260732'))
-			await message?.edit({embeds: [await getCurrentCooldownsEmbed(DevEnvironment.guild!, 'all')]})
-		} catch (e) {
-			EmitError(e as Error)
-		}
+		// try {
+		// 	const message = await DevEnvironment.channel?.messages.fetch().then(list => list.find(m => m.id === '1309304556127260732'))
+		// 	await message?.edit({embeds: [await getCurrentCooldownsEmbed(DevEnvironment.guild!, 'all')]})
+		// } catch (e) {
+		// 	EmitError(e as Error)
+		// }
 
 		
 	}

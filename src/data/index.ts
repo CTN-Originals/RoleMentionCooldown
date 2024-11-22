@@ -1,4 +1,6 @@
+import { Color } from "better-console-utilities";
 import { Client, Collection, Guild, GuildMember, TextChannel, User } from "discord.js"
+import { KeyValuePair } from "../@types";
 
 
 export namespace DevEnvironment {
@@ -27,5 +29,20 @@ export namespace GeneralData {
 			enabled: true,
 			verbose: true,
 		}
+	}
+}
+
+export namespace ColorTheme {
+	export const brand: KeyValuePair<Color> = {
+		primary: new Color(),
+		secondary: new Color(),
+		accent: new Color(),
+	}
+
+	export const embeds = {
+		info: new Color('#0077ff'),
+		reply: new Color('#00ff73'),
+		notice: new Color('#ffbb00'),
+		error: new Color('#ff4800'),
 	}
 }

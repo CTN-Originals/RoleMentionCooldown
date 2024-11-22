@@ -1,4 +1,6 @@
 import { EmbedBuilder, SlashCommandBuilder, CommandInteraction } from "discord.js";
+import { hexToBit } from "../../utils";
+import { ColorTheme } from "../../data";
 
 export default {
 	command: {
@@ -28,6 +30,7 @@ export default {
 				embeds: [new EmbedBuilder({
 					title: "Pong!",
 					description: "ping pong!",
+					color: hexToBit(ColorTheme.embeds.reply.asHex)
 				})],
 				ephemeral: true
 			});

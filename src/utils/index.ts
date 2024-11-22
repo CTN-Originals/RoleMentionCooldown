@@ -109,3 +109,7 @@ export function getTimeDisplay(time: number) {
 
 	return `${units.days}d ${formatTime(units.hours)}:${formatTime(units.minutes)}:${formatTime(units.seconds)}`
 }
+
+export function hexToBit(hex: string): number {
+	return parseInt('0x' + hex.replace('#', ''));
+}
