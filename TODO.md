@@ -37,6 +37,7 @@
 - [x] once a role cooldown is removed, turn off its permission for safety
 - [x] On startup, interate through all servers, and all mentionables to check if any cooldown might have expired while it was down, and start the callbacks for all that are still on cooldown
 - [ ] Make an alternate system for cooldown tracking instead of setting a timeout for each cooldown as setTimeout might have unforseen performance impects.
+- [ ] Find a better way to maintain database document function like mentionables.ts or guildConfig.ts
 
 
 # Prep for public
