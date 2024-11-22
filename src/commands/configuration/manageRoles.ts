@@ -113,8 +113,11 @@ export default {
 			if (!interaction.guild) {
 				throw new Error(`Interaction did not contain guild`)
 			}
+			
 			const roleId = interaction.options.get('role', true).value;
-			if (await Mentionable.get(interaction.guild.id, roleId as string) == null) {
+			const mentionable = await Mentionable.get(interaction.guild.id, roleId as string);
+			
+			if (mentionable === undefined) {
 				await interaction.reply({
 					content: `<@&${roleId}> is not included in the mention cooldown list.`,
 					ephemeral: true

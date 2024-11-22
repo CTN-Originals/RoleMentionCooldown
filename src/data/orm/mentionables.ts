@@ -47,7 +47,7 @@ export class Mentionable {
 	*/
 	public static async getAll(guildId: string): Promise<IMentionableStorage|null> {
 		if (Mentionable.hasChanged) {
-			const doc = await this.getDocument(guildId);
+			const doc = await Mentionable.getDocument(guildId);
 
 			Mentionable.mentionablesCache = doc.mentionables;
 			Mentionable.hasChanged = false;
@@ -62,7 +62,9 @@ export class Mentionable {
 	 * @returns The mentionable if found, null otherwise
 	*/
 	public static async get(guildId: string, id: string): Promise<IMentionableItem|null> {
-		return await Mentionable.getAll(guildId)[id];
+		const list = await Mentionable.getAll(guildId);
+		if (list === null) { return null; }
+		return list[id];
 	}
 	
 	/** Check if the mentionable is currently on cooldown
