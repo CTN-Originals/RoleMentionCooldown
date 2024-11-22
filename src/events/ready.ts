@@ -41,8 +41,9 @@ export default {
 
 		this.Initialize(client);
 
-		// await new Promise(resolve => setTimeout(resolve, 1000));
-		this.runTests(client);
+		if (generalData.development) {
+			this.runTests(client);
+		}
 	},
 
 	async Initialize(client: Client) {
