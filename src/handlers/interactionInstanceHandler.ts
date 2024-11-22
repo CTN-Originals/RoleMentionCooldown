@@ -2,7 +2,7 @@ import { CommandInteraction, StringSelectMenuInteraction, ButtonInteraction } fr
 
 import { ConsoleInstance } from "better-console-utilities";
 
-import generalData from "../data";
+import { GeneralData } from "../data";
 
 const thisConsole = new ConsoleInstance();
 
@@ -44,7 +44,7 @@ class InteractionInstanceList {
 
 	deleteInstance(interaction: CommandInteraction | StringSelectMenuInteraction | ButtonInteraction): void {
 		if (!this.interactionInstances[interaction.user.id]) return;
-		if (generalData.logging.interaction.verbose) {
+		if (GeneralData.logging.interaction.verbose) {
 			thisConsole.log(`[fg=red]Deleting[/>] ([fg=cyan]${this.commandName}[/>]) [fg=orange]instance[/>]: ${interaction.user.id}`);
 		}
 

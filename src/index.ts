@@ -5,14 +5,14 @@ import { ConsoleInstance, Theme, ThemeOverride, defaultThemeProfile, defaultFilt
 
 import { getEventFiles } from './startup/registerEvents';
 import { getCommandFiles } from './startup/registerCommands';
-import generalData from './data';
+import { GeneralData } from './data';
 
 import * as deployScript from './deployCommands';
 import { Database } from './data/orm/connect';
 
 //? Set the default theme profile to my preferences
 defaultThemeProfile.overrides.push(...[]);
-defaultFilterKeys.push(...((generalData.logging.streamSafe) ? ['token'] : []));
+defaultFilterKeys.push(...((GeneralData.logging.streamSafe) ? ['token'] : []));
 
 export const cons = new ConsoleInstance();
 export const errorConsole = new ConsoleInstance(defaultThemeProfile.clone());

@@ -3,8 +3,8 @@ import { ChannelType, Events, Guild, Message, PermissionFlagsBits } from "discor
 import { EmitError, eventConsole } from "."
 import { Mentionable } from "../data/orm/mentionables"
 import { getTimestamp } from "../utils"
-import { devEnvironment } from "../data"
-import generalData from '../data'
+import { DevEnvironment } from "../data"
+import { GeneralData } from '../data'
 
 export default {
 	name: Events.MessageCreate,
@@ -31,14 +31,14 @@ export default {
 						return EmitError(new Error(`Attempted to update mentionable (${key})`));
 					}
 					
-					if (generalData.development) {
+					if (GeneralData.development) {
 						message.channel.send({
 							content: `Starting mention cooldown: <t:${getTimestamp(Date.now() + mentionables[key].cooldown)}:R>`,
 							reply: { messageReference: message }
 						});
 					}
 				} else {
-					if (generalData.development) {
+					if (GeneralData.development) {
 						message.channel.send({
 							content: `Cooldown remaining: <t:${getTimestamp(Date.now() + Mentionable.remainingCooldown(mentionables[key]))}:R>`,
 							reply: { messageReference: message }

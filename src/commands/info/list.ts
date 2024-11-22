@@ -2,7 +2,7 @@ import { EmbedBuilder, SlashCommandBuilder, CommandInteraction, Guild, ChatInput
 import { validateEmbed } from "../../utils/embedUtils";
 import { Mentionable } from "../../data/orm/mentionables";
 
-import generalData from '../../data'
+import { GeneralData } from '../../data'
 import { getTimeDisplay, getTimestamp, timeUnits } from "../../utils";
 
 export type ListType = 'all'|'cooldowns';
@@ -34,7 +34,7 @@ export default {
 			
 			await interaction.reply({
 				embeds: [validateEmbed(await getCurrentCooldownsEmbed(interaction.guild, subCommand))],
-				ephemeral: generalData.development
+				ephemeral: GeneralData.development
 			})
 			return true;
 		},

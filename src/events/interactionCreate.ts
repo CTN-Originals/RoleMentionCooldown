@@ -15,7 +15,7 @@ import { ConsoleInstance } from 'better-console-utilities';
 import { EmitError, eventConsole } from '.';
 import { errorConsole } from '..';
 import { IInteractionTypeData, getHoistedOptions, getInteractionType } from '../utils/interactionUtils';
-import generalData from '../data';
+import { GeneralData } from '../data';
 import { ErrorObject } from '../handlers/errorHandler';
 
 const thisConsole = new ConsoleInstance();
@@ -46,7 +46,7 @@ export default {
 			const errorObject: ErrorObject = await EmitError(err as Error, interaction);
 
 			let content = `There was an error while executing this interaction`
-			if (generalData.development) {
+			if (GeneralData.development) {
 				content += '\n```ts\n' + errorObject.formatError({shortenPaths: true, colorize: false}) + '\n```';
 			}
 
@@ -69,7 +69,7 @@ export default {
 	},
 
 	outputLog(interaction, response = null) {
-		if (generalData.logging.interaction.enabled) {
+		if (GeneralData.logging.interaction.enabled) {
 			const interactionType: IInteractionTypeData = getInteractionType(interaction)
 			const logFields = {
 				commandName: '',

@@ -3,8 +3,8 @@ import { Client, ComponentType, EmbedBuilder, Events, Guild, Interaction, Intera
 
 import { ConsoleInstance } from 'better-console-utilities';
 
-import generalData from '../data';
-import { devEnvironment } from '../data';
+import { GeneralData } from '../data';
+import { DevEnvironment } from '../data';
 import { EmitError, customEvents, eventConsole } from '.';
 import { cons, errorConsole, testWebhook } from '..';
 import { testEmbed, validateEmbed } from '../utils/embedUtils';
@@ -25,23 +25,23 @@ export default {
 	async execute(client: Client, ...args: any[]) {
 		thisConsole.log(`Logged in as ${client.user?.tag}!\n`);
 
-		if (generalData.development) {
-			devEnvironment.client = client;
+		if (GeneralData.development) {
+			DevEnvironment.client = client;
 			// devEnvironment.memberList = devGuildMembers as Collection<string, GuildMember>;
 
-			devEnvironment.guild = client.guilds.cache.get(process.env.DEV_GUILD_ID!);
-			devEnvironment.user = await client.users.fetch(process.env.DEV_TEST_USER_ID!);
-			devEnvironment.member = devEnvironment.memberList.get(process.env.DEV_TEST_USER_ID!);
-			devEnvironment.channel = devEnvironment.guild?.channels.cache.get(process.env.DEV_TEST_CHANNEL_ID!) as TextChannel;
+			DevEnvironment.guild = client.guilds.cache.get(process.env.DEV_GUILD_ID!);
+			DevEnvironment.user = await client.users.fetch(process.env.DEV_TEST_USER_ID!);
+			DevEnvironment.member = DevEnvironment.memberList.get(process.env.DEV_TEST_USER_ID!);
+			DevEnvironment.channel = DevEnvironment.guild?.channels.cache.get(process.env.DEV_TEST_CHANNEL_ID!) as TextChannel;
 
-			devEnvironment.restCommands = await client.rest.get(Routes.applicationGuildCommands(process.env.CLIENT_ID!, process.env.DEV_GUILD_ID!)) as {id: string, name: string, type: number, guild_id: string}[];
+			DevEnvironment.restCommands = await client.rest.get(Routes.applicationGuildCommands(process.env.CLIENT_ID!, process.env.DEV_GUILD_ID!)) as {id: string, name: string, type: number, guild_id: string}[];
 
-			thisConsole.logDefault('Dev Environment:', devEnvironment);
+			thisConsole.logDefault('Dev Environment:', DevEnvironment);
 		}
 
 		this.Initialize(client);
 
-		if (generalData.development) {
+		if (GeneralData.development) {
 			this.runTests(client);
 		}
 	},
@@ -70,13 +70,13 @@ export default {
 
 				if (!role.mentionable) {
 					if (Mentionable.isOncooldown(mentionables[roleId])) {
-						if (generalData.development) {
+						if (GeneralData.development) {
 							eventConsole.log(`[fg=green]Restarting[/>] cooldown timeout: [fg=${role.hexColor}]${role.name}[/>] | ${Mentionable.remainingCooldown(mentionables[roleId]) / 1000}s`)
 						}
 						Mentionable.startCooldown(guild, roleId, mentionables[roleId])
 					}
 					else {
-						if (generalData.development) {
+						if (GeneralData.development) {
 							eventConsole.log(`[fg=red]Expired[/>] cooldown: [fg=${role.hexColor}]${role.name}[/>] | ${Mentionable.remainingCooldown(mentionables[roleId]) / 1000}s`)
 						}
 						Mentionable.onCooldownExpired(role);
@@ -88,7 +88,7 @@ export default {
 
 	async runTests(client: Client) {
 		const guild: Guild|undefined = client.guilds.cache.get(process.env.DEV_GUILD_ID!);
-		const channel: TextChannel = await devEnvironment.client?.channels.fetch(devEnvironment.channelId) as TextChannel;
+		const channel: TextChannel = await DevEnvironment.client?.channels.fetch(DevEnvironment.channelId) as TextChannel;
 		// const collector: MessageCollector = channel!.createMessageCollector({
 		// 	filter: (message) => message.content.includes('test')
 		// })
@@ -111,8 +111,8 @@ export default {
 		// await devEnvironment.channel?.send({content: '<@&811667577985302534>'})
 
 		try {
-			const message = await devEnvironment.channel?.messages.fetch().then(list => list.find(m => m.id === '1309304556127260732'))
-			await message?.edit({embeds: [await getCurrentCooldownsEmbed(devEnvironment.guild!, 'all')]})
+			const message = await DevEnvironment.channel?.messages.fetch().then(list => list.find(m => m.id === '1309304556127260732'))
+			await message?.edit({embeds: [await getCurrentCooldownsEmbed(DevEnvironment.guild!, 'all')]})
 		} catch (e) {
 			EmitError(e as Error)
 		}
@@ -157,8 +157,8 @@ class FakeInteractionOptions {
 }
 
 class FakeInteraction {
-	public client: Client<boolean> = devEnvironment.client!;
-	public guild: Guild = devEnvironment.guild!;
+	public client: Client<boolean> = DevEnvironment.client!;
+	public guild: Guild = DevEnvironment.guild!;
 	public type: InteractionType = InteractionType.ApplicationCommand;
 	public componentType: ComponentType = 1;
 

@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import { cons, errorConsole } from "../..";
-import generalData from '../index';
+import { GeneralData } from '../index';
 import { EmitError } from "../../events";
 
 //? something like: mongodb+srv://<username>:<password>@<hostname>/<dbname>
@@ -10,7 +10,7 @@ const mongoUser = encodeURIComponent(process.env.DATABASE_USERNAME!);
 const mongoPass = encodeURIComponent(process.env.DATABASE_PASSWORD!);
 const mongoHost = encodeURIComponent(process.env.DATABASE_HOSTNAME!);
 
-const dbURI =  generalData.production ? 
+const dbURI =  GeneralData.production ? 
 	dbURITemplate
 		.replace('<username>', mongoUser)
 		.replace('<password>', mongoPass)
@@ -32,7 +32,7 @@ export class Database {
 			const conn = await mongoose.connect(dbURI);
 			this.connection = conn.connection;
 			
-			// if (generalData.development) {
+			// if (GeneralData.development) {
 			// 	const ping = await conn.connection.db?.admin().ping();
 			// 	cons.logDefault(ping);
 			// }

@@ -1,27 +1,27 @@
-import { BaseChannel, Client, Collection, Guild, GuildMember, TextChannel, User } from "discord.js"
+import { Client, Collection, Guild, GuildMember, TextChannel, User } from "discord.js"
 
 
-export const devEnvironment = {
-	clientId: process.env.DEV_CLIENT_ID as string,
-	guildId: process.env.DEV_GUILD_ID as string,
-	channelId: process.env.DEV_TEST_CHANNEL_ID as string,
-	userId: process.env.DEV_TEST_USER_ID as string,
+export namespace DevEnvironment {
+	export const clientId = process.env.DEV_CLIENT_ID as string;
+	export const guildId = process.env.DEV_GUILD_ID as string;
+	export const channelId = process.env.DEV_TEST_CHANNEL_ID as string;
+	export const userId = process.env.DEV_TEST_USER_ID as string;
 
-	client: undefined as Client|undefined,
-	guild: undefined as Guild|undefined,
-	user: undefined as User|undefined,
-	member: undefined as GuildMember|undefined,
-	channel: undefined as TextChannel|undefined,
+	export let client = undefined as Client|undefined;
+	export let guild = undefined as Guild|undefined;
+	export let user = undefined as User|undefined;
+	export let member = undefined as GuildMember|undefined;
+	export let channel = undefined as TextChannel|undefined;
 
-	memberList: new Collection() as Collection<string, GuildMember>,
-	restCommands: undefined as {id: string, name: string, type: number, guild_id: string}[]|undefined,
+	export let memberList = new Collection() as Collection<string, GuildMember>;
+	export let restCommands = undefined as {id: string, name: string, type: number, guild_id: string}[]|undefined;
 }
 
-export default {
-	development: true,
-	production: false,
+export namespace GeneralData {
+	export const development = true;
+	export const production = false;
 	
-	logging: {
+	export const logging = {
 		streamSafe: false, //? If true, the custom console will filter out any dangerouse info
 		interaction: {
 			enabled: true,

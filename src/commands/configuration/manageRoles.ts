@@ -1,6 +1,6 @@
 import { ChatInputCommandInteraction, CommandInteraction, EmbedBuilder, SlashCommandBuilder } from "discord.js";
 
-import generalData from '../../data'
+import { GeneralData } from '../../data'
 import { PeriodOfTime } from "../../utils";
 import { Mentionable } from "../../data/orm/mentionables";
 import { EmitError } from "../../events";
@@ -76,7 +76,7 @@ export default {
 							{name: 'cooldown', value: `\`${cooldown.toString()}\``, inline: true},
 						]
 					})],
-					ephemeral: !generalData.development
+					ephemeral: !GeneralData.development
 				});
 			} else {
 				throw new Error(`"${interaction.guild.name}" Attempted to add new mentionable (${roleId}) and was unsuccessfull`)

@@ -4,7 +4,7 @@ import * as fs from 'node:fs';
 import 'dotenv/config';
 
 import { cons } from '.';
-import generalData from './data'
+import { GeneralData } from './data'
 
 
 export class DeployInstruction {
@@ -135,7 +135,7 @@ export async function doDeployCommands(args: string[]|DeployInstruction[]): Prom
 	}
 	else {
 		cons.log(`Instructions provided: ${deployInstructions.length}`);
-		if (generalData.development) {
+		if (GeneralData.development) {
 			cons.log(deployInstructions);
 		}
 	}
