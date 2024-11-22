@@ -5,25 +5,6 @@ import { Guild, Role } from "discord.js";
 import { cons } from "../..";
 
 export namespace Mentionable {
-	export namespace Utils {
-		/** Check if the mentionable is currently on cooldown
-		 * @param mentionable The mentionable object
-		 * @returns true if the mentionable is currently on cooldown, false otherwise
-		*/
-		export function isOncooldown(mentionable: IMentionableItem): boolean {
-			return (mentionable.cooldown + mentionable.lastUsed >= Date.now())
-		}
-
-		/** Get the remaining time in milliseconds of the cooldown
-		 * @param mentionable The mentionable object
-		 * @returns The remaining cooldown time
-		*/
-		export function remainingCooldown(mentionable: IMentionableItem): number {
-			return (mentionable.lastUsed + mentionable.cooldown) - Date.now()
-		}
-	}
-
-
 	//? true if the anything has updated sins getAll() was last called
 	let hasChanged: boolean = true;
 	
@@ -80,6 +61,22 @@ export namespace Mentionable {
 		else {
 			return Database.findOne({ _id: guildId });
 		}
+	}
+
+	/** Check if the mentionable is currently on cooldown
+	 * @param mentionable The mentionable object
+	 * @returns true if the mentionable is currently on cooldown, false otherwise
+	*/
+	export function isOncooldown(mentionable: IMentionableItem): boolean {
+		return (mentionable.cooldown + mentionable.lastUsed >= Date.now())
+	}
+
+	/** Get the remaining time in milliseconds of the cooldown
+	 * @param mentionable The mentionable object
+	 * @returns The remaining cooldown time
+	*/
+	export function remainingCooldown(mentionable: IMentionableItem): number {
+		return (mentionable.lastUsed + mentionable.cooldown) - Date.now()
 	}
 	//#endregion
 	

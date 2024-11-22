@@ -12,9 +12,11 @@
 - [ ] Admin role, a role that can manage the configurations of this bot
 - [ ] Option to keep track of a cooldown per channel, if mention is used in channel x, it will still be able to be used in channel y, but both x and y will have their own cooldown tracker
 - [ ] 2 options to allow a mentionable to be mentioned in x time range a maximum of y amount of times
+- [ ] While adding another role, also give the option to allow bot users to trigger the cooldown (default false)
 
 ## Commands
 - [ ] /list command to list all mention cooldowns with their current cooldown time raped in a relative timestamp
+	- [ ] Add paging functionality into the lists as there is a chance a server might add so many roles that it will overflow the embed limits
 - [ ] /toggle , if set to false, it wont check if any mentionables are mentioned in messages
 - [ ] Toggle all mentionables mention permission, if false, all mentionables cant be used nomatter the cooldown untill turned off again
 

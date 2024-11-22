@@ -31,15 +31,8 @@ export class PeriodOfTime {
 		this.time = duration(this.formatedInput).asMilliseconds();
 	}
 
-	public toString(compact: boolean = true): string {
-		const units = timeUnits(this.time);
-		const formatTime = (t: number) => {return (t < 10) ? `0${t}` : t}
-
-		if (compact) {
-			return `${units.days}d ${formatTime(units.hours)}:${formatTime(units.minutes)}:${formatTime(units.seconds)}`
-		} else {
-			return `${units.days} days ${units.hours} hours ${units.minutes} minutes ${units.seconds} seconds`
-		}
+	public toString(): string {
+		return getTimeDisplay(this.time);
 	}
 
 	public get dateTime(): Date {
@@ -108,4 +101,11 @@ export function getTimestamp(date: Date|number): number {
 	const time = timeSplit.splice(0, 10).join('');
 	
 	return parseFloat(time);
+}
+
+export function getTimeDisplay(time: number) {
+	const units = timeUnits(time);
+	const formatTime = (t: number) => {return (t < 10) ? `0${t}` : t}
+
+	return `${units.days}d ${formatTime(units.hours)}:${formatTime(units.minutes)}:${formatTime(units.seconds)}`
 }

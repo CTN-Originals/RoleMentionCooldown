@@ -21,7 +21,7 @@ export default {
 
 		for (const key in mentionables) {
 			if (message.content.includes(`<@&${key}>`)) {
-				if (!Mentionable.Utils.isOncooldown(mentionables[key])) { //- if not on cooldown
+				if (!Mentionable.isOncooldown(mentionables[key])) { //- if not on cooldown
 					const role = message.guild.roles.cache.find(r => r.id == key);
 					if (!role) {
 						return EmitError(new Error(`Unable to find role (${key})`));
@@ -40,7 +40,7 @@ export default {
 				} else {
 					if (generalData.development) {
 						message.channel.send({
-							content: `Cooldown remaining: <t:${getTimestamp(Date.now() + Mentionable.Utils.remainingCooldown(mentionables[key]))}:R>`,
+							content: `Cooldown remaining: <t:${getTimestamp(Date.now() + Mentionable.remainingCooldown(mentionables[key]))}:R>`,
 							reply: { messageReference: message }
 						});
 					}

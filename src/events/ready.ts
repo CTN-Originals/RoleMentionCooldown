@@ -12,7 +12,7 @@ import { TODO } from '../@types';
 import { Mentionable } from '../data/orm/mentionables';
 import { IMentionableStorage, default as MentionableData } from '../data/orm/schemas/mentionableData'
 import { timeUnits } from '../utils';
-import { getListEmbed } from '../commands/info/list';
+import { getCurrentCooldownsEmbed } from '../commands/info/list';
 
 // import ErrorHandler from '../handlers/errorHandler';
 
@@ -68,15 +68,15 @@ export default {
 				}
 
 				if (!role.mentionable) {
-					if (Mentionable.Utils.isOncooldown(mentionables[roleId])) {
+					if (Mentionable.isOncooldown(mentionables[roleId])) {
 						if (generalData.development) {
-							eventConsole.log(`[fg=green]Restarting[/>] cooldown timeout: [fg=${role.hexColor}]${role.name}[/>] | ${Mentionable.Utils.remainingCooldown(mentionables[roleId]) / 1000}s`)
+							eventConsole.log(`[fg=green]Restarting[/>] cooldown timeout: [fg=${role.hexColor}]${role.name}[/>] | ${Mentionable.remainingCooldown(mentionables[roleId]) / 1000}s`)
 						}
 						Mentionable.startCooldown(guild, roleId, mentionables[roleId])
 					}
 					else {
 						if (generalData.development) {
-							eventConsole.log(`[fg=red]Expired[/>] cooldown: [fg=${role.hexColor}]${role.name}[/>] | ${Mentionable.Utils.remainingCooldown(mentionables[roleId]) / 1000}s`)
+							eventConsole.log(`[fg=red]Expired[/>] cooldown: [fg=${role.hexColor}]${role.name}[/>] | ${Mentionable.remainingCooldown(mentionables[roleId]) / 1000}s`)
 						}
 						Mentionable.onCooldownExpired(role);
 					}
@@ -106,12 +106,16 @@ export default {
 		// 	]
 		// }).execute();
 		// new FakeInteraction('list').execute();
+		
+		// await devEnvironment.channel?.send({content: '<@&811667577985302534>'})
+
 		try {
 			const message = await devEnvironment.channel?.messages.fetch().then(list => list.find(m => m.id === '1309304556127260732'))
-			await message?.edit({embeds: [await getListEmbed(devEnvironment.guild!)]})
+			await message?.edit({embeds: [await getCurrentCooldownsEmbed(devEnvironment.guild!, 'all')]})
 		} catch (e) {
 			EmitError(e as Error)
 		}
+
 		
 	}
 };

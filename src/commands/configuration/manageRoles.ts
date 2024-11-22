@@ -78,10 +78,11 @@ export default {
 					})],
 					ephemeral: !generalData.development
 				});
-
 			} else {
 				throw new Error(`"${interaction.guild.name}" Attempted to add new mentionable (${roleId}) and was unsuccessfull`)
 			}
+
+			return true;
 		},
 		async removeRole(interaction: ChatInputCommandInteraction) {
 			if (!interaction.guild) {
@@ -114,6 +115,8 @@ export default {
 			} else {
 				throw new Error(`"${interaction.guild.name}" Attempted to remove mentionable (${roleId}) and was unsuccessfull`)
 			}
+
+			return true
 		},
 	},
 }
