@@ -15,11 +15,12 @@
 - [ ] While adding another role, also give the option to allow bot users to trigger the cooldown (default false)
 
 ## Commands
-- [ ] /list command to list all mention cooldowns with their current cooldown time raped in a relative timestamp
+- [x] When a role is added, check if that role is above the bots role, and if so, tell the user this is impossible
+- [x] /list command to list all mention cooldowns with their current cooldown time raped in a relative timestamp
 	- [ ] Add paging functionality into the lists as there is a chance a server might add so many roles that it will overflow the embed limits
+- [ ] for /rolecooldown add: check if the user entered a number without any letters after it, and if so, notify them about the correct usage
 - [ ] /toggle , if set to false, it wont check if any mentionables are mentioned in messages
 - [ ] Toggle all mentionables mention permission, if false, all mentionables cant be used nomatter the cooldown untill turned off again
-- [ ] for /rolecooldown add: check if the user entered a number without any letters after it, and if so, notify them about the correct usage
 
 ## Other
 - [x] Tunr on/off the mentionable permission for any role for members depending on its cooldown
@@ -35,11 +36,11 @@
 - [x] either delete the documents of this guild, or give it a delay time to delete these documents
 - [x] once a role cooldown is removed, turn off its permission for safety
 - [x] On startup, interate through all servers, and all mentionables to check if any cooldown might have expired while it was down, and start the callbacks for all that are still on cooldown
-- [ ] When a role is added, check if that role is above the bots role, and if so, tell the user this is impossible
 - [ ] Make an alternate system for cooldown tracking instead of setting a timeout for each cooldown as setTimeout might have unforseen performance impects.
 
 
 # Prep for public
+- [ ] Test how the bot works while being on multiple servers
 - [ ] Make a good landiing page for the bots documentation
 - [ ] add a contribution guideline document to the github
 - [ ] Create a .env-example file
