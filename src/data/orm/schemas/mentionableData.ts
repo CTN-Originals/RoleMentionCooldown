@@ -1,4 +1,4 @@
-import { Schema, SchemaDefinitionProperty, model } from "mongoose";
+import { Document, Schema, SchemaDefinitionProperty, model } from "mongoose";
 
 export type IMentionableItem = {
 	cooldown: number,
@@ -8,9 +8,14 @@ export type IMentionableStorage = {
 	[mentionable: string]: IMentionableItem
 }
 
-const MentionablesData = new Schema({
+
+export interface IMentionableData extends Document {
+	_id: string,
+	mentionables: IMentionableStorage
+}
+const MentionablesData = new Schema<IMentionableData>({
 	_id: String,
 	mentionables: {type: Object, default: {}} as SchemaDefinitionProperty,
 })
 
-export default model('Mentionables', MentionablesData);
+export default model<IMentionableData>('Mentionables', MentionablesData);

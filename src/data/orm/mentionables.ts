@@ -1,6 +1,6 @@
-import mongoose, { Mongoose } from "mongoose";
+import mongoose, { Model, Mongoose } from "mongoose";
 import { EmitError } from "../../events";
-import { default as Database, IMentionableItem, IMentionableStorage } from "./schemas/mentionableData";
+import { default as Database, IMentionableData, IMentionableItem, IMentionableStorage } from "./schemas/mentionableData";
 import { Guild, Role } from "discord.js";
 import { cons } from "../..";
 import { ObjectRelationalMap } from ".";
@@ -38,7 +38,7 @@ export class Mentionable {
 		// 	return Database.findOne({ _id: guildId });
 		// }
 
-		return await ObjectRelationalMap.getDocument(Database, guildId, errorIfNull)
+		return await ObjectRelationalMap.getDocument<IMentionableData>(Database, guildId, errorIfNull)
 	}
 
 	/** Get a list of all mentionables in a server
@@ -47,8 +47,7 @@ export class Mentionable {
 	*/
 	public static async getAll(guildId: string): Promise<IMentionableStorage|null> {
 		if (Mentionable.hasChanged) {
-			const doc = await Mentionable.getDocument(guildId);
-			if (!doc) { return null; }
+			const doc = await this.getDocument(guildId);
 
 			Mentionable.mentionablesCache = doc.mentionables;
 			Mentionable.hasChanged = false;
