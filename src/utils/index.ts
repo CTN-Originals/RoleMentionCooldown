@@ -1,3 +1,4 @@
+import { Color } from "better-console-utilities";
 import { duration } from "moment";
 
 //? a class that can take a string like 23s 69m 2h and turn it into a time length of 23 seconds, 9 minutes and 3 hours.
@@ -110,6 +111,13 @@ export function getTimeDisplay(time: number) {
 	return `${units.days}d ${formatTime(units.hours)}:${formatTime(units.minutes)}:${formatTime(units.seconds)}`
 }
 
-export function hexToBit(hex: string): number {
-	return parseInt('0x' + hex.replace('#', ''));
+export function hexToBit(hex: string): number;
+export function hexToBit(color: Color): number;
+export function hexToBit(hex_color: string|Color): number {
+	if (typeof hex_color == 'string') {
+		return parseInt('0x' + hex_color.replace('#', ''));
+	}
+	else {
+		return parseInt('0x' + hex_color.asHex.replace('#', ''));
+	}
 }

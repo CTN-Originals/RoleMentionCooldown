@@ -6,6 +6,7 @@ import { Mentionable } from "../../data/orm/mentionables";
 import { EmitError } from "../../events";
 import { ConsoleInstance } from "better-console-utilities";
 import { validateEmbed } from "../../utils/embedUtils";
+import { client } from "../..";
 
 const thisConsole = new ConsoleInstance();
 
@@ -59,6 +60,28 @@ export default {
 			if (!role) {
 				throw new Error(`Unable to find role (${roleId})`);
 			}
+			else {
+				const botMember = interaction.guild.members.cache.get(client.user!.id);
+				if (!botMember?.roles.highest.position || botMember?.roles.highest.position < role.position) {
+					await interaction.reply({
+						embeds: [validateEmbed(new EmbedBuilder({
+							title: 'Unable to add role',
+							description: [
+								`My highest role (<@&${botMember?.roles.highest.id}>)`,
+								`is positioned below the role you tried to add (<@&${role.id}>)`,
+								`I can not manage roles that are placed above my own.\n`,
+								`If you still like to add this role to this list,`,
+								`you have to raise my highest role (<@&${botMember?.roles.highest.id}>)`,
+								`above the role you want to add (<@&${role.id}>) or vise versa.`,
+							].join('\n'),
+							color: hexToBit(ColorTheme.embeds.notice)
+						}))],
+						ephemeral: true
+					});
+
+					return `Selected role is above my highest role`
+				}
+			}
 
 			const res = await Mentionable.add(interaction.guild?.id, roleId as string, {
 				cooldown: cooldown.time,
@@ -76,7 +99,7 @@ export default {
 							{name: 'role', value: `<@&${roleId}>`, inline: true},
 							{name: 'cooldown', value: `\`${cooldown.toString()}\``, inline: true},
 						],
-						color: hexToBit(ColorTheme.embeds.reply.asHex),
+						color: hexToBit(ColorTheme.embeds.reply),
 					}))],
 					ephemeral: !GeneralData.development
 				});
