@@ -3,6 +3,7 @@ import { Events, Guild } from "discord.js";
 import { Mentionable } from "../data/orm/mentionables";
 import { DeployInstruction, doDeployCommands } from "../deployCommands";
 import { eventConsole } from ".";
+import { GuildConfig } from "../data/orm/guildConfig";
 
 export default {
 	name: Events.GuildCreate,
@@ -17,5 +18,6 @@ export default {
 		})])
 
 		Mentionable.onGuildCreate(guild);
+		GuildConfig.onGuildCreate(guild);
 	},
 }
