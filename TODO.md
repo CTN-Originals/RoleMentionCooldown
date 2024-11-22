@@ -19,6 +19,7 @@
 	- [ ] Add paging functionality into the lists as there is a chance a server might add so many roles that it will overflow the embed limits
 - [ ] /toggle , if set to false, it wont check if any mentionables are mentioned in messages
 - [ ] Toggle all mentionables mention permission, if false, all mentionables cant be used nomatter the cooldown untill turned off again
+- [ ] for /rolecooldown add: check if the user entered a number without any letters after it, and if so, notify them about the correct usage
 
 ## Other
 - [x] Tunr on/off the mentionable permission for any role for members depending on its cooldown
