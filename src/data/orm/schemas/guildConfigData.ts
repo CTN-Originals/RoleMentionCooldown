@@ -2,7 +2,7 @@ import { Document, Schema, SchemaDefinitionProperty, model } from "mongoose";
 
 export interface IGuildConfigData extends Document {
 	_id: string,
-	adminRole: string[]
+	adminRoles: string[]
 }
 export const GuildConfigData = new Schema({
 	_id: String,
