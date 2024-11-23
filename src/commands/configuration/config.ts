@@ -16,6 +16,10 @@ export default {
 		data: new SlashCommandBuilder()
 		.setName("config")
 		.setDescription("Configure this bots settings")
+		.addSubcommand(sub => sub
+			.setName("display")
+			.setDescription("Display the current server configurations")
+		)
 		.addSubcommandGroup(subGroup => subGroup
 			.setName("admin-role")
 			.setDescription("Add/Remove an admin role to/from the list")
@@ -40,14 +44,34 @@ export default {
 		),
 		async execute(interaction: RequiredFields<ChatInputCommandInteraction, 'guildId'>) {
 			const config = await GuildConfig.get(interaction.guildId!);
+			
+			const subGroup = interaction.options.getSubcommandGroup();
+			const subCommand = interaction.options.getSubcommand();
 
-			switch (interaction.options.getSubcommandGroup()) {
+			switch (subCommand) {
+				case 'display': { return await this.displayConfig(interaction, config); }
+				default: break;
+			}
+			switch (subGroup) {
 				case 'admin-role': { return await this.adminRole(interaction, config); }
 				default: break;
 			}
 			
 			//? if code reaches here, that means that all subcommands and groups fell through somehow...
-			throw new Error(`Unknown command`);
+			throw new Error(`Unknown command command:${interaction.commandName} group:${subGroup} sub:${subCommand}`);
+		},
+
+		async displayConfig(interaction: RequiredFields<ChatInputCommandInteraction, 'guildId'>, config: IGuildConfigData) {
+			await interaction.reply({
+				embeds: [validateEmbed(new EmbedBuilder({
+					title: `${interaction.guild!.name} Server Configurations`,
+					fields: [
+						{ name: 'Admin Roles', value: config.adminRoles.map(r => `<@&${r}>`).join(' ')}
+					],
+					color: hexToBit(ColorTheme.embeds.info)
+				}))],
+				ephemeral: true
+			})
 		},
 
 		async adminRole(interaction: RequiredFields<ChatInputCommandInteraction, 'guildId'>, config: IGuildConfigData) {
