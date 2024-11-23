@@ -7,9 +7,9 @@
 
 # Features
 ## Configs
+- [x] Admin role, a role that can manage the configurations of this bot
 - [ ] Option to only apply the mentionable cooldown in specific channels
 - [ ] Option to only permit surtain roles to use the mentionable
-- [ ] Admin role, a role that can manage the configurations of this bot
 - [ ] Option to keep track of a cooldown per channel, if mention is used in channel x, it will still be able to be used in channel y, but both x and y will have their own cooldown tracker
 - [ ] 2 options to allow a mentionable to be mentioned in x time range a maximum of y amount of times
 - [ ] While adding another role, also give the option to allow bot users to trigger the cooldown (default false)
@@ -44,7 +44,10 @@
 - [ ] Rewrite registerCommands with more of a typescript mindset... i was sush a noob back when i wrote that script :/
 
 # Prep for public
+## Bot
 - [ ] Test how the bot works while being on multiple servers
 - [ ] Make a good landiing page for the bots documentation
+
+## Code
 - [ ] add a contribution guideline document to the github
 - [ ] Create a .env-example file
