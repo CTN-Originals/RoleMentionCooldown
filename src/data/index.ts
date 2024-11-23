@@ -34,9 +34,10 @@ export namespace GeneralData {
 
 export namespace ColorTheme {
 	export const brand: KeyValuePair<Color> = {
-		primary: new Color(),
-		secondary: new Color(),
-		accent: new Color(),
+		primary: new Color('#3fb7e9'),
+		secondary: new Color('#2a55e2'),
+		accent: new Color('#92d5e8'),
+		background: new Color('#090909')
 	}
 
 	export const embeds = {
