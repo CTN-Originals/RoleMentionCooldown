@@ -14,7 +14,6 @@ const thisConsole = new ConsoleInstance();
 export default {
 	command: {
 		permissions: new PermissionObject({
-			guildOwner: true,
 			guildAdmin: true,
 			configAdmin: true,
 		}),

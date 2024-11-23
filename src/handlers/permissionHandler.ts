@@ -13,7 +13,7 @@ export enum GuildMemberType {
  * @note The permissions check will pass at a single match, it is not required to match all 'true' values.
 */
 export class PermissionObject {
-	public guildOwner: boolean = false;
+	// public guildOwner: boolean = false; //?? redundent, admin and owner are interchangable, i think
 	public guildAdmin: boolean = false;
 	public configAdmin: boolean = false;
 	public botCreator: boolean = false;
@@ -85,7 +85,7 @@ export class UserPermissions {
 		if (
 			permissions.combined ||
 			(permissions.guildAdmin && memberType === GuildMemberType.Admin) ||
-			(permissions.guildOwner && memberType === GuildMemberType.Owner) ||
+			// (permissions.guildOwner && memberType === GuildMemberType.Owner) ||
 			(permissions.configAdmin && await this.isConfigAdmin()) ||
 			(permissions.botCreator && this.isBotCreator)
 		) { return true; }

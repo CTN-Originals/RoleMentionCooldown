@@ -6,7 +6,6 @@ import { RequiredFields } from "../../@types";
 export default {
 	command: {
 		permissions: new PermissionObject({
-			guildOwner: true,
 			guildAdmin: true,
 			configAdmin: true,
 		}),
