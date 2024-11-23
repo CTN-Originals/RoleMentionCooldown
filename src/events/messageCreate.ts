@@ -11,11 +11,15 @@ export default {
 	once: false,
 
 	async execute(message: Message) {
+		if (
+			message.author.bot || 
+			!message.channel.isSendable()
+		) { return; }
+
 		if (!message.guild) {
 			EmitError(new Error(`Message did not contain guild`))
 			return;
 		}
-		if (!message.channel.isSendable()) { return; }
 
 		const mentionables = await Mentionable.getAll(message.guild.id);
 
