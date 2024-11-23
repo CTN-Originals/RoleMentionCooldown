@@ -73,7 +73,7 @@ export default {
 				ephemeral: true
 			});
 
-			return 'Success'
+			return true;
 		},
 
 		async adminRole(interaction: RequiredFields<ChatInputCommandInteraction, 'guildId'>, config: IGuildConfigData) {
@@ -118,7 +118,7 @@ export default {
 				ephemeral: true
 			})
 
-			return `Success`
+			return true
 		},
 	}
 }
