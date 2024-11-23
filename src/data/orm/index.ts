@@ -14,9 +14,10 @@ export class ObjectRelationalMap {
 	 * @returns The document of the guild if it exists
 	*/
 	public static async getDocument<T extends Document & BaseDocument>(model: typeof Model, guildId: string, errorOnNull: boolean = true): Promise<T> {
-		const doc = await model.findOne({_id: guildId});
+		let doc = await model.findOne({_id: guildId});
 		if (!doc && errorOnNull) {
-			throw new Error(`Document for guild (${guildId}) does not exist`);
+			await EmitError(new Error(`Document for guild (${guildId}) does not exist, creating new document...`));
+			doc = await ObjectRelationalMap.create(model, guildId);
 		}
 		return doc;
 	}
