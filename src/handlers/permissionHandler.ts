@@ -7,6 +7,34 @@ export enum GuildMemberType {
 	Owner = 'Owner',
 }
 
+/** An object with permission fields to compare to a UserPermissions class
+ * @note If a field is set to true, a permission check will pass if the UserPermission field is also true
+ * @note If a field is set to false, the UserPermission does not have to contain this field as true
+ * @note The permissions check will pass at a single match, it is not required to match 'true' values.
+*/
+export class PermissionObject {
+	public guildOwner: boolean = false;
+	public guildAdmin: boolean = false;
+	public configAdmin: boolean = false;
+	public botCreator: boolean = false;
+
+	constructor(input: Partial<PermissionObject>) {
+		for (const field in input) {
+			this[field] = input[field];
+		}
+	}
+
+	/** All values combined and compared to eachother
+	 * @returns True if all values are true, false otherwise
+	*/
+	public get combined(): boolean {
+		for (const field in this) {
+			if (this[field] === false) { return false; }
+		}
+		return true;
+	}
+}
+
 export class UserPermissions {
 	constructor(public guild: Guild, public user: User) { }
 	
@@ -49,4 +77,23 @@ export class UserPermissions {
 
 		return GuildMemberType.Member;
 	};
+
+	public async validate(permissions: PermissionObject): Promise<boolean> {
+		const memberType = await this.getMemberType();
+		
+		//? ordered from most to least likely with a bit of bias towards which check costs more performance
+		if (
+			permissions.combined ||
+			(permissions.guildAdmin && memberType === GuildMemberType.Admin) ||
+			(permissions.guildOwner && memberType === GuildMemberType.Owner) ||
+			(permissions.configAdmin && await this.isConfigAdmin()) ||
+			(permissions.botCreator && this.isBotCreator)
+		) { return true; }
+
+		return false;
+	}
+}
+
+export async function validateUserPermission(permissions: PermissionObject, guild: Guild, user: User) {
+	return await new UserPermissions(guild, user).validate(permissions);
 }
