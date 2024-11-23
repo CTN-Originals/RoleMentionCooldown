@@ -66,12 +66,14 @@ export default {
 				embeds: [validateEmbed(new EmbedBuilder({
 					title: `${interaction.guild!.name} Server Configurations`,
 					fields: [
-						{ name: 'Admin Roles', value: config.adminRoles.map(r => `<@&${r}>`).join(' ')}
+						{ name: 'Admin Roles', value: config.adminRoles.map(r => `<@&${r}>`).join(' ') || '-'}
 					],
 					color: hexToBit(ColorTheme.embeds.info)
 				}))],
 				ephemeral: true
-			})
+			});
+
+			return 'Success'
 		},
 
 		async adminRole(interaction: RequiredFields<ChatInputCommandInteraction, 'guildId'>, config: IGuildConfigData) {
