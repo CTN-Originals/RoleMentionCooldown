@@ -18,6 +18,7 @@
 - [x] When a role is added, check if that role is above the bots role, and if so, tell the user this is impossible
 - [x] /list command to list all mention cooldowns with their current cooldown time raped in a relative timestamp
 	- [ ] Add paging functionality into the lists as there is a chance a server might add so many roles that it will overflow the embed limits
+- [ ] /help
 - [ ] for /rolecooldown add: check if the user entered a number without any letters after it, and if so,
 	- [ ] if it is just one number, turn it into seconds
 	- [ ] if its multiple numbers seperated by spaces, notify the user of the correct usage
