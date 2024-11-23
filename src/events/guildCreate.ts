@@ -4,6 +4,7 @@ import { Mentionable } from "../data/orm/mentionables";
 import { DeployInstruction, doDeployCommands } from "../deployCommands";
 import { eventConsole } from ".";
 import { GuildConfig } from "../data/orm/guildConfig";
+import { GeneralData } from "../data";
 
 export default {
 	name: Events.GuildCreate,
@@ -12,12 +13,14 @@ export default {
 	async execute(guild: Guild) {
 		eventConsole.log(`\nOn: [fg=green]${this.name}[/>]\nName: ${guild.name}\nID: ${guild.id}\nMembers: ${guild.memberCount}\n`)
 
-		doDeployCommands([new DeployInstruction({
-			guildId: guild.id,
-			deployAll: true
-		})])
+		if (GeneralData.development) {
+			await doDeployCommands([new DeployInstruction({
+				guildId: guild.id,
+				deployAll: true
+			})])
+		}
 
-		Mentionable.onGuildCreate(guild);
-		GuildConfig.onGuildCreate(guild);
+		await Mentionable.onGuildCreate(guild);
+		await GuildConfig.onGuildCreate(guild);
 	},
 }

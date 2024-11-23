@@ -11,7 +11,7 @@ export default {
 	async execute(guild: Guild) {
 		eventConsole.log(`\nOn: [fg=green]${this.name}[/>]\nName: ${guild.name}\nID: ${guild.id}\nMembers: ${guild.memberCount}\n`)
 		
-		Mentionable.onGuildDelete(guild);
-		GuildConfig.onGuildDelete(guild);
+		await Mentionable.onGuildDelete(guild);
+		await GuildConfig.onGuildDelete(guild);
 	},
 }
