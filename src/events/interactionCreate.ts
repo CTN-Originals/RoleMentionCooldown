@@ -1,11 +1,8 @@
 import { 
 	BaseInteraction,
 	CommandInteraction,
-	Client,
 	InteractionType,
-	ComponentType,
 	Events,
-	TextChannel,
 	CommandInteractionOption,
 	ChatInputCommandInteraction,
 } from 'discord.js';
@@ -129,13 +126,15 @@ export default {
 
 			if (logFields.commandOptions) logMessage.push(`[fg=0080ff]options[/>]: ${logFields.commandOptions}`);
 			if (logFields.commandValues) logMessage.push(`[fg=0080ff]values[/>]: ${logFields.commandValues}`);
+			// if (logFields.commandValues) logMessage.push(`[fg=0080ff]values[/>]: ${logFields.commandValues}`);
 
-			logMessage.push(`[fg=0080ff]user[/>]: [fg=cyan]${logFields.userName}[/>] (${logFields.userId})`);
-			logMessage.push(`[fg=0080ff]channel[/>]: [fg=ad1b70]${logFields.channelName}[/>] (${logFields.channelId})`);
+			logMessage.push(`[fg=#0080ff]guild[/>]: [fg=#dfbc22]${interaction.guild.name}[/>] (${interaction.guild.id})`);
+			logMessage.push(`[fg=#0080ff]user[/>]: [fg=#00ffff]${logFields.userName}[/>] (${logFields.userId})`);
+			logMessage.push(`[fg=#0080ff]channel[/>]: [fg=#ad1b70]${logFields.channelName}[/>] (${logFields.channelId})`);
 
 			if (logFields.response !== '') {
 				logMessage.push(`[fg=0080ff]Response[/>]:`);
-				thisConsole.log('\n' + logMessage.join('\n'), response);
+				thisConsole.log('\n' + logMessage.join('\n'), response, '\n');
 			}
 			else {
 				thisConsole.log('\n' + logMessage.join('\n') + '\n'); '#ad1b70'
