@@ -28,6 +28,7 @@
 - [x] Tunr on/off the mentionable permission for any role for members depending on its cooldown
 - [ ] Think of a way to limit the mentionable usage to sertain channels while still keeping the mentionable role permission checked
 	- a work around might be to have a config option where the bot will warn people if they use it outside the target channel and then also have a config option for the warning message. then add another config option ontop of that to have the bot time these people out once it happens with another config option for the timeout duration.
+		- another thing to add on top of this would be a strike system where a person can mistakenly do this x(config) amount of times before getting timed out for y(config) amount of time
 	- another (less scalable) way would be to have the bot manage automod rules and add some roles in some rulesets, but this would be bad as the automod rules are limited and only allows 8 or so variations where some of those will likely already be taken by the server
 
 
