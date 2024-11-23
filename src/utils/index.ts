@@ -121,3 +121,18 @@ export function hexToBit(hex_color: string|Color): number {
 		return parseInt('0x' + hex_color.asHex.replace('#', ''));
 	}
 }
+
+export function includesAny(target: string, ...items: string[]): boolean {
+	for (const item of items) {
+		if (target.includes(item)) { return true; }
+	}
+
+	return false;
+}
+export function includesAll(target: string, ...items: string[]): boolean {
+	for (const item of items) {
+		if (!target.includes(item)) { return false; }
+	}
+
+	return true;
+}

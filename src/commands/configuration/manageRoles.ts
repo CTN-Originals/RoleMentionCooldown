@@ -1,7 +1,8 @@
+
 import { ChatInputCommandInteraction, CommandInteraction, EmbedBuilder, SlashCommandBuilder } from "discord.js";
 
 import { ColorTheme, GeneralData } from '../../data'
-import { hexToBit, PeriodOfTime } from "../../utils";
+import { hexToBit, PeriodOfTime, includesAll, includesAny } from "../../utils";
 import { Mentionable } from "../../data/orm/mentionables";
 import { EmitError } from "../../events";
 import { ConsoleInstance } from "better-console-utilities";
@@ -30,7 +31,7 @@ export default {
 				)
 				.addStringOption(option => option
 					.setName('cooldown')
-					.setDescription('The cooldown to apply to the mention once its used (seperate with spaces). 8s 28h 1d = 2d 04:00:08')
+					.setDescription('The cooldown to apply to the this once its used (seperate with spaces). 8s 69m 28h 1d = 2d 05:09:08')
 					.setRequired(true)
 					.setMinLength(2)
 				)
@@ -52,14 +53,47 @@ export default {
 				default: break;
 			}
 
-			return false;
+			//? if code reaches here, that means that all subcommands and groups fell through somehow...
+			throw new Error(`Unknown command command:${interaction.commandName} sub:${subCommand}`);
 		},
 		async addRole(interaction: ChatInputCommandInteraction) {
 			if (!interaction.guild) {
 				throw new Error(`Interaction did not contain guild`)
 			}
 			const roleId = interaction.options.get('role', true).value;
-			const cooldown = new PeriodOfTime(interaction.options.get('cooldown', true).value as string);
+
+			let cooldownInput = interaction.options.getString('cooldown', true);
+			if (!includesAny(cooldownInput, 's', 'm', 'h', 'd')) {
+				if (cooldownInput.split(' ').length == 1) { //- is the input just a single number
+					cooldownInput += 's' //? convert it to seconds for ease of use
+				}
+				else if (cooldownInput.split(' ').length > 1) {
+					await interaction.reply({
+						embeds: [validateEmbed(new EmbedBuilder({
+							title: `Invalid Cooldown Input: \`${cooldownInput}\``,
+							description: [
+								`This cooldown input is invalid.`,
+								`The cooldown input should be seperated with spaces for each time frame entered.`,
+								`Each time frame should end in any of these letters:`,
+								`\`s\` = \`seconds\``,
+								`\`m\` = \`minutes\``,
+								`\`h\` = \`hours\``,
+								`\`d\` = \`days\``,
+								``,
+								`**Examples**:`,
+								`\`8s 69m 28h 1d\` = \`2d 05:09:08\``,
+								`\`600s\` = \`0d 00:10:00\``
+							].join('\n'),
+							color: hexToBit(ColorTheme.embeds.notice)
+						}))],
+						ephemeral: true
+					});
+
+					return `Invalid cooldown input`;
+				}
+			}
+			
+			const cooldown = new PeriodOfTime(cooldownInput);
 
 			const role = interaction.guild.roles.cache.find(r => r.id == roleId);
 			if (!role) {
@@ -124,10 +158,13 @@ export default {
 			
 			if (mentionable === undefined) {
 				await interaction.reply({
-					content: `<@&${roleId}> is not included in the mention cooldown list.`,
+					embeds: [validateEmbed(new EmbedBuilder({
+						description: `<@&${roleId}> is not included in the mention cooldown list.`,
+						color: hexToBit(ColorTheme.embeds.notice)
+					}))],
 					ephemeral: true
 				});
-				return false;
+				return 'Role not present in list';
 			}
 
 			const role = interaction.guild.roles.cache.find(r => r.id == roleId);
@@ -142,7 +179,10 @@ export default {
 				
 				await role.setMentionable(false, 'RoleMentionCooldown - Removed'); //? set the role to mentionable so its able to be used
 				await interaction.reply({
-					content: `Successfully removed <@&${roleId}> from the list.\n<@&${roleId}> is now set to not being mentionable.`,
+					embeds: [validateEmbed(new EmbedBuilder({
+						description: `Successfully removed <@&${roleId}> from the list.\nDisabled the ability to mention <@&${roleId}> for everyone.`,
+						color: hexToBit(ColorTheme.embeds.reply)
+					}))],
 					ephemeral: true
 				});
 			} else {

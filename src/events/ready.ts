@@ -100,13 +100,26 @@ export default {
 		// 	}
 		// })
 
-		// new FakeInteraction('rolecooldown', {
-		// 	subCommand: 'add',
-		// 	options: [
-		// 		{name: 'role', value: '811667577998671923'},
-		// 		{name: 'cooldown', value: '1.486h'}
-		// 	]
-		// }).execute();
+		
+		const addRole = new FakeInteraction('rolecooldown', {
+			subCommand: 'add',
+			options: [
+				{name: 'role', value: '1309653896788050043'},
+				{name: 'cooldown', value: '120.9 123'}
+			]
+		})
+		const removeRole = new FakeInteraction('rolecooldown', {
+			subCommand: 'remove',
+			options: [
+				{name: 'role', value: '1309653896788050043'}
+			]
+		})
+
+		// removeRole.execute();
+		addRole.execute();
+		// await new Promise(resolve => setTimeout(resolve, 3000));
+		// removeRole.execute();
+
 		// new FakeInteraction('list').execute();
 		
 		// await devEnvironment.channel?.send({content: '<@&811667577985302534>'})
@@ -136,6 +149,7 @@ class FakeInteractionOptions {
 	public get(option: string) {
 		return this._hoistedOptions.find(o => o.name === option)
 	}
+	public getString(option: string) { return this.get(option)?.value }
 	//TODO add typed getters like getString or getRole...
 
 	public getSubcommand(required: boolean) { return this.subCommand }
@@ -186,12 +200,15 @@ class FakeInteraction {
 	public get channelId() { return this.channel.id }
 	public get guildId() { return this.guild.id };
 
-	public isRepliable() {return true};
+	public isRepliable() {return true}
+	public inGuild() { return true; }
+
 	public async reply(replyContent: string | {content: string, ephemeral: boolean, embeds: EmbedBuilder[], components: any[]}): Promise<Message|boolean> {
 		const channel = this.guild.channels.cache.get(this.channel.id);
 		if (!channel || !(channel instanceof TextChannel)) return false;
 		return channel.send(replyContent);
 	}
+
 
 	public execute() {
 		this.client.emit('interactionCreate', this as unknown as Interaction)
