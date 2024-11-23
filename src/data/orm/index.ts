@@ -76,7 +76,7 @@ export class ObjectRelationalMap {
 		const doc = await this.getDocument(model, guild.id, false);
 		if (doc == null) {
 			await this.create(model, guild.id);
-			eventConsole.log(`[fg=green]Created[/>] new ${model.name} document for ${guild.id}`);
+			eventConsole.log(`[fg=green]Created[/>] new ${model.modelName} document for ${guild.id}`);
 		}
 	}
 
@@ -88,7 +88,7 @@ export class ObjectRelationalMap {
 		const doc = await this.getDocument(model, guild.id, false);
 		if (doc != null) {
 			await doc.deleteOne({_id: guild.id})
-			eventConsole.log(`[fg=red]Deleted[/>] ${model.name} document for ${guild.id}`);
+			eventConsole.log(`[fg=red]Deleted[/>] ${model.modelName} document for ${guild.id}`);
 		}
 	}
 }
