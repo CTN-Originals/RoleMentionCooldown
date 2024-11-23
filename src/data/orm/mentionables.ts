@@ -181,22 +181,14 @@ export class Mentionable {
 	 * @param guildId The GuildID of the server
 	*/
 	public static async onGuildCreate(guild: Guild): Promise<void> {
-		const doc = await Mentionable.getDocument(guild.id, false);
-		if (doc == null) {
-			await Mentionable.create(guild.id);
-			cons.log(`[fg=green]Created[/>] new Mentionables document for ${guild.id}`);
-		}
+		await ObjectRelationalMap.onGuildCreate(DataModel, guild);
 	}
 
 	/** Once the bot leaves a guild, see if we need to delete a document
 	 * @param guildId The GuildID of the server
 	*/
 	public static async onGuildDelete(guild: Guild): Promise<void> {
-		const doc = await Mentionable.getDocument(guild.id, false);
-		if (doc != null) {
-			await doc.deleteOne({_id: doc._id})
-			cons.log(`[fg=red]Deleted[/>] Mentionables document for ${guild.id}`);
-		}
+		await ObjectRelationalMap.onGuildDelete(DataModel, guild);
 	}
 
 	/** Once a mentionable is used. Updates its last used time and starts the cooldown 
