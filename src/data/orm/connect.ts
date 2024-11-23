@@ -10,7 +10,7 @@ const mongoUser = encodeURIComponent(process.env.DATABASE_USERNAME!);
 const mongoPass = encodeURIComponent(process.env.DATABASE_PASSWORD!);
 const mongoHost = encodeURIComponent(process.env.DATABASE_HOSTNAME!);
 
-const dbURI =  GeneralData.production ? 
+const dbURI =  GeneralData.production ?
 	dbURITemplate
 		.replace('<username>', mongoUser)
 		.replace('<password>', mongoPass)
@@ -37,7 +37,7 @@ export class Database {
 			// 	cons.logDefault(ping);
 			// }
 		} catch (error) {
-			cons.log('[st=bold][fg=cyan]Database[/>] connection ERROR:\n');
+			cons.log('[fg=cyan st=bold]Database[/>] connection ERROR:');
 			errorConsole.log(error);
 		}
 
