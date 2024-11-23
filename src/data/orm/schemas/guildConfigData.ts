@@ -7,6 +7,6 @@ export interface IGuildConfigData extends Document {
 export const GuildConfigData = new Schema({
 	_id: String,
 	adminRoles: {type: Array, default: []} as SchemaDefinitionProperty,
-})
+}, {timestamps: true})
 
 export default model<IGuildConfigData>('GuildConfig', GuildConfigData);

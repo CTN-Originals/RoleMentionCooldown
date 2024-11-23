@@ -16,6 +16,6 @@ export interface IMentionableData extends Document {
 const MentionablesData = new Schema<IMentionableData>({
 	_id: String,
 	mentionables: {type: Object, default: {}} as SchemaDefinitionProperty,
-})
+}, {timestamps: true})
 
 export default model<IMentionableData>('Mentionables', MentionablesData);
