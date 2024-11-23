@@ -1,10 +1,3 @@
-# Documentation
-### Adding roles
-#### cooldown
-- [ ] seperate with spaces
-- [ ] only up to days
-
-
 # Features
 ## Configs
 - [x] Admin role, a role that can manage the configurations of this bot
@@ -18,10 +11,12 @@
 - [x] When a role is added, check if that role is above the bots role, and if so, tell the user this is impossible
 - [x] /list command to list all mention cooldowns with their current cooldown time raped in a relative timestamp
 	- [ ] Add paging functionality into the lists as there is a chance a server might add so many roles that it will overflow the embed limits
+- [x] for /rolecooldown add: check if the user entered a number without any letters after it, and if so,
+	- [x] if it is just one number, turn it into seconds
+	- [x] if its multiple numbers seperated by spaces, notify the user of the correct usage
 - [ ] /help
-- [ ] for /rolecooldown add: check if the user entered a number without any letters after it, and if so,
-	- [ ] if it is just one number, turn it into seconds
-	- [ ] if its multiple numbers seperated by spaces, notify the user of the correct usage
+- [ ] /faq
+- [ ] /support: will send a link to the bots discord server
 - [ ] /toggle , if set to false, it wont check if any mentionables are mentioned in messages
 - [ ] Toggle all mentionables mention permission, if false, all mentionables cant be used nomatter the cooldown untill turned off again
 
@@ -46,6 +41,7 @@
 
 # Prep for public
 ## Bot
+- [ ] Figure out exactly which guild permissions the bot needs to function
 - [ ] Test how the bot works while being on multiple servers
 - [ ] Make a good landiing page for the bots documentation
 
