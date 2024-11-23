@@ -1,6 +1,7 @@
 .vscode
 package-lock.json
 tmp
+resources/
 
 # Logs
 logs
