@@ -11,7 +11,7 @@ export class Mentionable {
 	
 	//? Store the mentionable object here everytime getAll() is called while hasChanged is true
 	//? This is to save a bit of performance as the getAll function might be called for each message sent in any server.
-	public static mentionablesCache: IMentionableStorage = {};
+	public static mentionablesCache: {[id: string]: IMentionableStorage} = {};
 
 	
 	//#region Getters
@@ -46,14 +46,14 @@ export class Mentionable {
 	 * @returns An object containing all mentionables
 	*/
 	public static async getAll(guildId: string): Promise<IMentionableStorage|null> {
-		if (Mentionable.hasChanged) {
+		if (Mentionable.hasChanged || !Object.keys(Mentionable.mentionablesCache).includes(guildId)) {
 			const doc = await Mentionable.getDocument(guildId);
 
-			Mentionable.mentionablesCache = doc.mentionables;
+			Mentionable.mentionablesCache[guildId] = doc.mentionables;
 			Mentionable.hasChanged = false;
 		}
 
-		return Mentionable.mentionablesCache;
+		return Mentionable.mentionablesCache[guildId];
 	}
 
 	/** Get a mentionable by ID
