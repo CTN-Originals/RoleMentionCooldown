@@ -21,6 +21,22 @@ export class GuildConfig {
 		return await this.getDocument(guildId) as Extract<typeof DataModel, IGuildConfigData>
 	}
 
+	/**  Update a document
+	 * @param doc The document to update
+	 * @param markModified A list of fields that need to be marked as modified before saving the document
+	 * @returns Wether or not the data has been saved successfully
+	*/
+	public static async update(doc: Awaited<ReturnType<typeof GuildConfig.getDocument>>, markModified?: string[]): ReturnType<typeof ObjectRelationalMap.update>;
+	/**  Update a document
+	 * @param guildId The GuildID of the server the document is for
+	 * @param markModified A list of fields that need to be marked as modified before saving the document
+	 * @returns Wether or not the data has been saved successfully
+	*/
+	public static async update(guildId: string, markModified?: string[]): ReturnType<typeof ObjectRelationalMap.update>;
+	public static async update(id_doc: string|Awaited<ReturnType<typeof GuildConfig.getDocument>>, markModified: string[] = []): ReturnType<typeof ObjectRelationalMap.update> {
+		return await ObjectRelationalMap.update(DataModel, id_doc, markModified);
+	}
+
 	/** Once the bot enters a new guild, see if we need to create a new document
 	 * @param model The model of the document
 	 * @param guildId The GuildID of the server

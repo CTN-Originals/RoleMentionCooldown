@@ -1,6 +1,6 @@
 import mongoose, { Model, Mongoose } from "mongoose";
 import { EmitError } from "../../events";
-import { default as Database, IMentionableData, IMentionableItem, IMentionableStorage } from "./schemas/mentionableData";
+import { default as DataModel, IMentionableData, IMentionableItem, IMentionableStorage } from "./schemas/mentionableData";
 import { Guild, Role } from "discord.js";
 import { cons } from "../..";
 import { ObjectRelationalMap } from ".";
@@ -38,7 +38,7 @@ export class Mentionable {
 		// 	return Database.findOne({ _id: guildId });
 		// }
 
-		return await ObjectRelationalMap.getDocument<IMentionableData>(Database, guildId, errorIfNull)
+		return await ObjectRelationalMap.getDocument<IMentionableData>(DataModel, guildId, errorIfNull)
 	}
 
 	/** Get a list of all mentionables in a server
@@ -90,37 +90,24 @@ export class Mentionable {
 	 * @param guildId The GuildID of the server
 	 * @returns The mentionable if found, null otherwise
 	*/
-	public static async create(guildId: string): Promise<typeof Database|unknown> {
+	public static async create(guildId: string): Promise<typeof DataModel|unknown> {
 		Mentionable.hasChanged = true;
-		return await ObjectRelationalMap.create(Database, guildId);
+		return await ObjectRelationalMap.create(DataModel, guildId);
 	}
 
 	/**  Update the mentionable document
 	 * @param doc The document to update
 	 * @returns Wether or not the data has been saved successfully
 	*/
-	public static async update(doc: Awaited<ReturnType<typeof Mentionable.getDocument>>): Promise<boolean>;
+	public static async update(doc: Awaited<ReturnType<typeof Mentionable.getDocument>>): ReturnType<typeof ObjectRelationalMap.update>;
 	/**  Update the mentionable document
 	 * @param guildId The GuildID of the server the document is for
 	 * @returns Wether or not the data has been saved successfully
 	*/
-	public static async update(guildId: string): Promise<boolean>;
-	public static async update(id_doc: string|Awaited<ReturnType<typeof Mentionable.getDocument>>): Promise<boolean> {
-		let doc: Awaited<ReturnType<typeof Mentionable.getDocument>>;
-
-		if (typeof id_doc === 'string') {
-			doc = await Mentionable.getDocument(id_doc);
-			if (!doc) { return false; }
-		} else {
-			if (id_doc == null) { return false; }
-			doc = id_doc;
-		}
-
-		doc.markModified('mentionables');
-		await doc.save()
-
-		Mentionable.hasChanged = true;
-		return true
+	public static async update(guildId: string): ReturnType<typeof ObjectRelationalMap.update>;
+	public static async update(id_doc: string|Awaited<ReturnType<typeof Mentionable.getDocument>>): ReturnType<typeof ObjectRelationalMap.update> {
+		Mentionable.hasChanged = true; //? just in case it returns false but still updated
+		return await ObjectRelationalMap.update(DataModel, id_doc, ['mentionables'])
 	}
 
 	/** Register a new mentionable

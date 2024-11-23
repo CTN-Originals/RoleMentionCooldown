@@ -84,8 +84,7 @@ export class UserPermissions {
 		//? ordered from most to least likely with a bit of bias towards which check costs more performance
 		if (
 			permissions.combined ||
-			(permissions.guildAdmin && memberType === GuildMemberType.Admin) ||
-			// (permissions.guildOwner && memberType === GuildMemberType.Owner) ||
+			(permissions.guildAdmin && (memberType === GuildMemberType.Admin || memberType === GuildMemberType.Owner)) ||
 			(permissions.configAdmin && await this.isConfigAdmin()) ||
 			(permissions.botCreator && this.isBotCreator)
 		) { return true; }

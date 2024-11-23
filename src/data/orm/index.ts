@@ -30,6 +30,43 @@ export class ObjectRelationalMap {
 	public static async create(model: typeof Model, guildId: string) {
 		return await model.create({_id: guildId}).catch(EmitError);
 	}
+
+	/**  Update a document
+	 * @param doc The document to update
+	 * @returns Wether or not the data has been saved successfully
+	*/
+	public static async update(model: typeof Model, doc: Awaited<ReturnType<typeof ObjectRelationalMap.getDocument>>, markModified?: string[]): Promise<true>;
+	/**  Update a document
+	 * @param guildId The GuildID of the server the document is for
+	 * @returns Wether or not the data has been saved successfully
+	*/
+	public static async update(model: typeof Model, guildId: string, markModified?: string[]): Promise<true>;
+	/**  Update a document
+	 * @param id_doc Either the GuildID or the Document
+	 * @returns Wether or not the data has been saved successfully
+	*/
+	public static async update(model: typeof Model, id_doc: string|Awaited<ReturnType<typeof ObjectRelationalMap.getDocument>>, markModified?: string[]): Promise<true>;
+	public static async update(model: typeof Model, id_doc: string|Awaited<ReturnType<typeof ObjectRelationalMap.getDocument>>, markModified: string[] = []): Promise<true> {
+		let doc: Awaited<ReturnType<typeof ObjectRelationalMap.getDocument>>;
+
+		if (typeof id_doc === 'string') {
+			doc = await ObjectRelationalMap.getDocument(model, id_doc);
+		} else {
+			doc = id_doc;
+		}
+
+		if (!doc) {
+			throw new Error(`Unable to find document to update`);
+		}
+
+		for (const field of markModified) {
+			doc.markModified(field);
+		}
+
+		await doc.save()
+
+		return true
+	}
 	
 	/** Once the bot enters a new guild, see if we need to create a new document
 	 * @param model The model of the document
