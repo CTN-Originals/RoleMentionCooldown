@@ -134,9 +134,15 @@ export default {
 				await interaction.reply({
 					embeds: [validateEmbed(new EmbedBuilder({
 						title: "Registered New Role Cooldown",
+						description: [
+							`**Note:** If I dont have permission to view a channel,`,
+							`I will also not be able to detect the usage of these roles.`,
+							`Make sure to add my role to any channel that you want to monitor for role usage.`,
+						].join('\n'),
 						fields: [
 							{name: 'role', value: `<@&${roleId}>`, inline: true},
 							{name: 'cooldown', value: `\`${cooldown.toString()}\``, inline: true},
+							{name: '\u200B', value: `\u200B`, inline: true},
 						],
 						color: hexToBit(ColorTheme.embeds.reply),
 					}))],
