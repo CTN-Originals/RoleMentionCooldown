@@ -1,58 +1,27 @@
-import { EmbedBuilder, SlashCommandBuilder, CommandInteraction } from "discord.js";
+import { EmbedBuilder, SlashCommandBuilder, CommandInteraction, ChatInputCommandInteraction } from "discord.js";
 import { hexToBit } from "../../utils";
 import { ColorTheme } from "../../data";
+import { validateEmbed } from "../../utils/embedUtils";
 
 export default {
 	command: {
 		data: new SlashCommandBuilder()
 			.setName("ping")
-			.setDescription("Replies with Pong! [Test Command]")
-			.addStringOption(option => 
-				option.setName('string')
-				.setDescription('Some description')
-				.setRequired(false)
-				.addChoices(
-					{name: 'Hello', value: 'hello'},
-					{name: 'World', value: 'world'},
-				)
-			)
-			.addUserOption(option =>
-				option.setName('user')
-				.setDescription('Some user')
-				.setRequired(false)
-			),
-		async execute(interaction: CommandInteraction) {
-			// const nonMember = await interaction.guild?.members.fetch('713586058107414558'); //? cause an error
-			// console.log(nonMember?.displayName);
+			.setDescription("Replies with latency stats"),
+		async execute(interaction: ChatInputCommandInteraction) {
+			const commandPing = interaction.createdTimestamp - Date.now();
+			const apiPing = interaction.client.ws.ping;
 
 			await interaction.reply({
-				content: "Pong! <@479936093047750659>",
-				embeds: [new EmbedBuilder({
+				embeds: [validateEmbed(new EmbedBuilder({
 					title: "Pong!",
-					description: "ping pong!",
-					color: hexToBit(ColorTheme.embeds.reply.asHex)
-				})],
+					description: `Command Latency: \`${commandPing}ms\`\nAPI Latency: \`${apiPing}ms\``,
+					color: hexToBit(ColorTheme.embeds.reply)
+				}))],
 				ephemeral: true
 			});
-
-			// await interaction.reply('<@568245462293938196> is the real npc here...')
-
-			await interaction.followUp({
-				content: "poing",
-			});
-
-			await interaction.editReply({
-				content: "uped ping down pong",
-				embeds: [],
-				// embeds: [new EmbedBuilder({
-				// 	title: "Pong!",
-				// 	description: "uped ping down pong!",
-				// })],
-			});
-
-			// console.log(interaction.token);
 			
-			return true;
+			return `${commandPing}ms | ${apiPing}ms`;
 		},
 	}
 }
