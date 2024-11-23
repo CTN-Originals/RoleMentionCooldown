@@ -34,7 +34,7 @@ export default {
 			
 			await interaction.reply({
 				embeds: [validateEmbed(await getCurrentCooldownsEmbed(interaction.guild, subCommand))],
-				ephemeral: GeneralData.development
+				ephemeral: !GeneralData.development
 			})
 			return true;
 		},
@@ -79,6 +79,8 @@ export async function getCurrentCooldownsEmbed(guild: Guild, type: ListType): Pr
 		break;
 		default: break;
 	}
+
+	const fields = [];
 	
 	return new EmbedBuilder({
 		title: 'Role Mention Cooldowns',
@@ -87,7 +89,5 @@ export async function getCurrentCooldownsEmbed(guild: Guild, type: ListType): Pr
 			{name: `Cooldown`, value: stats.map(s => s[1]).join('\n'), inline: true},
 		],
 		color: hexToBit(ColorTheme.embeds.info.asHex),
-		timestamp: Date.now(),
-		footer: {text: new Date().getSeconds().toString()}
 	})
 }

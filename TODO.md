@@ -41,7 +41,7 @@
 
 # Prep for public
 ## Bot
-- [ ] Figure out exactly which guild permissions the bot needs to function
+- [x] Figure out exactly which guild permissions the bot needs to function
 - [ ] Test how the bot works while being on multiple servers
 - [ ] Make a good landiing page for the bots documentation
 

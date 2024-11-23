@@ -68,7 +68,8 @@ export default {
 					fields: [
 						{ name: 'Admin Roles', value: config.adminRoles.map(r => `<@&${r}>`).join(' ') || '-'}
 					],
-					color: hexToBit(ColorTheme.embeds.info)
+					color: hexToBit(ColorTheme.embeds.info),
+					timestamp: Date.now()
 				}))],
 				ephemeral: true
 			});
