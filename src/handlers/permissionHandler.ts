@@ -57,15 +57,8 @@ export class UserPermissions {
 	/** Does this user have any of the admin roles registered in the guild config */
 	public async isConfigAdmin(): Promise<boolean> {
 		const config = await GuildConfig.get(this.guild.id);
-
 		const member = await this.getMember();
-		for (const role in member.roles) {
-			if (config.adminRoles.includes(member.roles[role])) {
-				return true;
-			}
-		}
-
-		return false;
+		return member.roles.cache.hasAny(...config.adminRoles);
 	};
 
 	public async getMemberType(): Promise<GuildMemberType> {
