@@ -13,6 +13,7 @@ import { Mentionable } from '../data/orm/mentionables';
 import { IMentionableStorage, default as MentionableData } from '../data/orm/schemas/mentionableData'
 import { timeUnits } from '../utils';
 import { getCurrentCooldownsEmbed } from '../commands/info/list';
+import { UserPermissions } from '../handlers/permissionHandler';
 
 // import ErrorHandler from '../handlers/errorHandler';
 
@@ -116,8 +117,6 @@ export default {
 		// } catch (e) {
 		// 	EmitError(e as Error)
 		// }
-
-		
 	}
 };
 

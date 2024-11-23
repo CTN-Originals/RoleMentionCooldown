@@ -17,6 +17,7 @@ import { errorConsole } from '..';
 import { IInteractionTypeData, getHoistedOptions, getInteractionType } from '../utils/interactionUtils';
 import { GeneralData } from '../data';
 import { ErrorObject } from '../handlers/errorHandler';
+import { PermissionObject, validateUserPermission } from '../handlers/permissionHandler';
 
 const thisConsole = new ConsoleInstance();
 
@@ -41,7 +42,21 @@ export default {
 		let response: any = null;
 		try {
 			const command = interaction.client.commands.get(interaction[nameKey]);
-			response = await command.execute(interaction);
+
+			if (!interaction.inGuild() || !interaction.guild || !interaction.guildId) { //- extensive checking just to avoid confusion
+				throw new Error(`Interaction does not contain a guild`)
+			}
+			else if (Object.keys(command).includes('permissions') && !await validateUserPermission(command['permissions'], interaction.guild, interaction.user)) {
+				if (interaction.isRepliable()) {
+					await interaction.reply({
+						content: `You do not have permission to use this command.`,
+						ephemeral: true
+					})
+				}
+				response = 'User lacks permission';
+			} else {
+				response = await command.execute(interaction);
+			}
 		} catch (err) {
 			const errorObject: ErrorObject = await EmitError(err as Error, interaction);
 

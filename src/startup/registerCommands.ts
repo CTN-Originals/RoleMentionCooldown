@@ -3,6 +3,7 @@ import * as fs from 'node:fs';
 import { SlashCommandBuilder } from 'discord.js'; 
 
 import { cons, errorConsole } from '..';
+import { PermissionObject } from '../handlers/permissionHandler';
 
 // Get command files
 export function getCommandFiles(client: any, dir: string) {
@@ -21,7 +22,7 @@ export function getCommandFiles(client: any, dir: string) {
 }
 
 export interface IInteraction {
-	command: { data: SlashCommandBuilder, execute: (...args: any) => {} },
+	command: { permissions?: PermissionObject, data: SlashCommandBuilder, execute: (...args: any) => {} },
 	selectMenus?: { data: SlashCommandBuilder, execute: (...args: any) => {} }[],
 	buttons?: { data: SlashCommandBuilder, execute: (...args: any) => {} }[],
 };

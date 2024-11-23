@@ -38,7 +38,7 @@
 - [x] On startup, interate through all servers, and all mentionables to check if any cooldown might have expired while it was down, and start the callbacks for all that are still on cooldown
 - [ ] Make an alternate system for cooldown tracking instead of setting a timeout for each cooldown as setTimeout might have unforseen performance impects.
 - [ ] Find a better way to maintain database document function like mentionables.ts or guildConfig.ts
-
+- [ ] Rewrite registerCommands with more of a typescript mindset... i was sush a noob back when i wrote that script :/
 
 # Prep for public
 - [ ] Test how the bot works while being on multiple servers

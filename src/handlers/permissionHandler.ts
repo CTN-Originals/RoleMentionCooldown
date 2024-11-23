@@ -10,7 +10,7 @@ export enum GuildMemberType {
 /** An object with permission fields to compare to a UserPermissions class
  * @note If a field is set to true, a permission check will pass if the UserPermission field is also true
  * @note If a field is set to false, the UserPermission does not have to contain this field as true
- * @note The permissions check will pass at a single match, it is not required to match 'true' values.
+ * @note The permissions check will pass at a single match, it is not required to match all 'true' values.
 */
 export class PermissionObject {
 	public guildOwner: boolean = false;
@@ -18,7 +18,7 @@ export class PermissionObject {
 	public configAdmin: boolean = false;
 	public botCreator: boolean = false;
 
-	constructor(input: Partial<PermissionObject>) {
+	constructor(input: Partial<Omit<PermissionObject, 'combined'>>) {
 		for (const field in input) {
 			this[field] = input[field];
 		}

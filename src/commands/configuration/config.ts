@@ -1,8 +1,15 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
 import { GuildConfig } from "../../data/orm/guildConfig";
+import { PermissionObject } from "../../handlers/permissionHandler";
+import { RequiredFields } from "../../@types";
 
 export default {
 	command: {
+		permissions: new PermissionObject({
+			guildOwner: true,
+			guildAdmin: true,
+			configAdmin: true,
+		}),
 		data: new SlashCommandBuilder()
 		.setName("config")
 		.setDescription("Configure this bots settings")
@@ -26,16 +33,11 @@ export default {
 				)
 			)
 		),
-		async execute(interaction: ChatInputCommandInteraction) {
-			if (!interaction.guild) {
-				throw new Error(`Interaction does not contain guild`)
-			}
-
-			
-			const config = await GuildConfig.get(interaction.guild?.id);
+		async execute(interaction: RequiredFields<ChatInputCommandInteraction, 'guildId'>) {
+			const config = await GuildConfig.get(interaction.guildId!);
 			console.log(config)
-			
 			await interaction.reply('Under construction...');
+
 			return true;
 		}
 	}

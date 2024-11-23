@@ -7,11 +7,17 @@ import { EmitError } from "../../events";
 import { ConsoleInstance } from "better-console-utilities";
 import { validateEmbed } from "../../utils/embedUtils";
 import { client } from "../..";
+import { PermissionObject } from "../../handlers/permissionHandler";
 
 const thisConsole = new ConsoleInstance();
 
 export default {
 	command: {
+		permissions: new PermissionObject({
+			guildOwner: true,
+			guildAdmin: true,
+			configAdmin: true,
+		}),
 		data: new SlashCommandBuilder()
 			.setName("rolecooldown")
 			.setDescription("Manage role cooldowns")
