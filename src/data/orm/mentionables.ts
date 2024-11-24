@@ -1,8 +1,6 @@
-import mongoose, { Model, Mongoose } from "mongoose";
 import { EmitError, eventConsole } from "../../events";
 import { default as DataModel, IMentionableData, IMentionableItem, IMentionableStorage } from "./schemas/mentionableData";
 import { Guild, Role } from "discord.js";
-import { cons } from "../..";
 import { ObjectRelationalMap } from ".";
 import { GeneralData } from "..";
 
@@ -17,7 +15,7 @@ export class Mentionable {
 	public static mentionablesCache: MentionableCache<IMentionableStorage> = {};
 
 	/** Stores an array of mentionables that are currently on cooldown */
-	public static activeCooldowns: MentionableCache<IMentionableItem[]> = {};
+	public static activeCooldowns: MentionableCache<IMentionableStorage> = {};
 	
 	//#region Getters
 	/** Get the whole document of a guild
@@ -106,7 +104,7 @@ export class Mentionable {
 	public static async initialize(guild: Guild) {
 		Mentionable.hasChanged[guild.id] = true;
 		Mentionable.mentionablesCache[guild.id] = {};
-		Mentionable.activeCooldowns[guild.id] = [];
+		Mentionable.activeCooldowns[guild.id] = {};
 		
 		const mentionableDoc = await Mentionable.getDocument(guild.id, false);
 		
@@ -211,12 +209,30 @@ export class Mentionable {
 		if (!mentionable) { return false; }
 
 		await role.setMentionable(false, `${process.env.APP_NAME} - Used`);
-		setTimeout( //TODO make an alternate system that doesnt use timeouts
-			async () => { Mentionable.onCooldownExpired(role); },
-			mentionable.cooldown - (Date.now() - mentionable.lastUsed)
-		);
+		Mentionable.activeCooldowns[guild.id][id] = mentionable;
 
 		return true;
+	}
+
+	/** Check all the active cooldowns for a guild and end them if they are expired
+	 * @param guild The guild to check the cooldowns for
+	*/
+	public static async validateGuildCooldowns(guild: Guild) {
+		for (const roleId in Mentionable.activeCooldowns[guild.id]) {
+			const item = Mentionable.activeCooldowns[guild.id][roleId];
+			if (!Mentionable.isOncooldown(item)) {
+				//? delete now as it doesnt matter if the role exists or not, it should not trigger again
+				delete Mentionable.activeCooldowns[guild.id][roleId]; 
+
+				const role = guild.roles.cache.find(r => r.id == roleId);
+				if (!role) {
+					EmitError(new Error(`Unable to find role (${roleId})`));
+					continue;
+				}
+
+				Mentionable.onCooldownExpired(role);
+			}
+		}
 	}
 	//#endregion
 
@@ -256,10 +272,9 @@ export class Mentionable {
 		return await Mentionable.update(doc);
 	}
 
-	//TODO fix wording on this summary
-	/** Once a cooldown of a mentionable expires. Updates the role of the mentionable to be able to be mentioned again
-	 * @param role The role of the mentionable that the cooldown expired of
-	 * @returns Wether or not the role has been set to mentionable successfully
+	/** Once a cooldown of a mentionable expires. Update the role to allow everyone to mention this role again.
+	 * @param role The role of the expired mentionable
+	 * @returns Wether or not the role has been updated successfully
 	*/
 	public static async onCooldownExpired(role: Role): Promise<boolean> {
 		await role.setMentionable(true, `${process.env.APP_NAME} - Cooldown Expired`).catch((e: Error) => {

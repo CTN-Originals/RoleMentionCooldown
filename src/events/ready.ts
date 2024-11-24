@@ -51,6 +51,17 @@ export default {
 		client.guilds.cache.forEach(async guild => {
 			Mentionable.initialize(guild);
 		})
+
+		this.Update(client); //? Start the update cycle
+	},
+
+	/** This function runs every second and calls out to things that need to be checked on the regular */
+	async Update(client: Client) { //?? Initially this was inside index.ts, but that brought a bunch of errors so next best is here i guess...
+		const interval = setInterval(() => {
+			client.guilds.cache.forEach(guild => {
+				Mentionable.validateGuildCooldowns(guild);
+			})
+		}, 1000)
 	},
 
 	async runTests(client: Client) {
