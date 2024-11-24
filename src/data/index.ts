@@ -20,11 +20,11 @@ export namespace DevEnvironment {
 }
 
 export namespace GeneralData {
-	export const development = false;
-	export const production = true;
+	export const production: boolean = (process.env.PRODUCTION === 'true');
+	export const development: boolean = (process.env.DEVELOPMENT === 'true');
 	
 	export const logging = {
-		streamSafe: false, //? If true, the custom console will filter out any dangerouse info
+		streamSafe: false, //? If true, the custom console will filter out any dangerouse info like tokens
 		interaction: {
 			enabled: true,
 			verbose: true,
