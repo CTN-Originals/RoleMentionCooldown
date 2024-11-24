@@ -31,11 +31,6 @@ export class Database {
 		try {
 			const conn = await mongoose.connect(dbURI);
 			this.connection = conn.connection;
-			
-			// if (GeneralData.development) {
-			// 	const ping = await conn.connection.db?.admin().ping();
-			// 	cons.logDefault(ping);
-			// }
 		} catch (error) {
 			cons.log('[fg=cyan st=bold]Database[/>] connection ERROR:');
 			errorConsole.log(error);
