@@ -6,14 +6,18 @@ import { cons } from "../..";
 import { ObjectRelationalMap } from ".";
 import { GeneralData } from "..";
 
+type MentionableCache<T> = {[id: string]: T};
 export class Mentionable {
-	//? true if the anything has updated sins getAll() was last called
-	public static hasChanged: boolean = true;
+	/** true if the anything has updated sins getAll() was last called */
+	public static hasChanged: MentionableCache<boolean> = {};
 	
-	//? Store the mentionable object here everytime getAll() is called while hasChanged is true
-	//? This is to save a bit of performance as the getAll function might be called for each message sent in any server.
-	public static mentionablesCache: {[id: string]: IMentionableStorage} = {};
+	/** Store the mentionable object here everytime getAll() is called while hasChanged is true 
+	 * @note This is to save a bit of performance as the getAll function might be called for each message sent in any server.
+	*/
+	public static mentionablesCache: MentionableCache<IMentionableStorage> = {};
 
+	/** Stores an array of mentionables that are currently on cooldown */
+	public static activeCooldowns: MentionableCache<IMentionableItem[]> = {};
 	
 	//#region Getters
 	/** Get the whole document of a guild
@@ -51,7 +55,7 @@ export class Mentionable {
 			const doc = await Mentionable.getDocument(guildId);
 
 			Mentionable.mentionablesCache[guildId] = doc.mentionables;
-			Mentionable.hasChanged = false;
+			Mentionable.hasChanged[guildId] = false;
 		}
 
 		return Mentionable.mentionablesCache[guildId];
@@ -92,7 +96,7 @@ export class Mentionable {
 	 * @returns The mentionable if found, null otherwise
 	*/
 	public static async create(guildId: string): Promise<IMentionableData> {
-		Mentionable.hasChanged = true;
+		Mentionable.hasChanged[guildId] = true;
 		return await ObjectRelationalMap.create(DataModel, guildId);
 	}
 
@@ -100,6 +104,9 @@ export class Mentionable {
 	 *  @param guild The Guild to initialize
 	*/
 	public static async initialize(guild: Guild) {
+		Mentionable.hasChanged[guild.id] = true;
+		Mentionable.mentionablesCache[guild.id] = {};
+		Mentionable.activeCooldowns[guild.id] = [];
 		
 		const mentionableDoc = await Mentionable.getDocument(guild.id, false);
 		
@@ -140,7 +147,11 @@ export class Mentionable {
 	*/
 	public static async update(guildId: string): ReturnType<typeof ObjectRelationalMap.update>;
 	public static async update(id_doc: string|Awaited<ReturnType<typeof Mentionable.getDocument>>): ReturnType<typeof ObjectRelationalMap.update> {
-		Mentionable.hasChanged = true; //? just in case it returns false but still updated
+		if (typeof id_doc === 'string')
+			Mentionable.hasChanged[id_doc] = true;
+		else
+			Mentionable.hasChanged[id_doc._id] = true;
+		
 		return await ObjectRelationalMap.update(DataModel, id_doc, ['mentionables'])
 	}
 
@@ -216,6 +227,7 @@ export class Mentionable {
 	 * @param guildId The GuildID of the server
 	*/
 	public static async onGuildCreate(guild: Guild): Promise<void> {
+		Mentionable.initialize(guild);
 		await ObjectRelationalMap.onGuildCreate(DataModel, guild);
 	}
 
@@ -223,6 +235,10 @@ export class Mentionable {
 	 * @param guildId The GuildID of the server
 	*/
 	public static async onGuildDelete(guild: Guild): Promise<void> {
+		delete Mentionable.hasChanged[guild.id];
+		delete Mentionable.mentionablesCache[guild.id];
+		delete Mentionable.activeCooldowns[guild.id];
+
 		await ObjectRelationalMap.onGuildDelete(DataModel, guild);
 	}
 

@@ -74,7 +74,7 @@ export class ObjectRelationalMap {
 	 * @param guildId The GuildID of the server
 	*/
 	public static async onGuildCreate(model: typeof Model, guild: Guild): Promise<void> {
-		const doc = await this.getDocument(model, guild.id, false);
+		const doc = await this.getDocument(model, guild.id, false); //? check if it already/still existed
 		if (doc == null) {
 			await this.create(model, guild.id);
 			eventConsole.log(`[fg=green]Created[/>] new ${model.modelName} document for ${guild.id}`);
