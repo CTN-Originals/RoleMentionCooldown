@@ -23,24 +23,6 @@ export class Mentionable {
 	 * @param errorIfNull Should an error be logged if the document doesnt exist?
 	*/
 	public static async getDocument(guildId: string, errorIfNull: boolean = true) {
-		// if (errorOnNull) {
-		// 	try {
-		// 		return Database.findOne({ _id: guildId });
-		// 	} catch (e) {
-		// 		const errMessage = `Attempted to find document of guild (${guildId})\n`;
-		// 		if (e instanceof Error) {
-		// 			e.message = errMessage + e.message
-		// 			EmitError(e);
-		// 		} else {
-		// 			EmitError(new Error(errMessage));
-		// 		}
-		// 		return null;
-		// 	}
-		// }
-		// else {
-		// 	return Database.findOne({ _id: guildId });
-		// }
-
 		return await ObjectRelationalMap.getDocument<IMentionableData>(DataModel, guildId, errorIfNull)
 	}
 
@@ -52,7 +34,7 @@ export class Mentionable {
 		if (Mentionable.hasChanged || !Object.keys(Mentionable.mentionablesCache).includes(guildId)) {
 			const doc = await Mentionable.getDocument(guildId);
 
-			Mentionable.mentionablesCache[guildId] = doc.mentionables;
+			Mentionable.mentionablesCache[guildId] = (Object.keys(doc).includes('mentionables')) ? doc.mentionables : {};
 			Mentionable.hasChanged[guildId] = false;
 		}
 
@@ -106,9 +88,10 @@ export class Mentionable {
 		Mentionable.mentionablesCache[guild.id] = {};
 		Mentionable.activeCooldowns[guild.id] = {};
 		
-		const mentionableDoc = await Mentionable.getDocument(guild.id, false);
+		// const mentionableDoc = await Mentionable.getDocument(guild.id, false);
+		const mentionables = await Mentionable.getAll(guild.id);
 		
-		for (const roleId in mentionableDoc.mentionables) {
+		for (const roleId in mentionables) {
 			if (roleId == 'placeholder') { continue; } //?? this used to be a thing, keeping it for some reason... i wanna i guess....
 
 			const role = guild.roles.cache.find(r => r.id == roleId);
@@ -118,15 +101,15 @@ export class Mentionable {
 			}
 
 			if (!role.mentionable) {
-				if (Mentionable.isOncooldown(mentionableDoc.mentionables[roleId])) {
+				if (Mentionable.isOncooldown(mentionables[roleId])) {
 					if (GeneralData.development) {
-						eventConsole.log(`[fg=green]Restarting[/>] cooldown: [fg=${role.hexColor}]${role.name}[/>] | ${Mentionable.remainingCooldown(mentionableDoc.mentionables[roleId]) / 1000}s`)
+						eventConsole.log(`[fg=green]Restarting[/>] cooldown: [fg=${role.hexColor}]${role.name}[/>] | ${Mentionable.remainingCooldown(mentionables[roleId]) / 1000}s`)
 					}
-					Mentionable.startCooldown(guild, roleId, mentionableDoc.mentionables[roleId])
+					Mentionable.startCooldown(guild, roleId, mentionables[roleId])
 				}
 				else {
 					if (GeneralData.development) {
-						eventConsole.log(`[fg=red]Expired[/>] cooldown: [fg=${role.hexColor}]${role.name}[/>] | ${Mentionable.remainingCooldown(mentionableDoc.mentionables[roleId]) / 1000}s`)
+						eventConsole.log(`[fg=red]Expired[/>] cooldown: [fg=${role.hexColor}]${role.name}[/>] | ${Mentionable.remainingCooldown(mentionables[roleId]) / 1000}s`)
 					}
 					Mentionable.onCooldownExpired(role);
 				}
@@ -243,8 +226,8 @@ export class Mentionable {
 	 * @param guildId The GuildID of the server
 	*/
 	public static async onGuildCreate(guild: Guild): Promise<void> {
-		Mentionable.initialize(guild);
 		await ObjectRelationalMap.onGuildCreate(DataModel, guild);
+		Mentionable.initialize(guild);
 	}
 
 	/** Once the bot leaves a guild, see if we need to delete a document
