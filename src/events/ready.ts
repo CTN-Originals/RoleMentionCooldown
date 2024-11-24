@@ -49,41 +49,7 @@ export default {
 
 	async Initialize(client: Client) {
 		client.guilds.cache.forEach(async guild => {
-			let mentionableDoc: typeof MentionableData|unknown = await Mentionable.getDocument(guild.id, false);
-			if (!mentionableDoc) {
-				mentionableDoc = await Mentionable.create(guild.id)
-				if (!mentionableDoc) {
-					EmitError(new Error(`Unable to create document`))
-					return;
-				}
-			}
-			
-			const mentionables = await Mentionable.getAll(guild.id);
-			//?? im unable to use thge mentionableDoc here for some reason...
-			for (const roleId in mentionables) {
-				if (roleId == 'placeholder') { continue; }
-
-				const role = guild.roles.cache.find(r => r.id == roleId);
-				if (!role) {
-					EmitError(new Error(`Unable to find role (${roleId})`));
-					return;
-				}
-
-				if (!role.mentionable) {
-					if (Mentionable.isOncooldown(mentionables[roleId])) {
-						if (GeneralData.development) {
-							eventConsole.log(`[fg=green]Restarting[/>] cooldown timeout: [fg=${role.hexColor}]${role.name}[/>] | ${Mentionable.remainingCooldown(mentionables[roleId]) / 1000}s`)
-						}
-						Mentionable.startCooldown(guild, roleId, mentionables[roleId])
-					}
-					else {
-						if (GeneralData.development) {
-							eventConsole.log(`[fg=red]Expired[/>] cooldown: [fg=${role.hexColor}]${role.name}[/>] | ${Mentionable.remainingCooldown(mentionables[roleId]) / 1000}s`)
-						}
-						Mentionable.onCooldownExpired(role);
-					}
-				}
-			}
+			Mentionable.initialize(guild);
 		})
 	},
 
@@ -101,22 +67,22 @@ export default {
 		// })
 
 		
-		const addRole = new FakeInteraction('rolecooldown', {
-			subCommand: 'add',
-			options: [
-				{name: 'role', value: '1309653896788050043'},
-				{name: 'cooldown', value: '120.9 123'}
-			]
-		})
-		const removeRole = new FakeInteraction('rolecooldown', {
-			subCommand: 'remove',
-			options: [
-				{name: 'role', value: '1309653896788050043'}
-			]
-		})
+		// const addRole = new FakeInteraction('rolecooldown', {
+		// 	subCommand: 'add',
+		// 	options: [
+		// 		{name: 'role', value: '1309653896788050043'},
+		// 		{name: 'cooldown', value: '120.9 123'}
+		// 	]
+		// })
+		// const removeRole = new FakeInteraction('rolecooldown', {
+		// 	subCommand: 'remove',
+		// 	options: [
+		// 		{name: 'role', value: '1309653896788050043'}
+		// 	]
+		// })
 
 		// removeRole.execute();
-		addRole.execute();
+		// addRole.execute();
 		// await new Promise(resolve => setTimeout(resolve, 3000));
 		// removeRole.execute();
 

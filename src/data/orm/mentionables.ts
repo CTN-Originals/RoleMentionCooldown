@@ -1,9 +1,10 @@
 import mongoose, { Model, Mongoose } from "mongoose";
-import { EmitError } from "../../events";
+import { EmitError, eventConsole } from "../../events";
 import { default as DataModel, IMentionableData, IMentionableItem, IMentionableStorage } from "./schemas/mentionableData";
 import { Guild, Role } from "discord.js";
 import { cons } from "../..";
 import { ObjectRelationalMap } from ".";
+import { GeneralData } from "..";
 
 export class Mentionable {
 	//? true if the anything has updated sins getAll() was last called
@@ -90,7 +91,7 @@ export class Mentionable {
 	 * @param guildId The GuildID of the server
 	 * @returns The mentionable if found, null otherwise
 	*/
-	public static async create(guildId: string): Promise<typeof DataModel|unknown> {
+	public static async create(guildId: string): Promise<IMentionableData> {
 		Mentionable.hasChanged = true;
 		return await ObjectRelationalMap.create(DataModel, guildId);
 	}
@@ -177,6 +178,38 @@ export class Mentionable {
 
 
 	//#region Events
+	/** When the bot starts up, run this function for each guild
+	 *  @param guild The Guild to initialize
+	*/
+	public static async initialize(guild: Guild) {
+		const mentionableDoc = await Mentionable.getDocument(guild.id, false);
+		
+		for (const roleId in mentionableDoc.mentionables) {
+			if (roleId == 'placeholder') { continue; } //?? this used to be a thing, keeping it for some reason... i wanna i guess....
+
+			const role = guild.roles.cache.find(r => r.id == roleId);
+			if (!role) {
+				EmitError(new Error(`Unable to find role (${roleId})`));
+				return;
+			}
+
+			if (!role.mentionable) {
+				if (Mentionable.isOncooldown(mentionableDoc.mentionables[roleId])) {
+					if (GeneralData.development) {
+						eventConsole.log(`[fg=green]Restarting[/>] cooldown: [fg=${role.hexColor}]${role.name}[/>] | ${Mentionable.remainingCooldown(mentionableDoc.mentionables[roleId]) / 1000}s`)
+					}
+					Mentionable.startCooldown(guild, roleId, mentionableDoc.mentionables[roleId])
+				}
+				else {
+					if (GeneralData.development) {
+						eventConsole.log(`[fg=red]Expired[/>] cooldown: [fg=${role.hexColor}]${role.name}[/>] | ${Mentionable.remainingCooldown(mentionableDoc.mentionables[roleId]) / 1000}s`)
+					}
+					Mentionable.onCooldownExpired(role);
+				}
+			}
+		}
+	}
+
 	/** Once the bot enters a new guild, see if we need to create a new document
 	 * @param guildId The GuildID of the server
 	*/
