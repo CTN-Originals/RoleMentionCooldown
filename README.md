@@ -1,7 +1,6 @@
 # Role Mention Cooldown
 A discord bot that allows users to mention a role once, and then applying a cooldown to this role before it can be mentioned again.
 
-
 # Commands
 ## Admin
 > `/config`: Configure this bots settings
@@ -26,7 +25,6 @@ A discord bot that allows users to mention a role once, and then applying a cool
 
 > `/ping`: Replies with latency stats
 
-
 # Usage
 Once you have set up a few mentionables with the `/rolecooldown add` command, anyone will be able to mention this role across the whole server as usual (`@role-name` or `<@&roleid>`).
 Once someone uses this role mention, the bot will disable the "Allow anyone to @mention this role" permission on that role so that no is able to ping this role again.
@@ -34,7 +32,6 @@ After that, when the cooldown expires for that role, the bot will enable that sa
 
 **Important note**: If the bot (or any role that the bot has) is not registered to a channels permission, the bot wont be able to read the messages in that channel, so make sure to add the bot's role (or any other role it might have) to all channels that you want it to be able to monitor for role mentions.
 Also worth to not is that the role is mentionable across the whole server, so if it is used in one of the channels where the bot doesnt have permission to read, it wont start a cooldown for that role and the role can be pinged again right away.
-
 
 # Contributions
 - [Maxine](https://artstation.com/Maxine3D): Icon designer
