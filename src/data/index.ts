@@ -20,8 +20,8 @@ export namespace DevEnvironment {
 }
 
 export namespace GeneralData {
-	export const development = true;
-	export const production = false;
+	export const development = false;
+	export const production = true;
 	
 	export const logging = {
 		streamSafe: false, //? If true, the custom console will filter out any dangerouse info
