@@ -15,8 +15,8 @@ const dbURI =  GeneralData.production ?
 		.replace('<username>', mongoUser)
 		.replace('<password>', mongoPass)
 		.replace('<hostname>', mongoHost)
-		.replace('<dbname>', process.env.PROJECT_NAME!) :
-	(process.env.DATABASE_URI_LOCAL as string).replace('<dbname>', process.env.PROJECT_NAME!)
+		.replace('<dbname>', process.env.APP_NAME!) :
+	(process.env.DATABASE_URI_LOCAL as string).replace('<dbname>', process.env.APP_NAME!)
 ;
 
 export class Database {
