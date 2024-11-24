@@ -35,16 +35,20 @@
 - [x] either delete the documents of this guild, or give it a delay time to delete these documents
 - [x] once a role cooldown is removed, turn off its permission for safety
 - [x] On startup, interate through all servers, and all mentionables to check if any cooldown might have expired while it was down, and start the callbacks for all that are still on cooldown
-- [ ] Make an alternate system for cooldown tracking instead of setting a timeout for each cooldown as setTimeout might have unforseen performance impects.
+- [x] Make an alternate system for cooldown tracking instead of setting a timeout for each cooldown as setTimeout might have unforseen performance impects.
 - [ ] Find a better way to maintain database document function like mentionables.ts or guildConfig.ts
 - [ ] Rewrite registerCommands with more of a typescript mindset... i was sush a noob back when i wrote that script :/
+
+# Potential edge cases
+- [ ] Getting rate limeted for flipping the "everyone can mention this role" permission? 
 
 # Prep for public
 ## Bot
 - [x] Figure out exactly which guild permissions the bot needs to function
-- [ ] Test how the bot works while being on multiple servers
+- [x] Test how the bot works while being on multiple servers
 - [ ] Make a good landiing page for the bots documentation
 
 ## Code
+- [ ] Update [`better-console-utilities`](https://github.com/CTN-Originals/Better-Console-Utilities) so that the actual module code includes key filtering and not just the local version in this project.
 - [ ] add a contribution guideline document to the github
 - [ ] Create a .env-example file

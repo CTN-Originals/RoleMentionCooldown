@@ -1,19 +1,9 @@
 {
-	"name": "ctn_discordts-template",
+	"name": "role-mention-cooldown",
 	"author": "CTNOriginals",
-	"version": "0.0.1",
-	"description": "A Template for a discord bot using discordjs in typescript.",
-	"keywords": [
-		"discord",
-		"discord.js",
-		"discordts",
-		"typescript",
-		"ctn",
-		"ctnoriginals",
-		"discord.js-template",
-		"discordts-template",
-		"typescript-template"
-	],
+	"version": "1.0.1",
+	"description": "A discord bot that allows users to mention a role once, and then applying a cooldown to this role before it can be mentioned again.",
+	"keywords": [],
 	"license": "BSD-3-Clause",
 	"main": "dist/index.js",
 	"scripts": {

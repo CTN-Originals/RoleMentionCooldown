@@ -1,6 +1,6 @@
 import { EmbedBuilder, SlashCommandBuilder, CommandInteraction, ChatInputCommandInteraction } from "discord.js";
 import { hexToBit } from "../../utils";
-import { ColorTheme } from "../../data";
+import { ColorTheme, GeneralData } from "../../data";
 import { validateEmbed } from "../../utils/embedUtils";
 
 export default {
@@ -9,7 +9,7 @@ export default {
 			.setName("ping")
 			.setDescription("Replies with latency stats"),
 		async execute(interaction: ChatInputCommandInteraction) {
-			const commandPing = interaction.createdTimestamp - Date.now();
+			const commandPing = (GeneralData.development) ? interaction.createdTimestamp - Date.now() : Date.now() - interaction.createdTimestamp;
 			const apiPing = interaction.client.ws.ping;
 
 			await interaction.reply({

@@ -15,8 +15,8 @@ const dbURI =  GeneralData.production ?
 		.replace('<username>', mongoUser)
 		.replace('<password>', mongoPass)
 		.replace('<hostname>', mongoHost)
-		.replace('<dbname>', process.env.PROJECT_NAME!) :
-	(process.env.DATABASE_URI_LOCAL as string).replace('<dbname>', process.env.PROJECT_NAME!)
+		.replace('<dbname>', process.env.APP_NAME!) :
+	(process.env.DATABASE_URI_LOCAL as string).replace('<dbname>', process.env.APP_NAME!)
 ;
 
 export class Database {
@@ -31,11 +31,6 @@ export class Database {
 		try {
 			const conn = await mongoose.connect(dbURI);
 			this.connection = conn.connection;
-			
-			// if (GeneralData.development) {
-			// 	const ping = await conn.connection.db?.admin().ping();
-			// 	cons.logDefault(ping);
-			// }
 		} catch (error) {
 			cons.log('[fg=cyan st=bold]Database[/>] connection ERROR:');
 			errorConsole.log(error);
