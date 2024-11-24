@@ -49,5 +49,6 @@
 - [ ] Make a good landiing page for the bots documentation
 
 ## Code
+- [ ] Update [`better-console-utilities`](https://github.com/CTN-Originals/Better-Console-Utilities) so that the actual module code includes key filtering and not just the local version in this project.
 - [ ] add a contribution guideline document to the github
 - [ ] Create a .env-example file
