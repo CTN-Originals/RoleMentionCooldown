@@ -96,6 +96,39 @@ export class Mentionable {
 		return await ObjectRelationalMap.create(DataModel, guildId);
 	}
 
+	/** When the bot starts up, run this function for each guild
+	 *  @param guild The Guild to initialize
+	*/
+	public static async initialize(guild: Guild) {
+		
+		const mentionableDoc = await Mentionable.getDocument(guild.id, false);
+		
+		for (const roleId in mentionableDoc.mentionables) {
+			if (roleId == 'placeholder') { continue; } //?? this used to be a thing, keeping it for some reason... i wanna i guess....
+
+			const role = guild.roles.cache.find(r => r.id == roleId);
+			if (!role) {
+				EmitError(new Error(`Unable to find role (${roleId})`));
+				return;
+			}
+
+			if (!role.mentionable) {
+				if (Mentionable.isOncooldown(mentionableDoc.mentionables[roleId])) {
+					if (GeneralData.development) {
+						eventConsole.log(`[fg=green]Restarting[/>] cooldown: [fg=${role.hexColor}]${role.name}[/>] | ${Mentionable.remainingCooldown(mentionableDoc.mentionables[roleId]) / 1000}s`)
+					}
+					Mentionable.startCooldown(guild, roleId, mentionableDoc.mentionables[roleId])
+				}
+				else {
+					if (GeneralData.development) {
+						eventConsole.log(`[fg=red]Expired[/>] cooldown: [fg=${role.hexColor}]${role.name}[/>] | ${Mentionable.remainingCooldown(mentionableDoc.mentionables[roleId]) / 1000}s`)
+					}
+					Mentionable.onCooldownExpired(role);
+				}
+			}
+		}
+	}
+
 	/**  Update the mentionable document
 	 * @param doc The document to update
 	 * @returns Wether or not the data has been saved successfully
@@ -178,37 +211,6 @@ export class Mentionable {
 
 
 	//#region Events
-	/** When the bot starts up, run this function for each guild
-	 *  @param guild The Guild to initialize
-	*/
-	public static async initialize(guild: Guild) {
-		const mentionableDoc = await Mentionable.getDocument(guild.id, false);
-		
-		for (const roleId in mentionableDoc.mentionables) {
-			if (roleId == 'placeholder') { continue; } //?? this used to be a thing, keeping it for some reason... i wanna i guess....
-
-			const role = guild.roles.cache.find(r => r.id == roleId);
-			if (!role) {
-				EmitError(new Error(`Unable to find role (${roleId})`));
-				return;
-			}
-
-			if (!role.mentionable) {
-				if (Mentionable.isOncooldown(mentionableDoc.mentionables[roleId])) {
-					if (GeneralData.development) {
-						eventConsole.log(`[fg=green]Restarting[/>] cooldown: [fg=${role.hexColor}]${role.name}[/>] | ${Mentionable.remainingCooldown(mentionableDoc.mentionables[roleId]) / 1000}s`)
-					}
-					Mentionable.startCooldown(guild, roleId, mentionableDoc.mentionables[roleId])
-				}
-				else {
-					if (GeneralData.development) {
-						eventConsole.log(`[fg=red]Expired[/>] cooldown: [fg=${role.hexColor}]${role.name}[/>] | ${Mentionable.remainingCooldown(mentionableDoc.mentionables[roleId]) / 1000}s`)
-					}
-					Mentionable.onCooldownExpired(role);
-				}
-			}
-		}
-	}
 
 	/** Once the bot enters a new guild, see if we need to create a new document
 	 * @param guildId The GuildID of the server
