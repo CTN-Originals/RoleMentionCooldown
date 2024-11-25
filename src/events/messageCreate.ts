@@ -2,8 +2,8 @@ import { ChannelType, Events, Guild, Message, PermissionFlagsBits } from "discor
 
 import { EmitError, eventConsole } from "."
 import { Mentionable } from "../data/orm/mentionables"
-import { getTimestamp } from "../utils"
-import { DevEnvironment } from "../data"
+import { getTimeDisplay, getTimestamp } from "../utils"
+import { ColorTheme, DevEnvironment } from "../data"
 import { GeneralData } from '../data'
 
 export default {
@@ -34,6 +34,13 @@ export default {
 					if (res == false) {
 						return EmitError(new Error(`Attempted to update mentionable (${key})`));
 					}
+
+					eventConsole.log([
+						`[fg=${ColorTheme.colors.yellow.asHex}]${message.guild.name}[/>]:`,
+						`[fg=${ColorTheme.colors.cyan.asHex}]${message.author.username}[/>] used mentionable`,
+						`[fg=${(role.hexColor != '#000000') ? role.hexColor : ColorTheme.colors.grey.asHex}]${role.name}[/>] | `,
+						`cooldown started: [fg=${ColorTheme.colors.green.asHex}]${getTimeDisplay(mentionables[key].cooldown)}[/>]`
+					].join(' '))
 					
 					if (GeneralData.development) {
 						message.channel.send({
