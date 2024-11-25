@@ -1,9 +1,9 @@
 {
 	"name": "role-mention-cooldown",
 	"author": "CTNOriginals",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"description": "A discord bot that allows users to mention a role once, and then applying a cooldown to this role before it can be mentioned again.",
-	"keywords": [],
+	"homepage": "https://github.com/CTN-Originals/RoleMentionCooldown/tree/stable",
 	"license": "BSD-3-Clause",
 	"main": "dist/index.js",
 	"scripts": {

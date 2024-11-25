@@ -33,7 +33,7 @@ export namespace GeneralData {
 }
 
 export namespace ColorTheme {
-	export const brand: KeyValuePair<Color> = {
+	export const brand = {
 		primary: new Color('#3fb7e9'),
 		secondary: new Color('#2a55e2'),
 		accent: new Color('#92d5e8'),
@@ -45,5 +45,15 @@ export namespace ColorTheme {
 		reply: new Color('#00ff73'),
 		notice: new Color('#ffbb00'),
 		error: new Color('#ff4800'),
+	}
+
+	export const colors = {
+		blue: 	new Color('#0080ff'),
+		green: 	new Color('#00cc00'),
+		cyan: 	new Color('#00ffff'),
+		yellow: new Color('#dfbc22'),
+		orange: new Color('#dd8000'),
+		purple: new Color('#ad1b70'),
+		grey: 	new Color('#aaaaaa'),
 	}
 }

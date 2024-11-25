@@ -2,7 +2,7 @@ import { EmitError, eventConsole } from "../../events";
 import { default as DataModel, IMentionableData, IMentionableItem, IMentionableStorage } from "./schemas/mentionableData";
 import { Guild, Role } from "discord.js";
 import { ObjectRelationalMap } from ".";
-import { GeneralData } from "..";
+import { ColorTheme, GeneralData } from "..";
 
 type MentionableCache<T> = {[id: string]: T};
 export class Mentionable {
@@ -34,7 +34,7 @@ export class Mentionable {
 		if (Mentionable.hasChanged || !Object.keys(Mentionable.mentionablesCache).includes(guildId)) {
 			const doc = await Mentionable.getDocument(guildId);
 
-			Mentionable.mentionablesCache[guildId] = (Object.keys(doc).includes('mentionables')) ? doc.mentionables : {};
+			Mentionable.mentionablesCache[guildId] = (Object.keys(doc.toObject()).includes('mentionables')) ? doc.mentionables : {};
 			Mentionable.hasChanged[guildId] = false;
 		}
 
@@ -103,13 +103,13 @@ export class Mentionable {
 			if (!role.mentionable) {
 				if (Mentionable.isOncooldown(mentionables[roleId])) {
 					if (GeneralData.development) {
-						eventConsole.log(`[fg=green]Restarting[/>] cooldown: [fg=${role.hexColor}]${role.name}[/>] | ${Mentionable.remainingCooldown(mentionables[roleId]) / 1000}s`)
+						eventConsole.log(`[fg=green]Restarting[/>] cooldown: [fg=${(role.hexColor != '#000000') ? role.hexColor : ColorTheme.colors.grey.asHex}]${role.name}[/>] | ${Mentionable.remainingCooldown(mentionables[roleId]) / 1000}s`)
 					}
 					Mentionable.startCooldown(guild, roleId, mentionables[roleId])
 				}
 				else {
 					if (GeneralData.development) {
-						eventConsole.log(`[fg=red]Expired[/>] cooldown: [fg=${role.hexColor}]${role.name}[/>] | ${Mentionable.remainingCooldown(mentionables[roleId]) / 1000}s`)
+						eventConsole.log(`[fg=red]Expired[/>] cooldown: [fg=${(role.hexColor != '#000000') ? role.hexColor : ColorTheme.colors.grey.asHex}]${role.name}[/>] | ${Mentionable.remainingCooldown(mentionables[roleId]) / 1000}s`)
 					}
 					Mentionable.onCooldownExpired(role);
 				}
