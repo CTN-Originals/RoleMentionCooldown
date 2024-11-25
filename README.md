@@ -35,3 +35,6 @@ Also worth to not is that the role is mentionable across the whole server, so if
 
 # Contributions
 - [Maxine](https://artstation.com/Maxine3D): Icon designer
+
+# Terms of Service and Privacy Policy
+Please read the [Terms of Service](https://github.com/CTN-Originals/RoleMentionCooldown/blob/stable/docs/legal/terms-of-service.md) and [Privacy Policy](https://github.com/CTN-Originals/RoleMentionCooldown/blob/stable/docs/legal/privacy-policy.md) that applies to this bot.
