@@ -1,8 +1,7 @@
-import { Events, Guild } from "discord.js";
-
-import { eventConsole } from ".";
-import { Mentionable } from "../data/orm/mentionables";
-import { GuildConfig } from "../data/orm/guildConfig";
+import { Events, Guild } from "discord.js"
+import { eventConsole } from "."
+import { GuildConfig } from "../data/orm/guildConfig"
+import { Mentionable } from "../data/orm/mentionables"
 
 export default {
 	name: Events.GuildDelete,

@@ -1,7 +1,6 @@
-import { Document, model, Model, Schema } from "mongoose";
-import { cons } from "../..";
-import { EmitError, eventConsole } from "../../events";
-import { Base, Guild } from "discord.js";
+import { Guild } from "discord.js"
+import { Document, Model } from "mongoose"
+import { EmitError, eventConsole } from "../../events"
 
 export interface BaseDocument {
 	_id: string

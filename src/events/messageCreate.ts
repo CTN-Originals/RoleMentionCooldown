@@ -1,10 +1,8 @@
-import { ChannelType, Events, Guild, Message, PermissionFlagsBits } from "discord.js"
-
+import { Events, Message } from "discord.js"
 import { EmitError, eventConsole } from "."
+import { ColorTheme, GeneralData } from "../data"
 import { Mentionable } from "../data/orm/mentionables"
 import { getTimeDisplay, getTimestamp } from "../utils"
-import { ColorTheme, DevEnvironment } from "../data"
-import { GeneralData } from '../data'
 
 export default {
 	name: Events.MessageCreate,

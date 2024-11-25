@@ -1,7 +1,11 @@
-import { EmbedBuilder, SlashCommandBuilder, CommandInteraction, ChatInputCommandInteraction } from "discord.js";
-import { hexToBit } from "../../utils";
-import { ColorTheme, GeneralData } from "../../data";
-import { validateEmbed } from "../../utils/embedUtils";
+import {
+	ChatInputCommandInteraction,
+	EmbedBuilder,
+	SlashCommandBuilder
+} from "discord.js"
+import { ColorTheme, GeneralData } from "../../data"
+import { hexToBit } from "../../utils"
+import { validateEmbed } from "../../utils/embedUtils"
 
 export default {
 	command: {

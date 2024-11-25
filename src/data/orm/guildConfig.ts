@@ -1,8 +1,9 @@
-import { Guild } from "discord.js";
-
-import { default as DataModel, GuildConfigData, IGuildConfigData } from './schemas/guildConfigData'
-import { ObjectRelationalMap } from ".";
-import { Model } from "mongoose";
+import { Guild } from "discord.js"
+import { ObjectRelationalMap } from "."
+import {
+	default as DataModel,
+	IGuildConfigData
+} from './schemas/guildConfigData'
 
 export class GuildConfig {
 	/** Get the config object of a guild

@@ -1,11 +1,8 @@
-import { REST, Routes } from 'discord.js';
-
-import * as fs from 'node:fs';
-import 'dotenv/config';
-
-import { cons } from '.';
+import { REST, Routes } from 'discord.js'
+import 'dotenv/config'
+import * as fs from 'node:fs'
+import { cons } from '.'
 import { GeneralData } from './data'
-
 
 export class DeployInstruction {
 	public guildId: string | undefined;

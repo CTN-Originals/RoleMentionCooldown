@@ -1,8 +1,13 @@
-import { EmitError, eventConsole } from "../../events";
-import { default as DataModel, IMentionableData, IMentionableItem, IMentionableStorage } from "./schemas/mentionableData";
-import { Guild, Role } from "discord.js";
-import { ObjectRelationalMap } from ".";
-import { ColorTheme, GeneralData } from "..";
+import { Guild, Role } from "discord.js"
+import { ObjectRelationalMap } from "."
+import { ColorTheme, GeneralData } from ".."
+import { EmitError, eventConsole } from "../../events"
+import {
+	default as DataModel,
+	IMentionableData,
+	IMentionableItem,
+	IMentionableStorage
+} from "./schemas/mentionableData"
 
 type MentionableCache<T> = {[id: string]: T};
 export class Mentionable {

@@ -1,13 +1,20 @@
-import 'dotenv/config';
-import { Events, CommandInteraction, EmbedBuilder, Colors, ChannelType, ChatInputCommandInteraction, CommandInteractionOption  } from 'discord.js';
-
-import { eventConsole } from '.';
-import { client, errorConsole, logWebhook } from '..';
-import { getInteractionType, getHoistedOptions } from '../utils/interactionUtils';
-import { ErrorObject } from '../handlers/errorHandler';
-import { validateEmbed } from '../utils/embedUtils';
-
-
+import {
+	ChannelType,
+	ChatInputCommandInteraction,
+	Colors,
+	CommandInteraction,
+	CommandInteractionOption,
+	EmbedBuilder,
+	Events
+} from 'discord.js'
+import 'dotenv/config'
+import { client, errorConsole, logWebhook } from '..'
+import { ErrorObject } from '../handlers/errorHandler'
+import { validateEmbed } from '../utils/embedUtils'
+import {
+	getHoistedOptions,
+	getInteractionType
+} from '../utils/interactionUtils'
 
 export default {
 	name: Events.Error,

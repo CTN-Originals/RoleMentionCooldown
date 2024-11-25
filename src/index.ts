@@ -1,14 +1,14 @@
-import 'dotenv/config';
-import { Client, Collection, WebhookClient } from 'discord.js';
-
-import { ConsoleInstance, Theme, ThemeOverride, defaultThemeProfile, defaultFilterKeys } from 'better-console-utilities';
-
-import { getEventFiles } from './startup/registerEvents';
-import { getCommandFiles } from './startup/registerCommands';
-import { GeneralData } from './data';
-
-import * as deployScript from './deployCommands';
-import { Database } from './data/orm/connect';
+import {
+	ConsoleInstance,
+	Theme,
+	defaultThemeProfile
+} from 'better-console-utilities'
+import { Client, Collection, WebhookClient } from 'discord.js'
+import 'dotenv/config'
+import { Database } from './data/orm/connect'
+import * as deployScript from './deployCommands'
+import { getCommandFiles } from './startup/registerCommands'
+import { getEventFiles } from './startup/registerEvents'
 
 //? Set the default theme profile to my preferences
 defaultThemeProfile.overrides.push(...[]);

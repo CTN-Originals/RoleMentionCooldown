@@ -1,11 +1,15 @@
-import { ChatInputCommandInteraction, EmbedBuilder, SlashCommandBuilder } from "discord.js";
-import { GuildConfig } from "../../data/orm/guildConfig";
-import { PermissionObject } from "../../handlers/permissionHandler";
-import { RequiredFields } from "../../@types";
-import { IGuildConfigData } from "../../data/orm/schemas/guildConfigData";
-import { validateEmbed } from "../../utils/embedUtils";
-import { ColorTheme } from "../../data";
-import { hexToBit } from "../../utils";
+import {
+	ChatInputCommandInteraction,
+	EmbedBuilder,
+	SlashCommandBuilder
+} from "discord.js"
+import { RequiredFields } from "../../@types"
+import { ColorTheme } from "../../data"
+import { GuildConfig } from "../../data/orm/guildConfig"
+import { IGuildConfigData } from "../../data/orm/schemas/guildConfigData"
+import { PermissionObject } from "../../handlers/permissionHandler"
+import { hexToBit } from "../../utils"
+import { validateEmbed } from "../../utils/embedUtils"
 
 export default {
 	command: {

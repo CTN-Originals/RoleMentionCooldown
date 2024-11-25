@@ -1,22 +1,24 @@
+import { ConsoleInstance } from 'better-console-utilities'
 import { 
 	BaseInteraction,
-	CommandInteraction,
-	InteractionType,
-	Events,
-	CommandInteractionOption,
 	ChatInputCommandInteraction,
-} from 'discord.js';
+	CommandInteraction,
+	CommandInteractionOption,
+	Events,
+	InteractionType,
+} from 'discord.js'
+import { EmitError } from '.'
+import { errorConsole } from '..'
+import { GeneralData } from '../data'
+import { ErrorObject } from '../handlers/errorHandler'
+import { validateUserPermission } from '../handlers/permissionHandler'
+import {
+	IInteractionTypeData,
+	getHoistedOptions,
+	getInteractionType
+} from '../utils/interactionUtils'
 
-import { ConsoleInstance } from 'better-console-utilities';
-
-import { EmitError, eventConsole } from '.';
-import { errorConsole } from '..';
-import { IInteractionTypeData, getHoistedOptions, getInteractionType } from '../utils/interactionUtils';
-import { GeneralData } from '../data';
-import { ErrorObject } from '../handlers/errorHandler';
-import { PermissionObject, validateUserPermission } from '../handlers/permissionHandler';
-
-const thisConsole = new ConsoleInstance();
+const thisConsole = new ConsoleInstance()
 
 export default {
 	name: Events.InteractionCreate,

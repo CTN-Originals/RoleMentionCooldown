@@ -1,9 +1,5 @@
-import { EmbedBuilder } from "discord.js";
-
-import { testWebhook } from "..";
-import { EmitError } from "../events";
-
-
+import { EmbedBuilder } from "discord.js"
+import { EmitError } from "../events"
 
 /*
 All of the following limits are measured inclusively. 

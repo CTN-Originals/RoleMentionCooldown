@@ -1,9 +1,7 @@
-import * as fs from 'node:fs';
-
-import { SlashCommandBuilder } from 'discord.js'; 
-
-import { cons, errorConsole } from '..';
-import { PermissionObject } from '../handlers/permissionHandler';
+import { SlashCommandBuilder } from 'discord.js'
+import * as fs from 'node:fs'
+import { cons, errorConsole } from '..'
+import { PermissionObject } from '../handlers/permissionHandler'
 
 // Get command files
 export function getCommandFiles(client: any, dir: string) {

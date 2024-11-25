@@ -1,4 +1,9 @@
-import { Document, Schema, SchemaDefinitionProperty, model } from "mongoose";
+import {
+	Document,
+	Schema,
+	SchemaDefinitionProperty,
+	model
+} from "mongoose"
 
 export interface IGuildConfigData extends Document {
 	_id: string,

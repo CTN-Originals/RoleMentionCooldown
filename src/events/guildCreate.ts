@@ -1,10 +1,9 @@
-import { Events, Guild } from "discord.js";
-
-import { Mentionable } from "../data/orm/mentionables";
-import { DeployInstruction, doDeployCommands } from "../deployCommands";
-import { eventConsole } from ".";
-import { GuildConfig } from "../data/orm/guildConfig";
-import { GeneralData } from "../data";
+import { Events, Guild } from "discord.js"
+import { eventConsole } from "."
+import { GeneralData } from "../data"
+import { GuildConfig } from "../data/orm/guildConfig"
+import { Mentionable } from "../data/orm/mentionables"
+import { DeployInstruction, doDeployCommands } from "../deployCommands"
 
 export default {
 	name: Events.GuildCreate,

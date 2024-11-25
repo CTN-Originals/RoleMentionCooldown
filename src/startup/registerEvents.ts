@@ -1,7 +1,5 @@
-import * as fs from 'node:fs';
-
 import { Client } from 'discord.js'
-
+import * as fs from 'node:fs'
 import { cons } from '../index'
 
 /** Get event files */

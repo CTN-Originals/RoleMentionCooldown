@@ -1,9 +1,13 @@
-import { EmbedBuilder, SlashCommandBuilder, CommandInteraction, Guild, ChatInputCommandInteraction } from "discord.js";
-import { validateEmbed } from "../../utils/embedUtils";
-import { Mentionable } from "../../data/orm/mentionables";
-
+import {
+	ChatInputCommandInteraction,
+	EmbedBuilder,
+	Guild,
+	SlashCommandBuilder
+} from "discord.js"
 import { ColorTheme, GeneralData } from '../../data'
-import { getTimeDisplay, getTimestamp, hexToBit, timeUnits } from "../../utils";
+import { Mentionable } from "../../data/orm/mentionables"
+import { getTimeDisplay, getTimestamp, hexToBit } from "../../utils"
+import { validateEmbed } from "../../utils/embedUtils"
 
 export type ListType = 'all'|'cooldowns';
 

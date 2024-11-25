@@ -1,16 +1,17 @@
-
-import { ChatInputCommandInteraction, CommandInteraction, EmbedBuilder, SlashCommandBuilder } from "discord.js";
-
+import { ConsoleInstance } from "better-console-utilities"
+import {
+	ChatInputCommandInteraction,
+	EmbedBuilder,
+	SlashCommandBuilder
+} from "discord.js"
+import { client } from "../.."
 import { ColorTheme, GeneralData } from '../../data'
-import { hexToBit, PeriodOfTime, includesAll, includesAny } from "../../utils";
-import { Mentionable } from "../../data/orm/mentionables";
-import { EmitError } from "../../events";
-import { ConsoleInstance } from "better-console-utilities";
-import { validateEmbed } from "../../utils/embedUtils";
-import { client } from "../..";
-import { PermissionObject } from "../../handlers/permissionHandler";
+import { Mentionable } from "../../data/orm/mentionables"
+import { PermissionObject } from "../../handlers/permissionHandler"
+import { hexToBit, includesAny, PeriodOfTime } from "../../utils"
+import { validateEmbed } from "../../utils/embedUtils"
 
-const thisConsole = new ConsoleInstance();
+const thisConsole = new ConsoleInstance()
 
 export default {
 	command: {

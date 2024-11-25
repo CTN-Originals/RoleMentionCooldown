@@ -1,19 +1,20 @@
-import 'dotenv/config';
-import { Client, ComponentType, EmbedBuilder, Events, Guild, Interaction, InteractionType, Message, Routes, TextChannel } from 'discord.js';
-
-import { ConsoleInstance } from 'better-console-utilities';
-
-import { GeneralData } from '../data';
-import { DevEnvironment } from '../data';
-import { EmitError, customEvents, eventConsole } from '.';
-import { cons, errorConsole, testWebhook } from '..';
-import { testEmbed, validateEmbed } from '../utils/embedUtils';
-import { TODO } from '../@types';
-import { Mentionable } from '../data/orm/mentionables';
-import { IMentionableStorage, default as MentionableData } from '../data/orm/schemas/mentionableData'
-import { timeUnits } from '../utils';
-import { getCurrentCooldownsEmbed } from '../commands/info/list';
-import { UserPermissions } from '../handlers/permissionHandler';
+import { ConsoleInstance } from 'better-console-utilities'
+import {
+	Client,
+	ComponentType,
+	EmbedBuilder,
+	Events,
+	Guild,
+	Interaction,
+	InteractionType,
+	Message,
+	Routes,
+	TextChannel
+} from 'discord.js'
+import 'dotenv/config'
+import { TODO } from '../@types'
+import { DevEnvironment, GeneralData } from '../data'
+import { Mentionable } from '../data/orm/mentionables'
 
 // import ErrorHandler from '../handlers/errorHandler';
 
