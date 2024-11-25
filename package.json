@@ -7,18 +7,17 @@
 	"name": "role-mention-cooldown",
 	"version": "1.1.0",
 	"dependencies": {
-		"better-console-utilities": "^1.1.0",
-		"discord.js": "^14.14.1",
-		"dotenv": "^16.3.1",
+		"better-console-utilities": "^1.1.1",
+		"discord.js": "^14.16.3",
+		"dotenv": "^16.4.5",
 		"moment": "^2.30.1",
 		"mongoose": "^8.8.2"
 	},
 	"devDependencies": {
-		"@types/mongoose": "^5.11.97",
-		"@types/node": "^20.10.6",
-		"nodemon": "^3.0.2",
-		"rimraf": "^5.0.5",
-		"tsx": "^4.7.0",
+		"@types/node": "^20.17.7",
+		"nodemon": "^3.1.7",
+		"rimraf": "^5.0.10",
+		"tsx": "^4.19.2",
 		"typescript": "^5.7.2"
 	},
 	"scripts": {
@@ -28,5 +27,6 @@
 		"start:dev": "nodemon src/index.ts",
 		"start:tsx": "tsx watch src/index.ts",
 		"tests": "tsx watch tests/index.ts"
-	}
+	},
+	"packageManager": "yarn@4.5.3"
 }
