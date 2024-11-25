@@ -12,7 +12,7 @@ import { Database } from './data/orm/connect';
 
 //? Set the default theme profile to my preferences
 defaultThemeProfile.overrides.push(...[]);
-defaultFilterKeys.push(...((GeneralData.logging.streamSafe) ? ['token'] : []));
+// defaultFilterKeys.push(...((GeneralData.logging.streamSafe) ? ['token'] : [])); //! Disabled until this feature actually gets introduced in the better-console-utilities module
 
 export const cons = new ConsoleInstance();
 export const errorConsole = new ConsoleInstance(defaultThemeProfile.clone());
