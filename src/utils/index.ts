@@ -1,45 +1,45 @@
-import { Color } from "better-console-utilities";
-import { Collection } from "discord.js";
-import { duration } from "moment";
-import { client } from "..";
+import { Color } from "better-console-utilities"
+import { Collection } from "discord.js"
+import { duration } from "moment"
+import { client } from ".."
 
 //? a class that can take a string like 23s 69m 2h and turn it into a time length of 23 seconds, 9 minutes and 3 hours.
 export class PeriodOfTime {
-	public time: number;
-	
+	public time: number
+
 	private formatedInput: string
 	private readonly sortOrder: string[] = ['D', 'H', 'M', 'S']
 
 	constructor(public input: string) {
-		this.formatedInput = input.trim().toUpperCase();
+		this.formatedInput = input.trim().toUpperCase()
 		const split = this.formatedInput.split(' ')
 
 		//? take out any time entries that dont have a correct flag after it
 		for (let i = 0; i < split.length; i++) {
 			const flag = split[i][split[i].length - 1]
 			if (!this.sortOrder.includes(flag)) {
-				split.splice(i, 1);
+				split.splice(i, 1)
 			}
 		}
 
 		//? sort the order of the input so the "moment" function can understand it
 		this.formatedInput = split.sort((a, b) =>
 			this.sortOrder.indexOf(a[a.length - 1]) - this.sortOrder.indexOf(b[b.length - 1])
-		).join('');
+		).join('')
 
 		//? make sure PT is included the right way, put the day time input between the P and T if present
-		this.formatedInput = (this.formatedInput.includes('D')) ? "P" + this.formatedInput.replace('D', 'DT') : "PT" + this.formatedInput;
+		this.formatedInput = (this.formatedInput.includes('D')) ? "P" + this.formatedInput.replace('D', 'DT') : "PT" + this.formatedInput
 
 		//? get the time in miliseconds
-		this.time = duration(this.formatedInput).asMilliseconds();
+		this.time = duration(this.formatedInput).asMilliseconds()
 	}
 
 	public toString(): string {
-		return getTimeDisplay(this.time);
+		return getTimeDisplay(this.time)
 	}
 
 	public get dateTime(): Date {
-		return new Date(this.time);
+		return new Date(this.time)
 	}
 }
 
@@ -57,7 +57,7 @@ export function timeUnits(ms: number): {
 	seconds: number,
 	milliseconds: number
 } {
-	if ( !Number.isInteger(ms) ) { 
+	if (!Number.isInteger(ms)) {
 		return {
 			days: 0,
 			hours: 0,
@@ -91,8 +91,8 @@ export function timeUnits(ms: number): {
 }
 
 //? discords needs a specific timestamp for their timestamp embeds to work...
-export function getTimestamp(date: Date|number): number {
-	let rawTime = '0';
+export function getTimestamp(date: Date | number): number {
+	let rawTime = '0'
 
 	if (typeof date == 'number') {
 		rawTime = date.toString()
@@ -100,95 +100,95 @@ export function getTimestamp(date: Date|number): number {
 		rawTime = date.getTime().toString()
 	}
 
-	const timeSplit = rawTime.split('');
-	const time = timeSplit.splice(0, 10).join('');
-	
-	return parseFloat(time);
+	const timeSplit = rawTime.split('')
+	const time = timeSplit.splice(0, 10).join('')
+
+	return parseFloat(time)
 }
 
 export function getTimeDisplay(time: number) {
-	const units = timeUnits(time);
-	const formatTime = (t: number) => {return (t < 10) ? `0${t}` : t}
+	const units = timeUnits(time)
+	const formatTime = (t: number) => { return (t < 10) ? `0${t}` : t }
 
 	return `${units.days}d ${formatTime(units.hours)}:${formatTime(units.minutes)}:${formatTime(units.seconds)}`
 }
 
-export function hexToBit(hex: string): number;
-export function hexToBit(color: Color): number;
-export function hexToBit(hex_color: string|Color): number {
+export function hexToBit(hex: string): number
+export function hexToBit(color: Color): number
+export function hexToBit(hex_color: string | Color): number {
 	if (typeof hex_color == 'string') {
-		return parseInt('0x' + hex_color.replace('#', ''));
+		return parseInt('0x' + hex_color.replace('#', ''))
 	}
 	else {
-		return parseInt('0x' + hex_color.asHex.replace('#', ''));
+		return parseInt('0x' + hex_color.asHex.replace('#', ''))
 	}
 }
 
-export function includesAny(target: string|string[], items: string[]): boolean {
+export function includesAny(target: string | string[], items: string[]): boolean {
 	for (const item of items) {
-		if (target.includes(item)) { return true; }
+		if (target.includes(item)) { return true }
 	}
 
-	return false;
+	return false
 }
-export function includesAll(target: string|string[], items: string[]): boolean {
+export function includesAll(target: string | string[], items: string[]): boolean {
 	for (const item of items) {
-		if (!target.includes(item)) { return false; }
+		if (!target.includes(item)) { return false }
 	}
 
-	return true;
+	return true
 }
 
 type CommandInfo = {
-	name: string;
-	description: string;
-	options?: OptionInfo[];
-};
+	name: string
+	description: string
+	options?: OptionInfo[]
+}
 
 type OptionInfo = {
-	name: string;
-	description: string;
-	required: boolean;
-	type: number;
-	min_length?: number;
-	max_length?: number;
-	options?: OptionInfo[];
-};
+	name: string
+	description: string
+	required: boolean
+	type: number
+	min_length?: number
+	max_length?: number
+	options?: OptionInfo[]
+}
 //? this is not my best function... but it works and i dont wanna do more recursion stuff so f it
-export function getExecutableCommands(commands: Collection<string, {data: CommandInfo}> = client.commands) {	
+export function getExecutableCommands(commands: Collection<string, { data: CommandInfo }> = client.commands) {
 	function parseCommands(commands: CommandInfo[], prefix: string = "") {
-		const result: { command: string; description: string; options: OptionInfo[] }[] = [];
-	
-		for (const command of commands) {
-			if (!command.name || !command.description) { continue; }
+		const result: { command: string; description: string; options: OptionInfo[] }[] = []
 
-			const currentCommand = prefix ? `${prefix} ${command.name}` : `${command.name}`;
-	
+		for (const command of commands) {
+			if (!command.name || !command.description) { continue }
+
+			const currentCommand = prefix ? `${prefix} ${command.name}` : `${command.name}`
+
 			if (!command.options || command.options.every((opt) => !opt.options)) {
 				// If there are no nested options or only terminal options, this is executable
 				result.push({
 					command: currentCommand,
 					description: command.description,
 					options: command.options || [],
-				});
+				})
 			} else {
 				//? Recursively look for executable subcommands/groups
-				const subcommandsOrGroups = command.options.filter((opt) => opt.options);
+				const subcommandsOrGroups = command.options.filter((opt) => opt.options)
 				for (const subcommandOrGroup of subcommandsOrGroups) {
 					result.push(
 						...parseCommands([subcommandOrGroup], currentCommand)
-					);
+					)
 				}
 			}
 		}
-	
-		return result;
+
+		return result
 	}
 
 	let cmds: CommandInfo[] = []
 	for (const [k, v] of commands.entries()) {
-		cmds.push(v.data);
+		cmds.push(v.data)
 	}
 
-	return parseCommands(cmds);
+	return parseCommands(cmds)
 }
