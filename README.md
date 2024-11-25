@@ -1,5 +1,5 @@
 # Role Mention Cooldown
-A discord bot that allows users to mention a role once, then apply a cooldown to this role before it can be mentioned again.
+A discord bot that allows users to mention a role once, then apply a cooldown to the role before it can be mentioned again.
 
 ## Commands
 ### Admin
@@ -9,7 +9,7 @@ A discord bot that allows users to mention a role once, then apply a cooldown to
 - `/config admin-role remove <role>`: Remove an admin role
 
 #### Cooldowns
-- `/rolecooldown add <role> <cooldown>`: Add a new role to the list, or change the cooldown for an existing one
+- `/rolecooldown add <role> <cooldown>`: Add a new role to the monitored list, or change the cooldown for an existing one
   - `cooldown`: The cooldown to apply to the role on use (separate with spaces). Ex: `8s 69m 28h 1d = 2d 05:09:08`, `600s = 0d 00:10:00`
 - `/rolecooldown remove <role>`: Remove a role from having a cooldown
 
@@ -19,7 +19,7 @@ A discord bot that allows users to mention a role once, then apply a cooldown to
 - `/list cooldowns`: Display a list of all roles currently on cooldown along with their remaining cooldown time
 
 #### Ping
-- `/ping`: Replies with latency stats
+- `/ping`: Show latency stats
 
 ## Usage
 After adding mentionable roles with the `/rolecooldown add` command, anyone will be able to mention these roles across the whole server as usual (`@role-name` or `<@&roleid>`).
