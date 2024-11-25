@@ -19,7 +19,7 @@ export default {
 			})])
 		}
 
-		await Mentionable.onGuildCreate(guild);
-		await GuildConfig.onGuildCreate(guild);
+		await Mentionable.onGuildCreate(guild)
+		await GuildConfig.onGuildCreate(guild)
 	},
 }

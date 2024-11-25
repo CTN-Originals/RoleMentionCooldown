@@ -47,23 +47,23 @@ export default {
 				)
 			),
 		async execute(interaction: ChatInputCommandInteraction) {
-			const subCommand = interaction.options.getSubcommand();
+			const subCommand = interaction.options.getSubcommand()
 			switch (subCommand) {
-				case 'add': return await this.addRole(interaction);
-				case 'remove': return await this.removeRole(interaction);
-				default: break;
+				case 'add': return await this.addRole(interaction)
+				case 'remove': return await this.removeRole(interaction)
+				default: break
 			}
 
 			//? if code reaches here, that means that all subcommands and groups fell through somehow...
-			throw new Error(`Unknown command command:${interaction.commandName} sub:${subCommand}`);
+			throw new Error(`Unknown command command:${interaction.commandName} sub:${subCommand}`)
 		},
 		async addRole(interaction: ChatInputCommandInteraction) {
 			if (!interaction.guild) {
 				throw new Error(`Interaction did not contain guild`)
 			}
-			const roleId = interaction.options.get('role', true).value;
+			const roleId = interaction.options.get('role', true).value
 
-			let cooldownInput = interaction.options.getString('cooldown', true);
+			let cooldownInput = interaction.options.getString('cooldown', true)
 			if (!includesAny(cooldownInput, ['s', 'm', 'h', 'd'])) {
 				if (cooldownInput.split(' ').length == 1) { //- is the input just a single number
 					cooldownInput += 's' //? convert it to seconds for ease of use
@@ -88,20 +88,20 @@ export default {
 							color: hexToBit(ColorTheme.embeds.notice)
 						}))],
 						ephemeral: true
-					});
+					})
 
-					return `Invalid cooldown input`;
+					return `Invalid cooldown input`
 				}
 			}
-			
-			const cooldown = new PeriodOfTime(cooldownInput);
 
-			const role = interaction.guild.roles.cache.find(r => r.id == roleId);
+			const cooldown = new PeriodOfTime(cooldownInput)
+
+			const role = interaction.guild.roles.cache.find(r => r.id == roleId)
 			if (!role) {
-				throw new Error(`Unable to find role (${roleId})`);
+				throw new Error(`Unable to find role (${roleId})`)
 			}
 			else {
-				const botMember = interaction.guild.members.cache.get(client.user!.id);
+				const botMember = interaction.guild.members.cache.get(client.user!.id)
 				if (!botMember?.roles.highest.position || botMember?.roles.highest.position < role.position) {
 					await interaction.reply({
 						embeds: [validateEmbed(new EmbedBuilder({
@@ -117,7 +117,7 @@ export default {
 							color: hexToBit(ColorTheme.embeds.notice)
 						}))],
 						ephemeral: true
-					});
+					})
 
 					return `Selected role is above my highest role`
 				}
@@ -130,8 +130,8 @@ export default {
 
 			if (res) {
 				// thisConsole.log(`[fg=green]${interaction.guild.name}[/>] Added new mentionable ${roleId}: ${res}`)
-	
-				await role.setMentionable(true, 'RoleMentionCooldown - Registered'); //? set the role to mentionable so its able to be used
+
+				await role.setMentionable(true, 'RoleMentionCooldown - Registered') //? set the role to mentionable so its able to be used
 				await interaction.reply({
 					embeds: [validateEmbed(new EmbedBuilder({
 						title: "Registered New Role Cooldown",
@@ -141,28 +141,28 @@ export default {
 							`Make sure to add my role to any channel that you want to monitor for role usage.`,
 						].join('\n'),
 						fields: [
-							{name: 'role', value: `<@&${roleId}>`, inline: true},
-							{name: 'cooldown', value: `\`${cooldown.toString()}\``, inline: true},
-							{name: '\u200B', value: `\u200B`, inline: true},
+							{ name: 'role', value: `<@&${roleId}>`, inline: true },
+							{ name: 'cooldown', value: `\`${cooldown.toString()}\``, inline: true },
+							{ name: '\u200B', value: `\u200B`, inline: true },
 						],
 						color: hexToBit(ColorTheme.embeds.reply),
 					}))],
 					ephemeral: !GeneralData.development
-				});
+				})
 			} else {
 				throw new Error(`"${interaction.guild.name}" Attempted to add new mentionable (${roleId}) and was unsuccessfull`)
 			}
 
-			return true;
+			return true
 		},
 		async removeRole(interaction: ChatInputCommandInteraction) {
 			if (!interaction.guild) {
 				throw new Error(`Interaction did not contain guild`)
 			}
-			
-			const roleId = interaction.options.get('role', true).value;
-			const mentionable = await Mentionable.get(interaction.guild.id, roleId as string);
-			
+
+			const roleId = interaction.options.get('role', true).value
+			const mentionable = await Mentionable.get(interaction.guild.id, roleId as string)
+
 			if (mentionable === undefined) {
 				await interaction.reply({
 					embeds: [validateEmbed(new EmbedBuilder({
@@ -170,28 +170,28 @@ export default {
 						color: hexToBit(ColorTheme.embeds.notice)
 					}))],
 					ephemeral: true
-				});
-				return 'Role not present in list';
+				})
+				return 'Role not present in list'
 			}
 
-			const role = interaction.guild.roles.cache.find(r => r.id == roleId);
+			const role = interaction.guild.roles.cache.find(r => r.id == roleId)
 			if (!role) {
-				throw new Error(`Unable to find role (${roleId})`);
+				throw new Error(`Unable to find role (${roleId})`)
 			}
 
 			const res = await Mentionable.remove(interaction.guild?.id, roleId as string)
 
 			if (res) {
 				thisConsole.log(`[fg=green]${interaction.guild.name}[/>] Removed mentionable ${roleId}: ${res}`)
-				
-				await role.setMentionable(false, 'RoleMentionCooldown - Removed'); //? set the role to mentionable so its able to be used
+
+				await role.setMentionable(false, 'RoleMentionCooldown - Removed') //? set the role to mentionable so its able to be used
 				await interaction.reply({
 					embeds: [validateEmbed(new EmbedBuilder({
 						description: `Successfully removed <@&${roleId}> from the list.\nDisabled the ability to mention <@&${roleId}> for everyone.`,
 						color: hexToBit(ColorTheme.embeds.reply)
 					}))],
 					ephemeral: true
-				});
+				})
 			} else {
 				throw new Error(`"${interaction.guild.name}" Attempted to remove mentionable (${roleId}) and was unsuccessfull`)
 			}

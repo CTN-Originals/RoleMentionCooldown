@@ -24,34 +24,35 @@ export const testEmbed = new EmbedBuilder({
 	title: 'embed title: Lorem ipsum dolor sit amet consectetur adipisicing elit. Maxime mollitia, molestiae quas vel sint commodi repudiandae consequuntur voluptatum laborum numquam blanditiis harum quisquam eius sed odit fugiat iusto fuga praesentium optio, eaque rerum!',
 	description: '456',
 	fields: [
-		{name: '1', value: '1', inline: true},
-		{name: '2', value: '2', inline: true},
-		{name: '3', value: '3', inline: true},
-		{name: '4', value: '4', inline: true},
-		{name: '5', value: '5', inline: true},
-		{name: '6', value: '6', inline: true},
-		{name: '7', value: '7', inline: true},
-		{name: '8', value: '8', inline: true},
-		{name: '9', value: '9', inline: true},
-		{name: '10', value: '10', inline: true},
-		{name: '11', value: '11', inline: true},
-		{name: '12', value: '12', inline: true},
-		{name: '13', value: '13', inline: true},
-		{name: '14', value: '14', inline: true},
-		{name: '15', value: '15', inline: true},
-		{name: '16', value: '16', inline: true},
-		{name: '17', value: '17', inline: true},
-		{name: '18', value: '18', inline: true},
-		{name: '19', value: '19', inline: true},
-		{name: '20', value: '20', inline: true},
-		{name: '21', value: '21', inline: true},
-		{name: '22', value: '22', inline: true},
-		{name: '23', value: '23', inline: true},
-		{name: '24', value: '24', inline: true},
-		{name: '25', value: '25', inline: true},
-		{name: '26', value: '26', inline: true},
+		{ name: '1', value: '1', inline: true },
+		{ name: '2', value: '2', inline: true },
+		{ name: '3', value: '3', inline: true },
+		{ name: '4', value: '4', inline: true },
+		{ name: '5', value: '5', inline: true },
+		{ name: '6', value: '6', inline: true },
+		{ name: '7', value: '7', inline: true },
+		{ name: '8', value: '8', inline: true },
+		{ name: '9', value: '9', inline: true },
+		{ name: '10', value: '10', inline: true },
+		{ name: '11', value: '11', inline: true },
+		{ name: '12', value: '12', inline: true },
+		{ name: '13', value: '13', inline: true },
+		{ name: '14', value: '14', inline: true },
+		{ name: '15', value: '15', inline: true },
+		{ name: '16', value: '16', inline: true },
+		{ name: '17', value: '17', inline: true },
+		{ name: '18', value: '18', inline: true },
+		{ name: '19', value: '19', inline: true },
+		{ name: '20', value: '20', inline: true },
+		{ name: '21', value: '21', inline: true },
+		{ name: '22', value: '22', inline: true },
+		{ name: '23', value: '23', inline: true },
+		{ name: '24', value: '24', inline: true },
+		{ name: '25', value: '25', inline: true },
+		{ name: '26', value: '26', inline: true },
 	],
-	footer: {text: `
+	footer: {
+		text: `
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 Proin sed justo eu urna varius eleifend sit amet eget metus. Nam elementum congue elit, eu viverra libero bibendum ac. Suspendisse potenti. Aenean in justo vitae elit pretium iaculis sed vitae dolor. Morbi auctor varius diam, eget posuere ante ultrices a. Vestibulum imperdiet tristique felis, ut consequat massa bibendum id. Sed imperdiet, nulla at convallis consectetur, sem risus vestibulum ligula, ac blandit elit velit nec dui. Nunc vehicula varius magna eu scelerisque. Sed quis urna non odio mattis euismod. Ut ac urna ut arcu tristique consectetur eu ut justo.
 In hac habitasse platea dictumst. Ut bibendum velit vitae felis fringilla, vel consequat neque malesuada. Phasellus gravida justo sed efficitur rhoncus. Nunc sed bibendum erat, nec viverra purus. Quisque vitae aliquet nisi, a ullamcorper velit. Fusce nec risus eu ipsum fermentum elementum. Etiam vehicula tincidunt enim, eu tincidunt nunc. Fusce nec mi ut nisi sodales rutrum.
@@ -60,7 +61,7 @@ Vivamus ac dapibus turpis. Sed non dui vel velit ultrices lacinia id vitae liber
 	},
 })
 
-const overflowIndicator: string = '…';
+const overflowIndicator: string = '…'
 const overflowLimits = {
 	authorName: 256,
 	title: 256,
@@ -86,8 +87,8 @@ const overflowLimits = {
 - author.name 	256 characters
 */
 export function validateEmbed(embed: EmbedBuilder): EmbedBuilder {
-	const errorList: string[] = [];
-	const overflowData: {[key: string]: number} = {
+	const errorList: string[] = []
+	const overflowData: { [key: string]: number } = {
 		authorName: 0,
 		title: 0,
 		description: 0,
@@ -100,81 +101,81 @@ export function validateEmbed(embed: EmbedBuilder): EmbedBuilder {
 	// const overflowSum = () => Object.values(overflowData).reduce((a: number, b: number|number[]) => a + (Array.isArray(b) ? b[0] : b), 0);
 
 	if (!embed.data) {
-		errorList.push('Embed.data is missing');
+		errorList.push('Embed.data is missing')
 	}
 	else {
 		if (embed.data.author?.name && embed.data.author.name.length > overflowLimits.authorName) {
-			overflowData.authorName = embed.data.author.name.length - overflowLimits.authorName;
-			embed.setAuthor({name: embed.data.author.name.slice(0, (overflowLimits.authorName - overflowIndicator.length)) + overflowIndicator});
+			overflowData.authorName = embed.data.author.name.length - overflowLimits.authorName
+			embed.setAuthor({ name: embed.data.author.name.slice(0, (overflowLimits.authorName - overflowIndicator.length)) + overflowIndicator })
 		}
 		if (embed.data.title && embed.data.title.length > overflowLimits.title) {
-			overflowData.title = embed.data.title.length - overflowLimits.title;
-			embed.setTitle(embed.data.title.slice(0, (overflowLimits.title - overflowIndicator.length)) + overflowIndicator);
+			overflowData.title = embed.data.title.length - overflowLimits.title
+			embed.setTitle(embed.data.title.slice(0, (overflowLimits.title - overflowIndicator.length)) + overflowIndicator)
 		}
 		if (embed.data.description && embed.data.description.length > overflowLimits.description) {
-			overflowData.description = embed.data.description.length - overflowLimits.description;
-			embed.setDescription(embed.data.description.slice(0, (overflowLimits.description - overflowIndicator.length)) + overflowIndicator);
+			overflowData.description = embed.data.description.length - overflowLimits.description
+			embed.setDescription(embed.data.description.slice(0, (overflowLimits.description - overflowIndicator.length)) + overflowIndicator)
 		}
 		if (embed.data.fields && embed.data.fields.length > overflowLimits.fields) {
-			overflowData.fields = embed.data.fields.length - overflowLimits.fields;
-			embed.setFields(embed.data.fields.slice(0, overflowLimits.fields));
+			overflowData.fields = embed.data.fields.length - overflowLimits.fields
+			embed.setFields(embed.data.fields.slice(0, overflowLimits.fields))
 		}
 		if (embed.data.footer?.text && embed.data.footer.text.length > overflowLimits.footerText) {
-			overflowData.footerText = embed.data.footer.text.length - overflowLimits.footerText;
-			embed.setFooter({text: embed.data.footer.text.slice(0, (overflowLimits.footerText - overflowIndicator.length)) + overflowIndicator});
+			overflowData.footerText = embed.data.footer.text.length - overflowLimits.footerText
+			embed.setFooter({ text: embed.data.footer.text.slice(0, (overflowLimits.footerText - overflowIndicator.length)) + overflowIndicator })
 		}
 
 		for (const field of embed.data.fields ?? []) {
 			if (field.name && field.name.length > overflowLimits.fieldName) {
-				overflowData.fieldName += field.name.length - overflowLimits.fieldName;
-				field.name = field.name.slice(0, (overflowLimits.fieldName - overflowIndicator.length)) + overflowIndicator;
+				overflowData.fieldName += field.name.length - overflowLimits.fieldName
+				field.name = field.name.slice(0, (overflowLimits.fieldName - overflowIndicator.length)) + overflowIndicator
 			}
 			if (field.value && field.value.length > overflowLimits.fieldValue) {
-				overflowData.fieldValue += field.value.length - overflowLimits.fieldValue;
-				field.value = field.value.slice(0, (overflowLimits.fieldValue - overflowIndicator.length)) + overflowIndicator;
+				overflowData.fieldValue += field.value.length - overflowLimits.fieldValue
+				field.value = field.value.slice(0, (overflowLimits.fieldValue - overflowIndicator.length)) + overflowIndicator
 			}
 		}
 	}
-	
-	const totalOverflow = Object.values(overflowData).reduce((a: number, b: number|number[]) => a + (Array.isArray(b) ? b[0] : b), 0);
+
+	const totalOverflow = Object.values(overflowData).reduce((a: number, b: number | number[]) => a + (Array.isArray(b) ? b[0] : b), 0)
 	if (totalOverflow > 0) {
-		let overflownFields: {[key: string]: number} = {};
+		let overflownFields: { [key: string]: number } = {}
 		for (const [key, value] of Object.entries(overflowData)) {
 			if (value > 0) {
-				errorList.push(`[fg=orange]${key}[/>] exceeded limit by ${value} characters (${overflowLimits[key as keyof typeof overflowLimits]})`);
-				overflownFields[key] = value;
+				errorList.push(`[fg=orange]${key}[/>] exceeded limit by ${value} characters (${overflowLimits[key as keyof typeof overflowLimits]})`)
+				overflownFields[key] = value
 			}
 		}
 
-		let footerAlertText = `${overflowIndicator}\n${overflowIndicator}  The following fields exceeded the character limit:\n`;
+		let footerAlertText = `${overflowIndicator}\n${overflowIndicator}  The following fields exceeded the character limit:\n`
 		for (const [key, value] of Object.entries(overflownFields)) {
-			footerAlertText += `${key}: ${value}, `;
+			footerAlertText += `${key}: ${value}, `
 		}
-		footerAlertText = footerAlertText.slice(0, -2);
+		footerAlertText = footerAlertText.slice(0, -2)
 		if (embed.data.footer?.text) {
 			console.log(
-				`${embed.data.footer!.text.length} >= (${overflowLimits.footerText} + ${footerAlertText.length}) [${(overflowLimits.footerText + footerAlertText.length)}]`, 
+				`${embed.data.footer!.text.length} >= (${overflowLimits.footerText} + ${footerAlertText.length}) [${(overflowLimits.footerText + footerAlertText.length)}]`,
 				embed.data.footer!.text.length >= (overflowLimits.footerText + footerAlertText.length)
 			)
 			if (embed.data.footer.text.length >= (overflowLimits.footerText + footerAlertText.length)) {
-				embed.data.footer.text = embed.data.footer.text + footerAlertText;
+				embed.data.footer.text = embed.data.footer.text + footerAlertText
 			}
 			else {
-				embed.data.footer.text = embed.data.footer?.text.slice(0, (overflowLimits.footerText - footerAlertText.length)) + footerAlertText;
+				embed.data.footer.text = embed.data.footer?.text.slice(0, (overflowLimits.footerText - footerAlertText.length)) + footerAlertText
 			}
 		}
 		else {
-			if (embed.data.footer?.text) embed.data.footer.text = footerAlertText;
+			if (embed.data.footer?.text) embed.data.footer.text = footerAlertText
 		}
 	}
 
 	if (errorList.length > 0) {
-		const error = new Error('\n - ' + errorList.join('\n - '));
-		error.name = 'Embed Validation Error';
-		EmitError(error);
+		const error = new Error('\n - ' + errorList.join('\n - '))
+		error.name = 'Embed Validation Error'
+		EmitError(error)
 	}
 
-	return embed;
+	return embed
 }
 
 /*

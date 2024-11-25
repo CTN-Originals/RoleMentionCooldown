@@ -13,8 +13,8 @@ export default {
 			.setName("ping")
 			.setDescription("Replies with latency stats"),
 		async execute(interaction: ChatInputCommandInteraction) {
-			const commandPing = Date.now() - interaction.createdTimestamp;
-			const apiPing = interaction.client.ws.ping;
+			const commandPing = (GeneralData.development) ? interaction.createdTimestamp - Date.now() : Date.now() - interaction.createdTimestamp
+			const apiPing = interaction.client.ws.ping
 
 			await interaction.reply({
 				embeds: [validateEmbed(new EmbedBuilder({
@@ -23,9 +23,9 @@ export default {
 					color: hexToBit(ColorTheme.embeds.reply)
 				}))],
 				ephemeral: true
-			});
-			
-			return `${commandPing}ms | ${apiPing}ms`;
+			})
+
+			return `${commandPing}ms | ${apiPing}ms`
 		},
 	}
 }
