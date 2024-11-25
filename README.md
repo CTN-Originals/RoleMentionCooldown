@@ -3,23 +3,21 @@ A discord bot that allows users to mention a role once, then apply a cooldown to
 
 ## Commands
 ### Admin
-#### Config
-- `/config display`: Display the current server configurations
-- `/config admin-role add <role>`: Add an admin role, which is able to configure the bot's settings and role cooldowns
-- `/config admin-role remove <role>`: Remove an admin role
-
-#### Cooldowns
-- `/rolecooldown add <role> <cooldown>`: Add a new role to the monitored list, or change the cooldown for an existing one
-  - `cooldown`: The cooldown to apply to the role on use (separate with spaces). Ex: `8s 69m 28h 1d = 2d 05:09:08`, `600s = 0d 00:10:00`
-- `/rolecooldown remove <role>`: Remove a role from having a cooldown
+- Configuration
+  - `/config display`: Display the current server configurations
+  - `/config admin-role add <role>`: Add an admin role, which is able to configure the bot's settings and role cooldowns
+  - `/config admin-role remove <role>`: Remove an admin role
+- Cooldowns
+  - `/rolecooldown add <role> <cooldown>`: Add a new role to the monitored list, or change the cooldown for an existing one
+    - `cooldown`: The cooldown to apply to the role on use (separate with spaces). Ex: `8s 69m 28h 1d = 2d 05:09:08`, `600s = 0d 00:10:00`
+  - `/rolecooldown remove <role>`: Remove a role from having a cooldown
 
 ### User
-#### List
-- `/list all`: Display a list of all registered mentionable roles along with their cooldown
-- `/list cooldowns`: Display a list of all roles currently on cooldown along with their remaining cooldown time
-
-#### Ping
-- `/ping`: Show latency stats
+- List
+  - `/list all`: Display a list of all registered mentionable roles along with their cooldown
+  - `/list cooldowns`: Display a list of all roles currently on cooldown along with their remaining cooldown time
+- Ping
+  - `/ping`: Show latency stats
 
 ## Usage
 After adding mentionable roles with the `/rolecooldown add` command, anyone will be able to mention these roles across the whole server as usual (`@role-name` or `<@&roleid>`).
