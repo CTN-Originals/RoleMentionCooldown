@@ -34,7 +34,7 @@ export class Mentionable {
 		if (Mentionable.hasChanged || !Object.keys(Mentionable.mentionablesCache).includes(guildId)) {
 			const doc = await Mentionable.getDocument(guildId);
 
-			Mentionable.mentionablesCache[guildId] = (Object.keys(doc).includes('mentionables')) ? doc.mentionables : {};
+			Mentionable.mentionablesCache[guildId] = (Object.keys(doc.toObject()).includes('mentionables')) ? doc.mentionables : {};
 			Mentionable.hasChanged[guildId] = false;
 		}
 
