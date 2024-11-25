@@ -1,3 +1,4 @@
+/* cSpell:disable */
 import { EmbedBuilder } from "discord.js"
 import { EmitError } from "../events"
 
