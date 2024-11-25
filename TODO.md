@@ -28,7 +28,7 @@
 	- another (less scalable) way would be to have the bot manage automod rules and add some roles in some rulesets, but this would be bad as the automod rules are limited and only allows 8 or so variations where some of those will likely already be taken by the server
 
 
-# Thecnical
+# Technical
 - [x] add an OnGuildCreate event for when the bot enters a guild
 - [x] have this event als create all relevant documents in the database so that a document should never not exist
 - [x] also listen for if the bot leaves a guild
