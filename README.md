@@ -33,11 +33,11 @@ When the cooldown expires for that role, the bot will re-enable the "Allow anyon
 
 **Important note**: The bot can only put roles on cooldown in the channels it can read. Monitored role mentions in channels where the bot does not have read access will not start the cooldown.
 
-# Links
+## Links
 
-- Bot Invite: https://discord.com/oauth2/authorize?client_id=1308469474768457748
-- Discord App Discovery Page: https://discord.com/application-directory/1308469474768457748
-- Official Discord Support Server: https://discord.gg/5eYZQNzMnx
+- Bot Invite: <https://discord.com/oauth2/authorize?client_id=1308469474768457748>
+- Discord App Discovery Page: <https://discord.com/application-directory/1308469474768457748>
+- Official Discord Support Server: <https://discord.gg/5eYZQNzMnx>
 
 ## Contributions
 
