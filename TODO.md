@@ -18,6 +18,7 @@
 - [ ] /support: will send a link to the bots discord server
 - [ ] /toggle , if set to false, it wont check if any mentionables are mentioned in messages
 - [ ] Toggle all mentionables mention permission, if false, all mentionables cant be used nomatter the cooldown untill turned off again
+- [ ] /help: only show the commands the interactor is allowed to use with their permissions
 
 ## Other
 - [x] Tunr on/off the mentionable permission for any role for members depending on its cooldown
@@ -37,6 +38,7 @@
 - [x] Make an alternate system for cooldown tracking instead of setting a timeout for each cooldown as setTimeout might have unforseen performance impects.
 - [ ] Find a better way to maintain database document function like mentionables.ts or guildConfig.ts
 - [ ] Rewrite registerCommands with more of a typescript mindset... i was sush a noob back when i wrote that script :/
+- [ ] Check if the bot is missing any permissions, and if so, alert the user once a command is used that needs those permissions
 
 # Potential edge cases
 - [ ] Getting rate limeted for flipping the "everyone can mention this role" permission? 
