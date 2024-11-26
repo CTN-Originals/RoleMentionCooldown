@@ -10,6 +10,9 @@
 		"build": "tsc",
 		"fullbuild": "rimraf ./dist && tsc",
 		"build:start": "npm run build && npm run start",
+		
+		"dev:deploy": "npm run build && node .\\dist\\index.js --deploy --guild=811667577985302528 deployAll=true",
+		"deploy": "npm run build && node .\\dist\\index.js --deploy --deployAllGlobal=true",
 
 		"start": "node dist/index.js",
 		"start:dev": "nodemon src/index.ts",
