@@ -9,7 +9,7 @@ export default {
 			.setName("ping")
 			.setDescription("Replies with latency stats"),
 		async execute(interaction: ChatInputCommandInteraction) {
-			const commandPing = (GeneralData.development) ? interaction.createdTimestamp - Date.now() : Date.now() - interaction.createdTimestamp;
+			const commandPing = Date.now() - interaction.createdTimestamp;
 			const apiPing = interaction.client.ws.ping;
 
 			await interaction.reply({
