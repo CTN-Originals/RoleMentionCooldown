@@ -1,5 +1,7 @@
 import { Color } from "better-console-utilities";
+import { Collection } from "discord.js";
 import { duration } from "moment";
+import { client } from "..";
 
 //? a class that can take a string like 23s 69m 2h and turn it into a time length of 23 seconds, 9 minutes and 3 hours.
 export class PeriodOfTime {
@@ -135,4 +137,58 @@ export function includesAll(target: string|string[], items: string[]): boolean {
 	}
 
 	return true;
+}
+
+type CommandInfo = {
+	name: string;
+	description: string;
+	options?: OptionInfo[];
+};
+
+type OptionInfo = {
+	name: string;
+	description: string;
+	required: boolean;
+	type: number;
+	min_length?: number;
+	max_length?: number;
+	options?: OptionInfo[];
+};
+//? this is not my best function... but it works and i dont wanna do more recursion stuff so f it
+export function getExecutableCommands(commands: Collection<string, {data: CommandInfo}> = client.commands) {	
+	function parseCommands(commands: CommandInfo[], prefix: string = "") {
+		const result: { command: string; description: string; options: OptionInfo[] }[] = [];
+	
+		for (const command of commands) {
+			if (!command.name || !command.description) { continue; }
+
+			const currentCommand = prefix ? `${prefix} ${command.name}` : `${command.name}`;
+	
+			if (!command.options || command.options.every((opt) => !opt.options)) {
+				// If there are no nested options or only terminal options, this is executable
+				result.push({
+					command: currentCommand,
+					description: command.description,
+					options: command.options || [],
+				});
+			} else {
+				//? Recursively look for executable subcommands/groups
+				const subcommandsOrGroups = command.options.filter((opt) => opt.options);
+				for (const subcommandOrGroup of subcommandsOrGroups) {
+					result.push(
+						...parseCommands([subcommandOrGroup], currentCommand)
+					);
+				}
+			}
+		}
+	
+		return result;
+	}
+
+	let cmds: CommandInfo[] = []
+	for (const [k, v] of commands.entries()) {
+		cmds.push(v.data);
+	}
+
+	return parseCommands(cmds);
 }

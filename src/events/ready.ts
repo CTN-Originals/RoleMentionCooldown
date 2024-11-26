@@ -97,7 +97,7 @@ export default {
 		// await new Promise(resolve => setTimeout(resolve, 3000));
 		// removeRole.execute();
 
-		// new FakeInteraction('list').execute();
+		// new FakeInteraction('help').execute();
 		
 		// await devEnvironment.channel?.send({content: '<@&811667577985302534>'})
 
