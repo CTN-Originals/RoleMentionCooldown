@@ -5,7 +5,6 @@
 - [ ] Option to only permit surtain roles to use the mentionable
 - [ ] Option to keep track of a cooldown per channel, if mention is used in channel x, it will still be able to be used in channel y, but both x and y will have their own cooldown tracker
 - [ ] 2 options to allow a mentionable to be mentioned in x time range a maximum of y amount of times
-- [ ] While adding another role, also give the option to allow bot users to trigger the cooldown (default false)
 
 ## Commands
 - [x] When a role is added, check if that role is above the bots role, and if so, tell the user this is impossible
@@ -14,7 +13,7 @@
 - [x] for /rolecooldown add: check if the user entered a number without any letters after it, and if so,
 	- [x] if it is just one number, turn it into seconds
 	- [x] if its multiple numbers seperated by spaces, notify the user of the correct usage
-- [ ] /help
+- [x] /help
 - [ ] /faq
 - [ ] /support: will send a link to the bots discord server
 - [ ] /toggle , if set to false, it wont check if any mentionables are mentioned in messages
@@ -46,7 +45,7 @@
 ## Bot
 - [x] Figure out exactly which guild permissions the bot needs to function
 - [x] Test how the bot works while being on multiple servers
-- [ ] Make a good landiing page for the bots documentation
+- [x] Make a good landiing page for the bots documentation
 
 ## Code
 - [ ] Update [`better-console-utilities`](https://github.com/CTN-Originals/Better-Console-Utilities) so that the actual module code includes key filtering and not just the local version in this project.

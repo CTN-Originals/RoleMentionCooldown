@@ -63,7 +63,7 @@ export default {
 			const roleId = interaction.options.get('role', true).value;
 
 			let cooldownInput = interaction.options.getString('cooldown', true);
-			if (!includesAny(cooldownInput, 's', 'm', 'h', 'd')) {
+			if (!includesAny(cooldownInput, ['s', 'm', 'h', 'd'])) {
 				if (cooldownInput.split(' ').length == 1) { //- is the input just a single number
 					cooldownInput += 's' //? convert it to seconds for ease of use
 				}
