@@ -129,11 +129,11 @@ export function validateEmbed(embed: EmbedBuilder): EmbedBuilder {
 		}
 
 		for (const field of embed.data.fields ?? []) {
-			if (field.name.length > overflowLimits.fieldName) {
+			if (field.name && field.name.length > overflowLimits.fieldName) {
 				overflowData.fieldName += field.name.length - overflowLimits.fieldName;
 				field.name = field.name.slice(0, (overflowLimits.fieldName - overflowIndicator.length)) + overflowIndicator;
 			}
-			if (field.value.length > overflowLimits.fieldValue) {
+			if (field.value && field.value.length > overflowLimits.fieldValue) {
 				overflowData.fieldValue += field.value.length - overflowLimits.fieldValue;
 				field.value = field.value.slice(0, (overflowLimits.fieldValue - overflowIndicator.length)) + overflowIndicator;
 			}
