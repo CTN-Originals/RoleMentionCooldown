@@ -21,12 +21,13 @@
 		"typescript": "^5.7.2"
 	},
 	"scripts": {
-		"build": "rimraf ./dist && tsc",
 		"build:start": "npm run build && npm run start",
-		"start": "node dist/index.js",
+		"build": "tsc",
+		"deploy": "npm run build && node .\\dist\\index.js --deploy --deployAllGlobal=true",
+		"dev:deploy": "npm run build && node .\\dist\\index.js --deploy --guild=811667577985302528 deployAll=true",
 		"start:dev": "nodemon src/index.ts",
 		"start:tsx": "tsx watch src/index.ts",
-		"tests": "tsx watch tests/index.ts"
-	},
-	"packageManager": "yarn@4.5.3"
+		"start": "node dist/index.js",
+		"test": "tsx watch tests/index.ts"
+	}
 }
