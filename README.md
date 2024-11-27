@@ -20,7 +20,8 @@ A discord bot that allows users to mention a role once, then apply a cooldown to
 - List
   - `/list all`: Display a list of all registered mentionable roles along with their cooldown
   - `/list cooldowns`: Display a list of all roles currently on cooldown along with their remaining cooldown time
-- Ping
+- Other
+  - `/help`: Displays an embed with all commands and their description
   - `/ping`: Show latency stats
 
 ## Usage
@@ -33,7 +34,7 @@ When the cooldown expires for that role, the bot will re-enable the "Allow anyon
 
 **Important note**: The bot can only put roles on cooldown in the channels it can read. Monitored role mentions in channels where the bot does not have read access will not start the cooldown.
 
-# Links
+## Links
 
 - Bot Invite: https://discord.com/oauth2/authorize?client_id=1308469474768457748
 - Discord App Discovery Page: https://discord.com/application-directory/1308469474768457748
