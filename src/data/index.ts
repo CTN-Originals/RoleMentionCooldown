@@ -1,31 +1,33 @@
-import { Color } from "better-console-utilities";
-import { Client, Collection, Guild, GuildMember, TextChannel, User } from "discord.js"
-import { KeyValuePair } from "../@types";
-
+import { Color } from "better-console-utilities"
+import {
+	Client,
+	Collection,
+	Guild,
+	GuildMember,
+	TextChannel,
+	User
+} from "discord.js"
 
 export namespace DevEnvironment {
-	export const clientId = process.env.DEV_CLIENT_ID as string;
-	export const guildId = process.env.DEV_GUILD_ID as string;
-	export const channelId = process.env.DEV_TEST_CHANNEL_ID as string;
-	export const userId = process.env.DEV_TEST_USER_ID as string;
+	export const clientId = process.env.DEV_CLIENT_ID as string
+	export const guildId = process.env.DEV_GUILD_ID as string
+	export const channelId = process.env.DEV_TEST_CHANNEL_ID as string
+	export const userId = process.env.DEV_TEST_USER_ID as string
 
-	export let client = undefined as Client|undefined;
-	export let guild = undefined as Guild|undefined;
-	export let user = undefined as User|undefined;
-	export let member = undefined as GuildMember|undefined;
-	export let channel = undefined as TextChannel|undefined;
+	export let client = undefined as Client | undefined
+	export let guild = undefined as Guild | undefined
+	export let user = undefined as User | undefined
+	export let member = undefined as GuildMember | undefined
+	export let channel = undefined as TextChannel | undefined
 
-	export let memberList = new Collection() as Collection<string, GuildMember>;
-	export let restCommands = undefined as {id: string, name: string, type: number, guild_id: string}[]|undefined;
+	export let memberList = new Collection() as Collection<string, GuildMember>
+	export let restCommands = undefined as { id: string, name: string, type: number, guild_id: string }[] | undefined
 }
 
 export namespace GeneralData {
-	export const production: boolean = (process.env.PRODUCTION === 'true');
-	export const development: boolean = (process.env.DEVELOPMENT === 'true');
-	
-	export const appName: string = process.env.APP_NAME!;
-	export const supportServerInvite: string = process.env.SUPPORT_SERVER_INVITE!;
-	
+	export const production: boolean = (process.env.PRODUCTION === 'true')
+	export const development: boolean = (process.env.DEVELOPMENT === 'true')
+
 	export const logging = {
 		streamSafe: false, //? If true, the custom console will filter out any dangerouse info like tokens
 		interaction: {
@@ -51,12 +53,12 @@ export namespace ColorTheme {
 	}
 
 	export const colors = {
-		blue: 	new Color('#0080ff'),
-		green: 	new Color('#00cc00'),
-		cyan: 	new Color('#00ffff'),
+		blue: new Color('#0080ff'),
+		green: new Color('#00cc00'),
+		cyan: new Color('#00ffff'),
 		yellow: new Color('#dfbc22'),
 		orange: new Color('#dd8000'),
 		purple: new Color('#ad1b70'),
-		grey: 	new Color('#aaaaaa'),
+		grey: new Color('#aaaaaa'),
 	}
 }

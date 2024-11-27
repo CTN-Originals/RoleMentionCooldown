@@ -1,7 +1,11 @@
-import { EmbedBuilder, SlashCommandBuilder, CommandInteraction, ChatInputCommandInteraction } from "discord.js";
-import { hexToBit } from "../../utils";
-import { ColorTheme, GeneralData } from "../../data";
-import { validateEmbed } from "../../utils/embedUtils";
+import {
+	ChatInputCommandInteraction,
+	EmbedBuilder,
+	SlashCommandBuilder
+} from "discord.js"
+import { ColorTheme, GeneralData } from "../../data"
+import { hexToBit } from "../../utils"
+import { validateEmbed } from "../../utils/embedUtils"
 
 export default {
 	command: {
@@ -9,8 +13,8 @@ export default {
 			.setName("ping")
 			.setDescription("Replies with latency stats"),
 		async execute(interaction: ChatInputCommandInteraction) {
-			const commandPing = Date.now() - interaction.createdTimestamp;
-			const apiPing = interaction.client.ws.ping;
+			const commandPing = (GeneralData.development) ? interaction.createdTimestamp - Date.now() : Date.now() - interaction.createdTimestamp
+			const apiPing = interaction.client.ws.ping
 
 			await interaction.reply({
 				embeds: [validateEmbed(new EmbedBuilder({
@@ -19,9 +23,9 @@ export default {
 					color: hexToBit(ColorTheme.embeds.reply)
 				}))],
 				ephemeral: true
-			});
-			
-			return `${commandPing}ms | ${apiPing}ms`;
+			})
+
+			return `${commandPing}ms | ${apiPing}ms`
 		},
 	}
 }

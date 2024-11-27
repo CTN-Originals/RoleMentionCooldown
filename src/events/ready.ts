@@ -1,72 +1,73 @@
-import 'dotenv/config';
-import { Client, ComponentType, EmbedBuilder, Events, Guild, Interaction, InteractionType, Message, Routes, TextChannel } from 'discord.js';
-
-import { ConsoleInstance } from 'better-console-utilities';
-
-import { GeneralData } from '../data';
-import { DevEnvironment } from '../data';
-import { EmitError, customEvents, eventConsole } from '.';
-import { cons, errorConsole, testWebhook } from '..';
-import { testEmbed, validateEmbed } from '../utils/embedUtils';
-import { TODO } from '../@types';
-import { Mentionable } from '../data/orm/mentionables';
-import { IMentionableStorage, default as MentionableData } from '../data/orm/schemas/mentionableData'
-import { timeUnits } from '../utils';
-import { getCurrentCooldownsEmbed } from '../commands/info/list';
-import { UserPermissions } from '../handlers/permissionHandler';
+import { ConsoleInstance } from 'better-console-utilities'
+import {
+	Client,
+	ComponentType,
+	EmbedBuilder,
+	Events,
+	Guild,
+	Interaction,
+	InteractionType,
+	Message,
+	Routes,
+	TextChannel
+} from 'discord.js'
+import 'dotenv/config'
+import { TODO } from '../@types'
+import { DevEnvironment, GeneralData } from '../data'
+import { Mentionable } from '../data/orm/mentionables'
 
 // import ErrorHandler from '../handlers/errorHandler';
 
-const thisConsole = new ConsoleInstance();
+const thisConsole = new ConsoleInstance()
 
 export default {
 	name: Events.ClientReady,
 	once: true,
 
 	async execute(client: Client, ...args: any[]) {
-		thisConsole.log(`Logged in as ${client.user?.tag}!\n`);
+		thisConsole.log(`Logged in as ${client.user?.tag}!\n`)
 
 		if (GeneralData.development) {
-			DevEnvironment.client = client;
+			DevEnvironment.client = client
 			// devEnvironment.memberList = devGuildMembers as Collection<string, GuildMember>;
 
-			DevEnvironment.guild = client.guilds.cache.get(process.env.DEV_GUILD_ID!);
-			DevEnvironment.user = await client.users.fetch(process.env.DEV_TEST_USER_ID!);
-			DevEnvironment.member = DevEnvironment.memberList.get(process.env.DEV_TEST_USER_ID!);
-			DevEnvironment.channel = DevEnvironment.guild?.channels.cache.get(process.env.DEV_TEST_CHANNEL_ID!) as TextChannel;
+			DevEnvironment.guild = client.guilds.cache.get(process.env.DEV_GUILD_ID!)
+			DevEnvironment.user = await client.users.fetch(process.env.DEV_TEST_USER_ID!)
+			DevEnvironment.member = DevEnvironment.memberList.get(process.env.DEV_TEST_USER_ID!)
+			DevEnvironment.channel = DevEnvironment.guild?.channels.cache.get(process.env.DEV_TEST_CHANNEL_ID!) as TextChannel
 
-			DevEnvironment.restCommands = await client.rest.get(Routes.applicationGuildCommands(process.env.CLIENT_ID!, process.env.DEV_GUILD_ID!)) as {id: string, name: string, type: number, guild_id: string}[];
+			DevEnvironment.restCommands = await client.rest.get(Routes.applicationGuildCommands(process.env.CLIENT_ID!, process.env.DEV_GUILD_ID!)) as { id: string, name: string, type: number, guild_id: string }[]
 
-			thisConsole.logDefault('Dev Environment:', DevEnvironment);
+			thisConsole.logDefault('Dev Environment:', DevEnvironment)
 		}
 
-		this.Initialize(client);
+		this.Initialize(client)
 
 		if (GeneralData.development) {
-			this.runTests(client);
+			this.runTests(client)
 		}
 	},
 
 	async Initialize(client: Client) {
 		client.guilds.cache.forEach(async guild => {
-			Mentionable.initialize(guild);
+			Mentionable.initialize(guild)
 		})
 
-		this.Update(client); //? Start the update cycle
+		this.Update(client) //? Start the update cycle
 	},
 
 	/** This function runs every second and calls out to things that need to be checked on the regular */
 	async Update(client: Client) { //?? Initially this was inside index.ts, but that brought a bunch of errors so next best is here i guess...
 		const interval = setInterval(() => {
 			client.guilds.cache.forEach(guild => {
-				Mentionable.validateGuildCooldowns(guild);
+				Mentionable.validateGuildCooldowns(guild)
 			})
 		}, 1000)
 	},
 
 	async runTests(client: Client) {
-		const guild: Guild|undefined = client.guilds.cache.get(process.env.DEV_GUILD_ID!);
-		const channel: TextChannel = await DevEnvironment.client?.channels.fetch(DevEnvironment.channelId) as TextChannel;
+		const guild: Guild | undefined = client.guilds.cache.get(process.env.DEV_GUILD_ID!)
+		const channel: TextChannel = await DevEnvironment.client?.channels.fetch(DevEnvironment.channelId) as TextChannel
 		// const collector: MessageCollector = channel!.createMessageCollector({
 		// 	filter: (message) => message.content.includes('test')
 		// })
@@ -77,7 +78,6 @@ export default {
 		// 	}
 		// })
 
-		
 		// const addRole = new FakeInteraction('rolecooldown', {
 		// 	subCommand: 'add',
 		// 	options: [
@@ -98,7 +98,7 @@ export default {
 		// removeRole.execute();
 
 		// new FakeInteraction('help').execute();
-		
+
 		// await devEnvironment.channel?.send({content: '<@&811667577985302534>'})
 
 		// try {
@@ -108,9 +108,9 @@ export default {
 		// 	EmitError(e as Error)
 		// }
 	}
-};
+}
 
-type InteractionOptionEntry = {name: string, value: any}
+type InteractionOptionEntry = { name: string, value: any }
 type FakeInteractionInput = {
 	subCommand?: string,
 	options: InteractionOptionEntry[]
@@ -121,7 +121,7 @@ class FakeInteractionOptions {
 		public _hoistedOptions: InteractionOptionEntry[] = [],
 		public subCommand?: string,
 		public group?: string
-	) {}
+	) { }
 
 	public get(option: string) {
 		return this._hoistedOptions.find(o => o.name === option)
@@ -152,10 +152,10 @@ class FakeInteraction {
 	public type: InteractionType = InteractionType.ApplicationCommand;
 	public componentType: ComponentType = 1;
 
-	public user: TODO;
+	public user: TODO
 	public channel: TODO
 
-	public options: FakeInteractionOptions;
+	public options: FakeInteractionOptions
 
 	constructor(
 		public commandName: string,
@@ -164,26 +164,26 @@ class FakeInteraction {
 		this.user = {
 			id: process.env.DEV_TEST_USER_ID!,
 			username: 'keybotkiller',
-			_equals: (user) => {return true},
+			_equals: (user) => { return true },
 		}
 		this.channel = {
 			id: process.env.DEV_TEST_CHANNEL_ID!,
 			name: 'bot-testing',
 		}
 
-		this.options = new FakeInteractionOptions(options?.options, options?.subCommand);
+		this.options = new FakeInteractionOptions(options?.options, options?.subCommand)
 	}
 
 	public get channelId() { return this.channel.id }
 	public get guildId() { return this.guild.id };
 
-	public isRepliable() {return true}
-	public inGuild() { return true; }
+	public isRepliable() { return true }
+	public inGuild() { return true }
 
-	public async reply(replyContent: string | {content: string, ephemeral: boolean, embeds: EmbedBuilder[], components: any[]}): Promise<Message|boolean> {
-		const channel = this.guild.channels.cache.get(this.channel.id);
-		if (!channel || !(channel instanceof TextChannel)) return false;
-		return channel.send(replyContent);
+	public async reply(replyContent: string | { content: string, ephemeral: boolean, embeds: EmbedBuilder[], components: any[] }): Promise<Message | boolean> {
+		const channel = this.guild.channels.cache.get(this.channel.id)
+		if (!channel || !(channel instanceof TextChannel)) return false
+		return channel.send(replyContent)
 	}
 
 
