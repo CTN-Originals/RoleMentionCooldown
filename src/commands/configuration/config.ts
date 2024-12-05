@@ -1,7 +1,6 @@
 import { ChatInputCommandInteraction, EmbedBuilder, SlashCommandBuilder } from "discord.js";
 import { GuildConfig } from "../../data/orm/guildConfig";
 import { PermissionObject } from "../../handlers/permissionHandler";
-import { RequiredFields } from "../../@types";
 import { IGuildConfigData } from "../../data/orm/schemas/guildConfigData";
 import { validateEmbed } from "../../utils/embedUtils";
 import { ColorTheme } from "../../data";

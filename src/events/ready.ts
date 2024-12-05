@@ -8,12 +8,12 @@ import { DevEnvironment } from '../data';
 import { EmitError, customEvents, eventConsole } from '.';
 import { cons, errorConsole, testWebhook } from '..';
 import { testEmbed, validateEmbed } from '../utils/embedUtils';
-import { TODO } from '../@types';
 import { Mentionable } from '../data/orm/mentionables';
 import { IMentionableStorage, default as MentionableData } from '../data/orm/schemas/mentionableData'
 import { timeUnits } from '../utils';
 import { getCurrentCooldownsEmbed } from '../commands/info/list';
 import { UserPermissions } from '../handlers/permissionHandler';
+import { UpdateBotListStats } from '../handlers/botLists';
 
 // import ErrorHandler from '../handlers/errorHandler';
 
@@ -51,6 +51,8 @@ export default {
 		client.guilds.cache.forEach(async guild => {
 			Mentionable.initialize(guild);
 		})
+
+		UpdateBotListStats();
 
 		this.Update(client); //? Start the update cycle
 	},

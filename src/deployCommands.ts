@@ -81,7 +81,13 @@ const rest = new REST({ version: '9' }).setToken(token);
 export async function doDeployCommands(args: string[]|DeployInstruction[]): Promise<boolean> {
 	cons.log('Deploying commands...');
 	getCommandFiles('commands');
-	// console.log(guildId);
+	
+	if (process.env.DEVELOPMENT == 'true') {
+		fs.writeFile('./resources/dump/commands.json', JSON.stringify(commandData), (err) => {
+			if (err) { console.error(err); }
+			console.log('Successfully dumped commands json to "../resources/dump/commands.json"')
+		})
+	}
 	
 	//> deploy commands: --guildId=1234567890 deploy=ping,help --guild=0987654321 deployAll=true
 	//> deleting all commands: --guild=12345 delete=0987654321,43723374678 --guild=1234567890 deleteAll=true
@@ -107,7 +113,10 @@ export async function doDeployCommands(args: string[]|DeployInstruction[]): Prom
 				switch (key) { //TODO make this dynamic (get keys from the class)
 					case 'guild':
 					case 'guildID':
-					case 'guildId': deployInstruction.guildId = value; break;
+					case 'guildId': {
+						deployInstruction.guildId = (value === 'dev' || value === 'DEV_GUILD_ID') ? process.env.DEV_GUILD_ID : value;
+					} break;
+					
 					case 'deploy': deployInstruction.deploy = value.split(','); break;
 					case 'deployAll': deployInstruction.deployAll = (value == 'true'); break;
 					case 'deployAllGlobal': deployInstruction.deployAllGlobal = (value == 'true'); break;
