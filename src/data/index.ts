@@ -1,7 +1,5 @@
 import { Color } from "better-console-utilities";
 import { Client, Collection, Guild, GuildMember, TextChannel, User } from "discord.js"
-import { KeyValuePair } from "../@types";
-
 
 export namespace DevEnvironment {
 	export const clientId = process.env.DEV_CLIENT_ID as string;
