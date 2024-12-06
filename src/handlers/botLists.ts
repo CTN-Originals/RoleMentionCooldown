@@ -99,6 +99,18 @@ const listDefinitions: IListDefinition[] = [
 		guildCountKey: 'guilds',
 		userCountKey: 'users'
 	},
+	{
+		domain: 'botlist',
+		suffix: 'me',
+		urlFormat: 'https://api.botlist.me/api/v1/bots/<bot_id>/stats',
+		guildCountKey: 'server_count',
+	},
+	{
+		domain: 'discords',
+		suffix: 'com',
+		urlFormat: 'https://discords.com/bots/api/bot/<bot_id>/setservers',
+		guildCountKey: 'server_count',
+	},
 ]
 
 
