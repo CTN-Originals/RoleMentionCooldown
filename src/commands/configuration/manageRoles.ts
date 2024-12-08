@@ -12,6 +12,8 @@ import { PermissionObject } from "../../handlers/permissionHandler";
 
 const thisConsole = new ConsoleInstance();
 
+const timeframes = ['s', 'm', 'h', 'd'];
+
 export default {
 	command: {
 		permissions: new PermissionObject({
@@ -62,39 +64,62 @@ export default {
 			}
 			const roleId = interaction.options.get('role', true).value;
 
+			
 			let cooldownInput = interaction.options.getString('cooldown', true);
-			if (!includesAny(cooldownInput, ['s', 'm', 'h', 'd'])) {
+
+			//? help out the user a bit and prevent the time from being 0 ms if they enter the full word time frame (yes, this happend before)
+			cooldownInput = cooldownInput
+			.replaceAll('seconds', 's').replaceAll('second', 's').replaceAll('sec', 's')
+			.replaceAll('minutes', 'm').replaceAll('minute', 'm').replaceAll('min', 'm')
+			.replaceAll('hours', 'h').replaceAll('hour', 'h')
+			.replaceAll('days', 'd').replaceAll('day', 'd');
+
+			let invalidCooldownInput: boolean | string = false;
+
+			if (!includesAny(cooldownInput, timeframes)) {
 				if (cooldownInput.split(' ').length == 1) { //- is the input just a single number
 					cooldownInput += 's' //? convert it to seconds for ease of use
 				}
-				else if (cooldownInput.split(' ').length > 1) {
-					await interaction.reply({
-						embeds: [validateEmbed(new EmbedBuilder({
-							title: `Invalid Cooldown Input: \`${cooldownInput}\``,
-							description: [
-								`This cooldown input is invalid.`,
-								`The cooldown input should be seperated with spaces for each time frame entered.`,
-								`Each time frame should end in any of these letters:`,
-								`\`s\` = \`seconds\``,
-								`\`m\` = \`minutes\``,
-								`\`h\` = \`hours\``,
-								`\`d\` = \`days\``,
-								``,
-								`**Examples**:`,
-								`\`8s 69m 28h 1d\` = \`2d 05:09:08\``,
-								`\`600s\` = \`0d 00:10:00\``
-							].join('\n'),
-							color: hexToBit(ColorTheme.embeds.notice)
-						}))],
-						ephemeral: true
-					});
+				else {
+					invalidCooldownInput = 'The numbers dont end in timeframe letter.';
+				}
+			}
+			else {
+				let timeframeCount = 0;
+				for (const timeframe of timeframes) {
+					if (cooldownInput.includes(timeframe)) {
+						timeframeCount++;
+					}
+				}
 
-					return `Invalid cooldown input`;
+				if (timeframeCount > 1 && !cooldownInput.includes(' ')) {
+					invalidCooldownInput = 'The timeframes were not seperated by spaces.';
+				}
+				else {
+					for (const timeframe of cooldownInput.split(' ')) {
+						const end = timeframe[timeframe.length - 1]
+						if (!timeframes.includes(end)) {
+							invalidCooldownInput = `\`${timeframe}\` contains unknown timeframe suffix: \`${end}\``;
+						}
+					}
 				}
 			}
 			
 			const cooldown = new PeriodOfTime(cooldownInput);
 
+			if (cooldown.time === 0 && invalidCooldownInput === false) {
+				invalidCooldownInput = 'The cooldown time resulted to be `0` from the input that was given.\nThis usually happens when the input contains unexpected characters.'
+			}
+			
+			if (invalidCooldownInput !== false) {
+				await interaction.reply({
+					embeds: [getCooldownInstructionEmbed(cooldownInput, (typeof invalidCooldownInput === 'string') ? invalidCooldownInput : undefined)],
+					ephemeral: true
+				});
+
+				return (typeof invalidCooldownInput === 'string') ? invalidCooldownInput : `Invalid cooldown input`;
+			}
+			
 			const role = interaction.guild.roles.cache.find(r => r.id == roleId);
 			if (!role) {
 				throw new Error(`Unable to find role (${roleId})`);
@@ -198,4 +223,27 @@ export default {
 			return true
 		},
 	},
+}
+
+function getCooldownInstructionEmbed(cooldownInput: string, message?: string): EmbedBuilder {
+	return validateEmbed(new EmbedBuilder({
+		title: `Invalid Cooldown Input: \`${cooldownInput}\``,
+		description: [
+			`The cooldown you have entered is incorrect.${(message !== undefined) ? `\n${message}` : ''}`,
+			``,
+			`**Cooldown Instructions**:`,
+			`The cooldown input should be seperated with spaces for each timeframe entered.`,
+			``,
+			`Each timeframe should end in any of these letters:`,
+			`\`s\` = \`seconds\``,
+			`\`m\` = \`minutes\``,
+			`\`h\` = \`hours\``,
+			`\`d\` = \`days\``,
+			``,
+			`**Examples**:`,
+			`\`8s 69m 28h 1d\` = \`2d 05:09:08\``,
+			`\`600s\` = \`0d 00:10:00\``
+		].join('\n'),
+		color: hexToBit(ColorTheme.embeds.notice)
+	}))
 }
