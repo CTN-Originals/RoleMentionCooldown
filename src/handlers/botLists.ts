@@ -156,8 +156,8 @@ function ExecuteUpdate() {
 		if (!GeneralData.development) {
 			list.Update(guildCount, userCount);
 		}
-		else {
-			cons.log(`Updated ${list.domain}.${list.suffix}`);
-		}
+		// else {
+		// 	cons.log(`Updated ${list.domain}.${list.suffix}`);
+		// }
 	}
 }
