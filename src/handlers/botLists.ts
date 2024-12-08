@@ -3,7 +3,7 @@
 
 import axios from "axios";
 import { EmitError } from "../events";
-import { GeneralData } from "../data";
+import { ColorTheme, GeneralData } from "../data";
 import { client, cons } from "..";
 
 type IListDefinition = Pick<ListDefinition, 'domain' | 'suffix' | 'urlFormat' | 'guildCountKey'> & Partial<Pick<ListDefinition, 'userCountKey'>>;
@@ -113,8 +113,29 @@ const listDefinitions: IListDefinition[] = [
 	},
 ]
 
+const updateCooldown = 1000 * 60 * 60;
+let awaitingCooldown = false;
+let lastUpdate = -1; //TODO Make this an entry in the database so the value is remembered between startups
+const getCurrentCooldown = () => { return (lastUpdate + updateCooldown) - Date.now(); }
 
 export async function UpdateBotListStats() {
+	//? Prevent rate limits
+	if (!awaitingCooldown) {
+		const currentCooldown = getCurrentCooldown();
+		if (currentCooldown <= 0) {
+			ExecuteUpdate();
+		} else {
+			awaitingCooldown = true;
+			setTimeout(() => {
+				ExecuteUpdate();
+				awaitingCooldown = false;
+			}, currentCooldown)
+		}
+	}
+}
+
+function ExecuteUpdate() {
+	lastUpdate = Date.now();
 	let guildCount = 0;
 	let userCount = 0;
 
@@ -123,7 +144,12 @@ export async function UpdateBotListStats() {
 		userCount += guild[1].memberCount;
 	}
 	
-	cons.log(`-- Update bot lists --\nGuilds: ${guildCount}\nUsers: ${userCount}`);
+	cons.log([
+		`\n[fg=${ColorTheme.colors.green.asHex}]Updating Bot Lists[/>]`,
+		`- [fg=${ColorTheme.colors.blue.asHex}]Guilds[/>]: ${guildCount}`,
+		`- [fg=${ColorTheme.colors.blue.asHex}]Users[/>]: ${userCount}\n`
+	].join('\n'));
+
 	for (const item of listDefinitions) {
 		const list = new ListDefinition(item);
 		
