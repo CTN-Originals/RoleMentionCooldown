@@ -80,13 +80,34 @@ export default {
 		// })
 
 		
-		// const addRole = new FakeInteraction('rolecooldown', {
+		// new FakeInteraction('rolecooldown', {
 		// 	subCommand: 'add',
 		// 	options: [
 		// 		{name: 'role', value: '1309653896788050043'},
-		// 		{name: 'cooldown', value: '120.9 123'}
+		// 		{name: 'cooldown', value: '120.9i 123s'}
 		// 	]
-		// })
+		// }).execute();
+		// new FakeInteraction('rolecooldown', {
+		// 	subCommand: 'add',
+		// 	options: [
+		// 		{name: 'role', value: '1309653896788050043'},
+		// 		{name: 'cooldown', value: '123minutes456sec'}
+		// 	]
+		// }).execute();
+		// new FakeInteraction('rolecooldown', {
+		// 	subCommand: 'add',
+		// 	options: [
+		// 		{name: 'role', value: '1309653896788050043'},
+		// 		{name: 'cooldown', value: '12s-1s'}
+		// 	]
+		// }).execute();
+		// new FakeInteraction('rolecooldown', {
+		// 	subCommand: 'add',
+		// 	options: [
+		// 		{name: 'role', value: '1309653896788050043'},
+		// 		{name: 'cooldown', value: '123minutes 456sec'}
+		// 	]
+		// }).execute();
 		// const removeRole = new FakeInteraction('rolecooldown', {
 		// 	subCommand: 'remove',
 		// 	options: [
@@ -95,6 +116,9 @@ export default {
 		// })
 
 		// removeRole.execute();
+		// addRole.options[1] = new FakeInteractionOptions([addRole.options[0], {name: 'cooldown', value: '120.9 123'}]);
+		// addRole.execute();
+		// addRole.options[1] = new FakeInteractionOptions([addRole.options[0], {name: 'cooldown', value: '123minutes 456sec'}]);
 		// addRole.execute();
 		// await new Promise(resolve => setTimeout(resolve, 3000));
 		// removeRole.execute();
