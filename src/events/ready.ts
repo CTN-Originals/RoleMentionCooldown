@@ -84,7 +84,7 @@ export default {
 		// 	subCommand: 'add',
 		// 	options: [
 		// 		{name: 'role', value: '1309653896788050043'},
-		// 		{name: 'cooldown', value: '120.9i 123s'}
+		// 		{name: 'cooldown', value: '120.9i'}
 		// 	]
 		// }).execute();
 		// new FakeInteraction('rolecooldown', {

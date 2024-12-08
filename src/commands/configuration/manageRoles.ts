@@ -74,50 +74,16 @@ export default {
 			.replaceAll('hours', 'h').replaceAll('hour', 'h')
 			.replaceAll('days', 'd').replaceAll('day', 'd');
 
-			let invalidCooldownInput: boolean | string = false;
-
-			if (!includesAny(cooldownInput, timeframes)) {
-				if (cooldownInput.split(' ').length == 1) { //- is the input just a single number
-					cooldownInput += 's' //? convert it to seconds for ease of use
-				}
-				else {
-					invalidCooldownInput = 'The numbers dont end in timeframe letter.';
-				}
-			}
-			else {
-				let timeframeCount = 0;
-				for (const timeframe of timeframes) {
-					if (cooldownInput.includes(timeframe)) {
-						timeframeCount++;
-					}
-				}
-
-				if (timeframeCount > 1 && !cooldownInput.includes(' ')) {
-					invalidCooldownInput = 'The timeframes were not seperated by spaces.';
-				}
-				else {
-					for (const timeframe of cooldownInput.split(' ')) {
-						const end = timeframe[timeframe.length - 1]
-						if (!timeframes.includes(end)) {
-							invalidCooldownInput = `\`${timeframe}\` contains unknown timeframe suffix: \`${end}\``;
-						}
-					}
-				}
-			}
+			const cooldown = validateCooldownInput(cooldownInput)
 			
-			const cooldown = new PeriodOfTime(cooldownInput);
-
-			if (cooldown.time === 0 && invalidCooldownInput === false) {
-				invalidCooldownInput = 'The cooldown time resulted to be `0` from the input that was given.\nThis usually happens when the input contains unexpected characters.'
-			}
-			
-			if (invalidCooldownInput !== false) {
+			//? if cooldown is a string, the input was invalid and coolodwn contains the message why it is invalid
+			if (typeof cooldown === 'string') { 
 				await interaction.reply({
-					embeds: [getCooldownInstructionEmbed(cooldownInput, (typeof invalidCooldownInput === 'string') ? invalidCooldownInput : undefined)],
+					embeds: [getCooldownInstructionEmbed(cooldownInput, cooldown)],
 					ephemeral: true
 				});
 
-				return (typeof invalidCooldownInput === 'string') ? invalidCooldownInput : `Invalid cooldown input`;
+				return cooldown; //`Invalid cooldown input`
 			}
 			
 			const role = interaction.guild.roles.cache.find(r => r.id == roleId);
@@ -223,6 +189,51 @@ export default {
 			return true
 		},
 	},
+}
+
+/** Validate the cooldown input that the user has provided
+ * @param input The cooldown input the user has provided
+ * @returns If valid, the PeriodOfTime object. If invalid, a message explaining why it is invalid
+*/
+function validateCooldownInput(input: string): PeriodOfTime | string {
+	//- input includes unknow character(s)
+	for (const timeframe of input.split(' ')) {
+		const end = timeframe[timeframe.length - 1]
+		if (!timeframes.includes(end)) {
+			return `\`${timeframe}\` contains unknown timeframe suffix: \`${end}\``;
+		}
+	}
+	
+	//- no timeframe letters included
+	if (!includesAny(input, timeframes)) {
+		if (input.split(' ').length == 1) { //- is the input just a single number
+			input += 's' //? convert it to seconds for ease of use
+		}
+		else {
+			return 'Some/All timeframes entered did not end in any of the timeframe letters.';
+		}
+	}
+
+	//- not seperated by spaces
+	let timeframeCount = 0;
+	for (const timeframe of timeframes) {
+		if (input.includes(timeframe)) {
+			timeframeCount++;
+		}
+	}
+
+	if (timeframeCount > 1 && !input.includes(' ')) {
+		return 'The timeframes were not seperated by spaces.';
+	}
+
+	const cooldown = new PeriodOfTime(input);
+
+	//- cooldown returned as 0
+	if (cooldown.time === 0) {
+		return 'The cooldown time resulted to be `0` from the input that was given.\nThis usually happens when the input contains unexpected characters.'
+	}
+
+	return cooldown;
 }
 
 function getCooldownInstructionEmbed(cooldownInput: string, message?: string): EmbedBuilder {
