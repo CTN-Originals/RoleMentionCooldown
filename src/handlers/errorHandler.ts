@@ -1,12 +1,16 @@
 import { Client, WebhookClient } from "discord.js";
 
-import { Color, ConsoleInstance, Theme } from "better-console-utilities";
+import { Color, ConsoleInstance, defaultThemeProfile, Theme } from "better-console-utilities";
 
-import { logWebhook, cons, errorConsole } from "..";
+import { logWebhook, cons } from "..";
 import { GeneralData } from "../data";
 
-const thisCons = new ConsoleInstance();
+// const thisCons = new ConsoleInstance();
 const rootPath = process.cwd();
+
+export const errorConsole = new ConsoleInstance(defaultThemeProfile.clone());
+errorConsole.theme.default = new Theme('#ff0000');
+errorConsole.theme.typeThemes.default = new Theme('#dd0000');
 const defaultColor = errorConsole.theme.typeThemes.default ?? errorConsole.theme.default;
 
 interface IStackOptions {
