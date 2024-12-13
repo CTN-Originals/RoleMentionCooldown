@@ -8,7 +8,13 @@ import {
 	MessageContextMenuCommandInteraction,
 	UserContextMenuCommandInteraction,
 	ButtonInteraction,
-	AnySelectMenuInteraction,
+	ComponentType,
+	StringSelectMenuInteraction,
+	ChannelSelectMenuInteraction,
+	MentionableSelectMenuInteraction,
+	RoleSelectMenuInteraction,
+	UserSelectMenuInteraction,
+	ApplicationCommandType,
 } from 'discord.js';
 
 import { ConsoleInstance } from 'better-console-utilities';
@@ -17,7 +23,7 @@ import { EmitError } from '.';
 import { IInteractionTypeData, getHoistedOptions, getInteractionType } from '../utils/interactionUtils';
 import { ColorTheme, GeneralData } from '../data';
 import { errorConsole, ErrorObject } from '../handlers/errorHandler';
-import { IAnyInteractionField, IButtonCollectionField, ICommandField, IContextMenuField, ISelectMenuCollectionField } from '../handlers/commandBuilder/data';
+import { IAnyInteractionField, IButtonCollectionField, ICommandField, IContextMenuField, ISelectMenuCollectionField, PickSelectMenuTypeFromComponent as PickSelectMenuTypeFromComponentType } from '../handlers/commandBuilder/data';
 
 const thisConsole = new ConsoleInstance();
 
@@ -47,15 +53,21 @@ export default {
 			}
 			else if (interaction.isContextMenuCommand()) {
 				data = interaction.client.contextMenus.get(interaction[nameKey]);
-				response = await (data as IContextMenuField).execute(interaction as MessageContextMenuCommandInteraction | UserContextMenuCommandInteraction);
+				response = await (data as IContextMenuField<ApplicationCommandType.Message | ApplicationCommandType.User>).execute(interaction as MessageContextMenuCommandInteraction | UserContextMenuCommandInteraction);
 			}
 			else if (interaction.isButton()) {
 				data = interaction.client.buttons.get(interaction[nameKey]);
 				response = await (data as IButtonCollectionField).execute(interaction as ButtonInteraction);
 			}
 			else if (interaction.isAnySelectMenu()) {
-				data = interaction.client.buttons.get(interaction[nameKey]);
-				response = await (data as unknown as ISelectMenuCollectionField).execute(interaction as AnySelectMenuInteraction);
+				data = interaction.client.selectMenus.get(interaction[nameKey]);
+				response = await (data as ISelectMenuCollectionField).execute(interaction as PickSelectMenuTypeFromComponentType<
+					typeof interaction.componentType extends ComponentType.StringSelect ? StringSelectMenuInteraction :
+					typeof interaction.componentType extends ComponentType.UserSelect ? UserSelectMenuInteraction :
+					typeof interaction.componentType extends ComponentType.RoleSelect ? RoleSelectMenuInteraction :
+					typeof interaction.componentType extends ComponentType.MentionableSelect ? MentionableSelectMenuInteraction :
+					typeof interaction.componentType extends ComponentType.ChannelSelect ? ChannelSelectMenuInteraction : never
+				>);
 			}
 		} catch (err) {
 			const errorObject: ErrorObject = await EmitError(err as Error, interaction);

@@ -17,6 +17,7 @@ import {
 
 import {
 	CommandInteractionData,
+	IBaseInteractionType,
 	ICommandField,
 	IContextMenuField,
 	IButtonCollectionField,
@@ -81,6 +82,7 @@ import {
 //#region Exports
 export {
 	CommandInteractionData,
+	IBaseInteractionType,
 	ICommandField,
 	IContextMenuField,
 	IButtonCollectionField,

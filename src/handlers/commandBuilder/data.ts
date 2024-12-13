@@ -1,4 +1,4 @@
-import { AnySelectMenuInteraction, ApplicationCommandOptionType, ApplicationCommandType, ButtonBuilder, ButtonInteraction, ChannelType, ChatInputCommandInteraction, ComponentType, ContextMenuCommandBuilder, ContextMenuCommandInteraction, EmbedBuilder, Interaction, MessageContextMenuCommandInteraction, SlashCommandBuilder, UserContextMenuCommandInteraction } from "discord.js";
+import { AnySelectMenuInteraction, ApplicationCommandType, ButtonBuilder, ButtonInteraction, ChannelSelectMenuInteraction, ChatInputCommandInteraction, ComponentType, ContextMenuCommandBuilder, Interaction, MentionableSelectMenuInteraction, MessageContextMenuCommandInteraction, RoleSelectMenuInteraction, SlashCommandBuilder, StringSelectMenuInteraction, UserContextMenuCommandInteraction, UserSelectMenuInteraction } from "discord.js";
 import {
 	ICommandObject,
 	IButtonComponentObject,
@@ -13,7 +13,6 @@ import {
 	RoleSelectComponentObject,
 	StringSelectComponentObject,
 	UserSelectComponentObject,
-	AnyBuilder,
 	IContextMenuCommandObject,
 	ContextMenuCommandObject
 } from ".";
@@ -56,7 +55,12 @@ export type ICommandField = CommandInteractionContentInput<IBaseInteractionType.
  * @requires execute
  * @requires interactionType
 */
-export type IContextMenuField = CommandInteractionContentInput<IBaseInteractionType.ContextMenu, IContextMenuCommandObject, MessageContextMenuCommandInteraction | UserContextMenuCommandInteraction>;
+export type IContextMenuField<T extends (ApplicationCommandType.Message | ApplicationCommandType.User) = ApplicationCommandType.Message | ApplicationCommandType.User> = 
+CommandInteractionContentInput<IBaseInteractionType.ContextMenu, IContextMenuCommandObject,
+	T extends ApplicationCommandType.Message ? MessageContextMenuCommandInteraction : 
+	T extends ApplicationCommandType.User ? UserContextMenuCommandInteraction : 
+	MessageContextMenuCommandInteraction | UserContextMenuCommandInteraction
+>;
 
 /** 
  * @requires data > customId, label | emoji
@@ -65,11 +69,18 @@ export type IContextMenuField = CommandInteractionContentInput<IBaseInteractionT
 export type IButtonCollectionField = CommandInteractionContentInput<IBaseInteractionType.Command, IButtonComponentObject, ButtonInteraction>
 export type IButtonCollection<T> = CheckFields<T, IButtonCollectionField>
 
+export type PickSelectMenuTypeFromComponent<T extends ComponentType = ComponentType.StringSelect> = 
+T extends ComponentType.StringSelect ? StringSelectMenuInteraction :
+T extends ComponentType.UserSelect ? UserSelectMenuInteraction :
+T extends ComponentType.RoleSelect ? RoleSelectMenuInteraction :
+T extends ComponentType.MentionableSelect ? MentionableSelectMenuInteraction :
+T extends ComponentType.ChannelSelect ? ChannelSelectMenuInteraction : AnySelectMenuInteraction;
+
 /** 
  * @requires data > customId, type
  * @requires execute
 */
-export type ISelectMenuCollectionField = CommandInteractionContentInput<IBaseInteractionType.Command, IAnySelectMenuComponentObject, AnySelectMenuInteraction>
+export type ISelectMenuCollectionField<T extends ComponentType = ComponentType.StringSelect> = CommandInteractionContentInput<IBaseInteractionType.Command, IAnySelectMenuComponentObject, PickSelectMenuTypeFromComponent<T>>
 export type ISelectMenuCollection<T> = CheckFields<T, ISelectMenuCollectionField>
 
 export type IAnyInteractionField =
@@ -139,7 +150,9 @@ export class CommandInteractionData<
 	TEmbeds extends BaseEmbedCollection = never
 > {
 	public interactionType: IBaseInteractionType;
-	public command: ICommandField | IContextMenuField;
+	public command: 
+		typeof this.interactionType extends IBaseInteractionType.ContextMenu ? IContextMenuField<Extract<typeof this.command.data, 'type'>> : 
+		typeof this.interactionType extends IBaseInteractionType.Command ? ICommandField : ICommandField | IContextMenuField;
 	private _buttons?: TButtons;
 	private _selectMenus?: TSelectMenus;
 	private _embeds?: TEmbeds;
