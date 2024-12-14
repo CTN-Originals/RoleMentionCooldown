@@ -1,4 +1,4 @@
-import { Client, REST, Routes } from 'discord.js';
+import { Client, ContextMenuCommandBuilder, REST, Routes, SlashCommandBuilder } from 'discord.js';
 
 import 'dotenv/config';
 import * as fs from 'node:fs';
@@ -6,7 +6,7 @@ import path = require('node:path');
 
 import { cons } from '.';
 import { GeneralData } from './data'
-import { ICommandObject, IContextMenuCommandObject } from './handlers/commandBuilder';
+import { CommandObject, ContextMenuCommandObject, IBaseInteractionType, ICommandObject, IContextMenuCommandObject } from './handlers/commandBuilder';
 
 export class DeployInstruction {
 	public guildId: string | undefined;
@@ -37,7 +37,8 @@ export class DeployInstruction {
 const clientID: string = process.env.CLIENT_ID as string;
 const rest = new REST({ version: '9' }).setToken(process.env.TOKEN!);
 
-type ICommandData = (ICommandObject | IContextMenuCommandObject);
+type IRawCommandData = (ICommandObject | IContextMenuCommandObject);
+type ICommandData = (SlashCommandBuilder | ContextMenuCommandBuilder);
 export async function doDeployCommands(client: Client, deployInstructions: DeployInstruction[] = []): Promise<boolean> {
 	cons.log('Deploying commands...');
 	// getCommandFiles('commands');
@@ -47,10 +48,20 @@ export async function doDeployCommands(client: Client, deployInstructions: Deplo
 	//> deleting all commands: --guild=12345 delete=0987654321,43723374678 --guild=1234567890 deleteAll=true
 	//> deleting all Global commands: --deleteAllGlobal=true
 
-	const commandData: ICommandData[] = [
+	const rawCommandData: IRawCommandData[] = [
 		...client.commands.map(c => c.data),
 		...client.contextMenus.map(c => c.data),
 	]
+
+	const commandData: ICommandData[] = [];
+
+	for (const cmd of rawCommandData) {
+		if (Object.keys(cmd).includes('description')) { //- its a chat command
+			commandData.push(new CommandObject(cmd as ICommandObject).build());
+		} else {
+			commandData.push(new ContextMenuCommandObject(cmd as IContextMenuCommandObject).build());
+		}
+	}
 
 	const commandDumpPath = path.resolve(__dirname + '/../resources/dump/commands.json');
 	if (fs.existsSync(commandDumpPath)) {
