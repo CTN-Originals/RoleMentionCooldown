@@ -131,6 +131,7 @@ export class BaseSelectMenuCollection extends BaseComponentCollection<IAnySelect
 	}
 }
 export class BaseEmbedCollection {}
+export class BaseMethodCollection {}
 //#endregion
 
 type ICommandInteractionData<
@@ -138,16 +139,18 @@ type ICommandInteractionData<
 	TSelectMenus extends BaseSelectMenuCollection = never,
 	TEmbeds extends BaseEmbedCollection = never
 > = RequiredFields<
-	Partial<Pick<CommandInteractionData<TButtons, TSelectMenus, TEmbeds>, 'buttons' | 'selectMenus' | 'embeds'>> & Pick<CommandInteractionData<TButtons, TSelectMenus, TEmbeds>, 'command'>, 'command'
+	Partial<Pick<CommandInteractionData<TButtons, TSelectMenus, TEmbeds>, 'buttons' | 'selectMenus' | 'embeds' | 'methods'>> & Pick<CommandInteractionData<TButtons, TSelectMenus, TEmbeds>, 'command'>, 'command'
 >;
 
 type ICommandInteractionDataBuild = { command: SlashCommandBuilder | ContextMenuCommandBuilder, buttons: ButtonBuilder[], selectMenus: AnySelectMenuComponentBuilder[] };
 type IOptionalCollection<Field, Extend> = Field extends Extend ? Field : undefined
-type IOptionalCollectionObject<Field, Extend> = Field extends Extend ? Omit<Field, 'asArray' | 'build'> : undefined
+type IOptionalCollectionObject<Field, Extend> = Field extends Extend ? Omit<Field, 'asArray' | 'build'> : undefined;
+type DataCollectionTypes = 'button' | 'selectMenu' | 'embed' | 'method';
 export class CommandInteractionData<
 	TButtons extends BaseButtonCollection = never,
 	TSelectMenus extends BaseSelectMenuCollection = never,
-	TEmbeds extends BaseEmbedCollection = never
+	TEmbeds extends BaseEmbedCollection = never,
+	TMethods extends BaseEmbedCollection = never,
 > {
 	public interactionType: IBaseInteractionType;
 	public command: 
@@ -156,6 +159,7 @@ export class CommandInteractionData<
 	private _buttons?: TButtons;
 	private _selectMenus?: TSelectMenus;
 	private _embeds?: TEmbeds;
+	private _methods?: TMethods;
 
 
 	constructor(input: ICommandInteractionData<TButtons, TSelectMenus, TEmbeds>) {
@@ -165,6 +169,7 @@ export class CommandInteractionData<
 		if (input.buttons) { this._buttons = input.buttons as IOptionalCollection<TButtons, BaseButtonCollection>; }
 		if (input.selectMenus) { this._selectMenus = input.selectMenus as IOptionalCollection<TSelectMenus, BaseSelectMenuCollection>; }
 		if (input.embeds) { this._embeds = input.embeds as IOptionalCollection<TEmbeds, BaseEmbedCollection> }
+		if (input.methods) { this._embeds = input.embeds as IOptionalCollection<TEmbeds, BaseEmbedCollection> }
 	}
 
 	//#region Getters
@@ -183,6 +188,8 @@ export class CommandInteractionData<
 	}
 	public get selectMenuCollection(): IOptionalCollection<TSelectMenus, BaseSelectMenuCollection> {
 		return this._selectMenus as IOptionalCollection<TSelectMenus, BaseSelectMenuCollection>;
+	public get methods(): IOptionalCollectionObject<TEmbeds, BaseEmbedCollection> {
+		return this._methods as IOptionalCollectionObject<TEmbeds, BaseEmbedCollection>;
 	}
 	public get embedCollection(): IOptionalCollection<TEmbeds, BaseEmbedCollection> {
 		return this._embeds as IOptionalCollection<TEmbeds, BaseEmbedCollection>;
@@ -198,6 +205,9 @@ export class CommandInteractionData<
 	}
 	public set embeds(value: TEmbeds) {
 		this._embeds = value;
+	}
+	public set methods(value: TMethods) {
+		this._methods = value;
 	}
 	//#endregion
 
