@@ -1,5 +1,5 @@
 
-import { ChatInputCommandInteraction, CommandInteraction, EmbedBuilder, SlashCommandBuilder, InteractionContextType, ApplicationCommandOptionType } from "discord.js";
+import { ChatInputCommandInteraction, CommandInteraction, EmbedBuilder, SlashCommandBuilder, InteractionContextType, ApplicationCommandOptionType, PermissionFlagsBits } from "discord.js";
 import { BaseButtonCollection, BaseEmbedCollection, BaseSelectMenuCollection, CommandInteractionData, IButtonCollection, ISelectMenuCollection } from "../../handlers/commandBuilder";
 
 import { ColorTheme, GeneralData } from '../../data'
@@ -223,6 +223,7 @@ const command = new CommandInteractionData<ButtonCollection, SelectMenuCollectio
 			name: 'rolecooldown',
 			description: 'Manage role cooldowns',
 			contexts: [InteractionContextType.Guild],
+			default_member_permissions: (PermissionFlagsBits.ManageRoles).toString(),
 			subcommands: [
 				{
 					name: 'add',

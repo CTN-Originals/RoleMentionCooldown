@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, EmbedBuilder, SlashCommandBuilder, InteractionContextType, ApplicationCommandOptionType, PermissionsBitField } from "discord.js";
+import { ChatInputCommandInteraction, EmbedBuilder, SlashCommandBuilder, InteractionContextType, ApplicationCommandOptionType, PermissionsBitField, PermissionFlagsBits } from "discord.js";
 import { BaseButtonCollection, BaseEmbedCollection, BaseSelectMenuCollection, CommandInteractionData, IButtonCollection, ISelectMenuCollection } from "../../handlers/commandBuilder";
 
 import { GuildConfig } from "../../data/orm/guildConfig";
@@ -83,6 +83,7 @@ const command = new CommandInteractionData<ButtonCollection, SelectMenuCollectio
 			name: 'config',
 			description: 'Configure the bots settings',
 			contexts: [InteractionContextType.Guild],
+			default_member_permissions: (PermissionFlagsBits.Administrator).toString(),
 			subcommands: [
 				{
 					name: 'display',
