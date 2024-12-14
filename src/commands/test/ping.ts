@@ -40,29 +40,6 @@ const command = new CommandInteractionData<ButtonCollection, SelectMenuCollectio
 	buttons: new ButtonCollection(),
 	selectMenus: new SelectMenuCollection(),
 	embeds: new EmbedCollection()
-})
+});
 
 export default command;
-
-// export default {
-// 	command: {
-// 		data: new SlashCommandBuilder()
-// 			.setName("ping")
-// 			.setDescription("Replies with latency stats"),
-// 		async execute(interaction: ChatInputCommandInteraction) {
-// 			const commandPing = Date.now() - interaction.createdTimestamp;
-// 			const apiPing = interaction.client.ws.ping;
-
-// 			await interaction.reply({
-// 				embeds: [validateEmbed(new EmbedBuilder({
-// 					title: "Pong!",
-// 					description: `Command Latency: \`${commandPing}ms\`\nAPI Latency: \`${apiPing}ms\``,
-// 					color: hexToBit(ColorTheme.embeds.reply)
-// 				}))],
-// 				ephemeral: true
-// 			});
-			
-// 			return `${commandPing}ms | ${apiPing}ms`;
-// 		},
-// 	}
-// }
