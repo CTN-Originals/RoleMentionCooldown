@@ -55,10 +55,10 @@ function registerCommand(client: Client, dir: string, file: string) {
 
 	registerToClientCollection(client, (commandData.interactionType !== IBaseInteractionType.ContextMenu) ? 'command' : 'contextMenu', commandData.command, dir, file);
 
-	for (const button of (commandData.buttonCollection as BaseButtonCollection).asArray()) {
+	for (const button of (commandData.getCollection('button') as BaseButtonCollection).asArray()) {
 		registerToClientCollection(client, 'button', button, dir, file);
 	}
-	for (const select of (commandData.selectMenuCollection as BaseSelectMenuCollection).asArray()) {
+	for (const select of (commandData.getCollection('selectMenu') as BaseSelectMenuCollection).asArray()) {
 		registerToClientCollection(client, 'selectMenu', select, dir, file);
 	}
 }

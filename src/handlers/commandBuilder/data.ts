@@ -182,17 +182,17 @@ export class CommandInteractionData<
 	public get embeds(): IOptionalCollectionObject<TEmbeds, BaseEmbedCollection> {
 		return this._embeds as IOptionalCollectionObject<TEmbeds, BaseEmbedCollection>;
 	}
-
-	public get buttonCollection(): IOptionalCollection<TButtons, BaseButtonCollection> {
-		return this._buttons as IOptionalCollection<TButtons, BaseButtonCollection>;
-	}
-	public get selectMenuCollection(): IOptionalCollection<TSelectMenus, BaseSelectMenuCollection> {
-		return this._selectMenus as IOptionalCollection<TSelectMenus, BaseSelectMenuCollection>;
 	public get methods(): IOptionalCollectionObject<TEmbeds, BaseEmbedCollection> {
 		return this._methods as IOptionalCollectionObject<TEmbeds, BaseEmbedCollection>;
 	}
-	public get embedCollection(): IOptionalCollection<TEmbeds, BaseEmbedCollection> {
-		return this._embeds as IOptionalCollection<TEmbeds, BaseEmbedCollection>;
+
+	public getCollection(type: DataCollectionTypes) {
+		switch (type) {
+			case 'button': return this._buttons as IOptionalCollection<TButtons, BaseButtonCollection>;
+			case 'selectMenu': return this._selectMenus as IOptionalCollection<TSelectMenus, BaseSelectMenuCollection>;
+			case 'embed': return this._embeds as IOptionalCollection<TEmbeds, BaseEmbedCollection>;
+			case 'method': return this._methods as IOptionalCollection<TMethods, BaseMethodCollection>;
+		}
 	}
 	//#endregion
 
