@@ -1,7 +1,6 @@
 import mongoose from "mongoose";
 import { cons } from "../..";
 import { GeneralData } from '../index';
-import { EmitError } from "../../events";
 import { errorConsole } from "../../handlers/errorHandler";
 
 //? something like: mongodb+srv://<username>:<password>@<hostname>/<dbname>
