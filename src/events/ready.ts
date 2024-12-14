@@ -5,14 +5,7 @@ import { ConsoleInstance } from 'better-console-utilities';
 
 import { GeneralData } from '../data';
 import { DevEnvironment } from '../data';
-import { EmitError, customEvents, eventConsole } from '.';
-import { cons, errorConsole, testWebhook } from '..';
-import { testEmbed, validateEmbed } from '../utils/embedUtils';
 import { Mentionable } from '../data/orm/mentionables';
-import { IMentionableStorage, default as MentionableData } from '../data/orm/schemas/mentionableData'
-import { timeUnits } from '../utils';
-import { getCurrentCooldownsEmbed } from '../commands/info/list';
-import { UserPermissions } from '../handlers/permissionHandler';
 import { UpdateBotListStats } from '../handlers/botLists';
 
 // import ErrorHandler from '../handlers/errorHandler';
@@ -80,13 +73,7 @@ export default {
 		// })
 
 		
-		// new FakeInteraction('rolecooldown', {
-		// 	subCommand: 'add',
-		// 	options: [
-		// 		{name: 'role', value: '1309653896788050043'},
-		// 		{name: 'cooldown', value: '120.9i'}
-		// 	]
-		// }).execute();
+		// new FakeInteraction('help').execute();
 		// new FakeInteraction('rolecooldown', {
 		// 	subCommand: 'add',
 		// 	options: [
@@ -203,6 +190,7 @@ class FakeInteraction {
 	public get channelId() { return this.channel.id }
 	public get guildId() { return this.guild.id };
 
+	public isChatInputCommand() {return true}
 	public isRepliable() {return true}
 	public inGuild() { return true; }
 

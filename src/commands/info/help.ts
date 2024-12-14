@@ -1,11 +1,54 @@
-import { EmbedBuilder, SlashCommandBuilder, ChatInputCommandInteraction, APIEmbedField, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, APISelectMenuOption, ActionRowBuilder, ActionRow, ActionRowComponent, StringSelectMenuInteraction, InteractionContextType, ComponentType } from "discord.js";
-import { BaseButtonCollection, BaseEmbedCollection, BaseSelectMenuCollection, CommandInteractionData, IButtonCollection, ISelectMenuCollection, ISelectMenuCollectionField } from "../../handlers/commandBuilder";
+import { EmbedBuilder, ChatInputCommandInteraction, APIEmbedField, StringSelectMenuBuilder, ActionRowBuilder, StringSelectMenuInteraction, InteractionContextType, ComponentType, Client } from "discord.js";
+import { AnyDiscordCommandOption, BaseButtonCollection, BaseEmbedCollection, BaseSelectMenuCollection, CommandInteractionData, IBaseInteractionType, IButtonCollection, ISelectMenuCollection, ISelectMenuCollectionField } from "../../handlers/commandBuilder";
 
-import { getExecutableCommands, hexToBit } from "../../utils";
+import { hexToBit } from "../../utils";
 import { ColorTheme, GeneralData } from "../../data";
 import { validateEmbed } from "../../utils/embedUtils";
+import { client } from "../..";
 
+type CommandInfo = {
+	name: string;
+	description: string;
+	options: AnyDiscordCommandOption[];
+};
 
+//? this is not my best function... but it works and i dont wanna do more recursion stuff so f it
+export function getExecutableCommands(commands: Client['commands'] = client.commands) {	
+	const commandList: CommandInfo[] = []
+
+	function addCommandInfo(data: RequiredFields<Partial<CommandInfo>, 'name' | 'description'>, prefix?: string) {
+		commandList.push({
+			name: `${(prefix !== undefined) ? prefix + ' ' : ''}${data.name}`,
+			description: data.description,
+			options: data.options ?? []
+		});
+	}
+
+	for (const [key, value] of commands.entries()) {
+		if ((value.interactionType as IBaseInteractionType) === IBaseInteractionType.ContextMenu) { continue; }
+
+		if ((!value.data.subcommands || value.data.subcommands.length === 0) && (!value.data.subcommandGroups || value.data.subcommandGroups.length === 0)) {
+			addCommandInfo(value.data);
+		}
+		else {
+			if (value.data.subcommands && value.data.subcommands.length > 0) {
+				for (const sub of value.data.subcommands) {
+					addCommandInfo(sub, value.data.name)
+				}
+			}
+
+			if (value.data.subcommandGroups && value.data.subcommandGroups.length > 0) {
+				for (const group of value.data.subcommandGroups) {
+					for (const sub of group.subcommands!) {
+						addCommandInfo(sub, `${value.data.name} ${group.name}`)
+					}
+				}
+			}
+		}
+	}
+
+	return commandList;
+}
 
 class ButtonCollection extends BaseButtonCollection implements IButtonCollection<ButtonCollection> {}
 class SelectMenuCollection extends BaseSelectMenuCollection implements ISelectMenuCollection<SelectMenuCollection> {
@@ -27,7 +70,7 @@ class SelectMenuCollection extends BaseSelectMenuCollection implements ISelectMe
 				return true;
 			}
 
-			const cmd = commandInfo.find(c => c.command === value.replaceAll('_', ' '));
+			const cmd = commandInfo.find(c => c.name === value.replaceAll('_', ' '));
 			const fields: {name: string, value: string}[] = [];
 
 			for (const opt of cmd?.options!) {
@@ -36,11 +79,11 @@ class SelectMenuCollection extends BaseSelectMenuCollection implements ISelectMe
 					`Required: \`${opt.required}\``
 				];
 
-				if (opt.min_length) {
-					value.push(`Minimum Length: \`${opt.min_length}\``);
+				if (Object.keys(opt).includes('minLength')) {
+					value.push(`Minimum Length: \`${opt['minLength']}\``);
 				}
-				if (opt.max_length) {
-					value.push(`Minimum Length: \`${opt.max_length}\``);
+				if (Object.keys(opt).includes('maxLength')) {
+					value.push(`Minimum Length: \`${opt['maxLength']}\``);
 				}
 
 				fields.push({
@@ -51,7 +94,7 @@ class SelectMenuCollection extends BaseSelectMenuCollection implements ISelectMe
 			
 			await interaction.editReply({
 				embeds: [validateEmbed(new EmbedBuilder({
-					title: `/${cmd?.command}`,
+					title: `/${cmd?.name}`,
 					description: cmd?.description,
 					fields: fields,
 					color: hexToBit(ColorTheme.embeds.info)
@@ -75,7 +118,7 @@ class EmbedCollection extends BaseEmbedCollection {
 				options += `  ${(opt.required) ? `<\`${opt.name}\`>` : `[\`${opt.name}\`]`}`
 			}
 			fields.push({
-				name: `/${cmd.command}${(cmd.options.length > 0) ? options : ''}`,
+				name: `/${cmd.name}${(cmd.options.length > 0) ? options : ''}`,
 				value: cmd.description
 			})
 		}
@@ -100,6 +143,7 @@ const command = new CommandInteractionData<ButtonCollection, SelectMenuCollectio
 		},
 		execute: async function (interaction: ChatInputCommandInteraction) {
 			const commandInfo = getExecutableCommands();
+			console.log(commandInfo)
 			const commandSelect = new StringSelectMenuBuilder({
 				custom_id: `help_command-select`,
 				max_values: 1,
@@ -111,9 +155,9 @@ const command = new CommandInteractionData<ButtonCollection, SelectMenuCollectio
 						value: 'all',
 					},
 					...commandInfo.map(c => ({
-						label: `/${c.command}`,
+						label: `/${c.name}`,
 						description: `${c.description}`,
-						value: `${c.command.replaceAll(' ', '_')}`,
+						value: `${c.name.replaceAll(' ', '_')}`,
 					}))
 				]
 			})
