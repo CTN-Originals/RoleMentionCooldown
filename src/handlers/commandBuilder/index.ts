@@ -37,6 +37,7 @@ import {
 	BaseButtonCollection,
 	BaseSelectMenuCollection,
 	BaseEmbedCollection,
+	BaseMethodCollection
 } from "./data";
 
 import {
@@ -103,6 +104,7 @@ export {
 	BaseButtonCollection,
 	BaseSelectMenuCollection,
 	BaseEmbedCollection,
+	BaseMethodCollection,
 
 	BaseCommandObject,
 	CommandObjectInput,

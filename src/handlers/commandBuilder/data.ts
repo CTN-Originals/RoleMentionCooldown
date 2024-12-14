@@ -170,7 +170,7 @@ export class CommandInteractionData<
 		if (input.buttons) { this._buttons = input.buttons as IOptionalCollection<TButtons, BaseButtonCollection>; }
 		if (input.selectMenus) { this._selectMenus = input.selectMenus as IOptionalCollection<TSelectMenus, BaseSelectMenuCollection>; }
 		if (input.embeds) { this._embeds = input.embeds as IOptionalCollection<TEmbeds, BaseEmbedCollection> }
-		if (input.methods) { this._embeds = input.embeds as IOptionalCollection<TEmbeds, BaseEmbedCollection> }
+		if (input.methods) { this._methods = input.methods as IOptionalCollection<TMethods, BaseMethodCollection> }
 	}
 
 	//#region Getters
