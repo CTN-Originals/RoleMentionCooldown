@@ -1,5 +1,5 @@
 import { ChatInputCommandInteraction, EmbedBuilder, SlashCommandBuilder, InteractionContextType, ApplicationCommandOptionType, PermissionsBitField, PermissionFlagsBits } from "discord.js";
-import { BaseButtonCollection, BaseEmbedCollection, BaseSelectMenuCollection, CommandInteractionData, IButtonCollection, ISelectMenuCollection } from "../../handlers/commandBuilder";
+import { BaseButtonCollection, BaseEmbedCollection, BaseMethodCollection, BaseSelectMenuCollection, CommandInteractionData, IButtonCollection, ISelectMenuCollection } from "../../handlers/commandBuilder";
 
 import { GuildConfig } from "../../data/orm/guildConfig";
 import { PermissionObject } from "../../handlers/permissionHandler";
@@ -9,41 +9,6 @@ import { ColorTheme } from "../../data";
 import { hexToBit } from "../../utils";
 
 type ActionType = 'add'|'remove';
-async function adminRole(interaction: RequiredFields<ChatInputCommandInteraction, 'guildId'>, config: IGuildConfigData) {
-	const action: ActionType  = interaction.options.getSubcommand() as ActionType;
-	const role = interaction.options.getRole('role', true);
-
-	const listIncludesRole = config.adminRoles.includes(role.id);
-	if (
-		(action == 'add' && listIncludesRole) ||
-		(action == 'remove' && !listIncludesRole)
-	) {
-		await interaction.reply({
-			embeds: [validateEmbed(command.embeds.duplicateRole(role.id, action))],
-			ephemeral: true
-		});
-		return `Duplicate action`;
-	}
-	
-	switch (action) {
-		case 'add': {
-			config.adminRoles.push(role.id);
-		} break;
-		case 'remove': {
-			config.adminRoles.splice(config.adminRoles.indexOf(role.id), 1);
-		} break;
-		default: break;
-	}
-
-	await GuildConfig.update(config);
-
-	await interaction.reply({
-		embeds: [validateEmbed(command.embeds.success(role.id, action))],
-		ephemeral: true
-	})
-
-	return true
-}
 
 class ButtonCollection extends BaseButtonCollection implements IButtonCollection<ButtonCollection> {}
 class SelectMenuCollection extends BaseSelectMenuCollection implements ISelectMenuCollection<SelectMenuCollection> {}
@@ -76,8 +41,45 @@ class EmbedCollection extends BaseEmbedCollection {
 		})
 	}
 }
+class MethodCollection extends BaseMethodCollection {
+	public async adminRole(interaction: RequiredFields<ChatInputCommandInteraction, 'guildId'>, config: IGuildConfigData) {
+		const action: ActionType  = interaction.options.getSubcommand() as ActionType;
+		const role = interaction.options.getRole('role', true);
+	
+		const listIncludesRole = config.adminRoles.includes(role.id);
+		if (
+			(action == 'add' && listIncludesRole) ||
+			(action == 'remove' && !listIncludesRole)
+		) {
+			await interaction.reply({
+				embeds: [validateEmbed(command.embeds.duplicateRole(role.id, action))],
+				ephemeral: true
+			});
+			return `Duplicate action`;
+		}
+		
+		switch (action) {
+			case 'add': {
+				config.adminRoles.push(role.id);
+			} break;
+			case 'remove': {
+				config.adminRoles.splice(config.adminRoles.indexOf(role.id), 1);
+			} break;
+			default: break;
+		}
+	
+		await GuildConfig.update(config);
+	
+		await interaction.reply({
+			embeds: [validateEmbed(command.embeds.success(role.id, action))],
+			ephemeral: true
+		})
+	
+		return true
+	}
+}
 
-const command = new CommandInteractionData<ButtonCollection, SelectMenuCollection, EmbedCollection>({
+const command = new CommandInteractionData<ButtonCollection, SelectMenuCollection, EmbedCollection, MethodCollection>({
 	command: {
 		data: {
 			name: 'config',
@@ -141,7 +143,7 @@ const command = new CommandInteractionData<ButtonCollection, SelectMenuCollectio
 				default: break;
 			}
 			switch (subGroup) {
-				case 'admin-role': { return await adminRole(interaction, config); }
+				case 'admin-role': { return await command.methods.adminRole(interaction, config); }
 				default: break;
 			}
 			
@@ -151,7 +153,8 @@ const command = new CommandInteractionData<ButtonCollection, SelectMenuCollectio
 	},
 	buttons: new ButtonCollection(),
 	selectMenus: new SelectMenuCollection(),
-	embeds: new EmbedCollection()
+	embeds: new EmbedCollection(),
+	methods: new MethodCollection()
 })
 
 export default command;
