@@ -1,7 +1,16 @@
 //#region Imports
 import {
+	ApplicationCommandAttachmentOption,
+	ApplicationCommandBooleanOption,
+	ApplicationCommandChannelOption,
+	ApplicationCommandMentionableOption,
+	ApplicationCommandNumericOption,
+	ApplicationCommandRoleOption,
+	ApplicationCommandStringOption,
+	ApplicationCommandUserOption,
 	ButtonBuilder,
 	ChannelSelectMenuBuilder,
+	LocalizationMap,
 	MentionableSelectMenuBuilder,
 	RoleSelectMenuBuilder,
 	SlashCommandBuilder,
@@ -59,6 +68,7 @@ import {
 	RoleOptionObject,
 	StringOptionObject,
 	UserOptionObject,
+	BaseOptionObject,
 } from "./options";
 
 import {
@@ -162,6 +172,16 @@ export type IAnyComponentObject =
  | IRoleSelectComponentObject
  | IMentionableSelectComponentObject
  | IChannelSelectComponentObject;
+
+export type AnyDiscordCommandOption = 
+| ApplicationCommandChannelOption
+| ApplicationCommandNumericOption
+| ApplicationCommandStringOption
+| ApplicationCommandRoleOption
+| ApplicationCommandUserOption
+| ApplicationCommandMentionableOption
+| ApplicationCommandBooleanOption
+| ApplicationCommandAttachmentOption;
 
 export type AnySelectMenuComponentBuilder = Exclude<AnyComponentBuilder, ButtonBuilder>;
 export type AnySelectMenuComponentObject = Exclude<AnyComponentObject, ButtonComponentObject>;

@@ -14,18 +14,20 @@ SlashCommandMentionableOption |
 SlashCommandNumberOption |
 SlashCommandAttachmentOption;
 
-
-
 interface CommandObjectOptionChoice<Value extends string | number = string | number> {
 	name: string;
 	nameLocalizations?: LocalizationMap;
 	value: Value;
 }
 
-export type IBaseOptionObject = CommandObjectInput<
-    BaseOptionObject,
-    'required' | 'autocomplete',
-    'type'
+export type IBaseOptionObject<
+	T extends BaseOptionObject = BaseOptionObject,
+	Optional extends keyof T = never,
+	Required extends keyof T = never
+> = CommandObjectInput<
+    T,
+    'required' | 'autocomplete' & Optional,
+    'type' & Required
 >;
 export class BaseOptionObject extends BaseCommandObject {
 	public type!: ApplicationCommandOptionType;
@@ -71,11 +73,18 @@ export class BaseOptionObject extends BaseCommandObject {
 	}
 }
 
+
+type IStringOptionObject = IBaseOptionObject<StringOptionObject, 'minLength' | 'maxLength'>
 export class StringOptionObject extends BaseOptionObject {
 	public maxLength?: number;
 	public minLength?: number;
 
-	public get build() {
+	constructor(input: IStringOptionObject) {
+		super(input);
+		this.assignFields(input);
+	}
+	
+	public build() {
 		const opt = this.optionBuildBase(new SlashCommandStringOption());
 		
 		if (this.minLength) { opt.setMinLength(this.minLength); }
@@ -84,55 +93,111 @@ export class StringOptionObject extends BaseOptionObject {
 		return opt;
 	}
 }
+
+type IIntegerOptionObject = IBaseOptionObject<IntegerOptionObject>
 export class IntegerOptionObject extends BaseOptionObject {
-	public get build() {
+	constructor(input: IIntegerOptionObject) {
+		super(input);
+		this.assignFields(input);
+	}
+	
+	public build() {
 		const opt = this.optionBuildBase(new SlashCommandIntegerOption());
 		return opt;
 	}
 }
+
+type IBooleanOptionObject = IBaseOptionObject<BooleanOptionObject>
 export class BooleanOptionObject extends BaseOptionObject {
-	public get build() {
+	constructor(input: IBooleanOptionObject) {
+		super(input);
+		this.assignFields(input);
+	}
+	
+	public build() {
 		const opt = this.optionBuildBase(new SlashCommandBooleanOption());
 		return opt;
 	}
 }
+
+type IUserOptionObject = IBaseOptionObject<UserOptionObject>
 export class UserOptionObject extends BaseOptionObject {
-	public get build() {
+	constructor(input: IUserOptionObject) {
+		super(input);
+		this.assignFields(input);
+	}
+	
+	public build() {
 		const opt = this.optionBuildBase(new SlashCommandUserOption());
 		return opt;
 	}
 }
-export class ChannelOptionObject extends BaseOptionObject {
-	public channel_type?: ApplicationCommandOptionAllowedChannelTypes[];
 
-	public get build() {
+type IChannelOptionObject = IBaseOptionObject<ChannelOptionObject, 'channelTypes'>
+export class ChannelOptionObject extends BaseOptionObject {
+	public channelTypes?: ApplicationCommandOptionAllowedChannelTypes[];
+
+	constructor(input: IChannelOptionObject) {
+		super(input);
+		this.assignFields(input);
+	}
+	
+	public build() {
 		const opt = this.optionBuildBase(new SlashCommandChannelOption());
 
-		if (this.channel_type) { opt.addChannelTypes(...this.channel_type); }
+		if (this.channelTypes) { opt.addChannelTypes(...this.channelTypes); }
 
 		return opt;
 	}
 }
+
+type IRoleOptionObject = IBaseOptionObject<RoleOptionObject>
 export class RoleOptionObject extends BaseOptionObject {
-	public get build() {
+	constructor(input: IRoleOptionObject) {
+		super(input);
+		this.assignFields(input);
+	}
+	
+	public build() {
 		const opt = this.optionBuildBase(new SlashCommandRoleOption());
 		return opt;
 	}
 }
+
+type IMentionableOptionObject = IBaseOptionObject<MentionableOptionObject>
 export class MentionableOptionObject extends BaseOptionObject {
-	public get build() {
+	constructor(input: IMentionableOptionObject) {
+		super(input);
+		this.assignFields(input);
+	}
+	
+	public build() {
 		const opt = this.optionBuildBase(new SlashCommandMentionableOption());
 		return opt;
 	}
 }
+
+type INumberOptionObject = IBaseOptionObject<NumberOptionObject>
 export class NumberOptionObject extends BaseOptionObject {
-	public get build() {
+	constructor(input: INumberOptionObject) {
+		super(input);
+		this.assignFields(input);
+	}
+	
+	public build() {
 		const opt = this.optionBuildBase(new SlashCommandNumberOption());
 		return opt;
 	}
 }
+
+type IAttachmentOptionObject = IBaseOptionObject<AttachmentOptionObject>
 export class AttachmentOptionObject extends BaseOptionObject {
-	public get build() {
+	constructor(input: IAttachmentOptionObject) {
+		super(input);
+		this.assignFields(input);
+	}
+	
+	public build() {
 		const opt = this.optionBuildBase(new SlashCommandAttachmentOption());
 		return opt;
 	}

@@ -1,6 +1,6 @@
 import { InteractionContextType, ApplicationIntegrationType, SlashCommandBuilder, Permissions, ApplicationCommandOption, SlashCommandSubcommandBuilder, SlashCommandSubcommandGroupBuilder } from "discord.js";
 
-import { BaseCommandObject, CommandObjectInput } from ".";
+import { AnyDiscordCommandOption, BaseCommandObject, CommandObjectInput } from ".";
 
 type SlashCommandBuilderFields = 'contexts' | 'default_member_permissions' | 'integration_types' | 'nsfw';
 export type ICommandObject = CommandObjectInput<CommandObject, SlashCommandBuilderFields | 'subcommandGroups' | 'subcommands' | 'options'>
@@ -17,7 +17,8 @@ export class CommandObject extends BaseCommandObject {
 	public subcommandGroups: (SubCommandGroupObject|ISubCommandGroupObject)[] = [];
 	public subcommands: (SubCommandObject|ISubCommandObject)[] = [];
 
-	public options: ApplicationCommandOption[] = [];
+	// public options: ApplicationCommandOption[] = [];
+	public options: AnyDiscordCommandOption[] = [];
 
 	/** A substitude for SlashCommandBuilder that allows an object to be put in, instead of the bs .addField() functions...
 	 * @param input The object to transform into a command
@@ -62,7 +63,7 @@ export class CommandObject extends BaseCommandObject {
 
 export type ISubCommandObject = CommandObjectInput<SubCommandObject, 'options'>
 export class SubCommandObject extends BaseCommandObject {
-	public options: ApplicationCommandOption[] = [];
+	public options: AnyDiscordCommandOption[] = [];
 
 	constructor(input: ISubCommandObject) {
 		super(input);

@@ -92,15 +92,15 @@ export class BaseCommandObject {
 	protected resolveOptions<T extends Exclude<AnySlashCommandBuilder, SlashCommandSubcommandGroupBuilder>>(builder: T, options: ApplicationCommandOption[]): T {
 		for (const opt of options) {
 			switch (opt.type) {
-				case ApplicationCommandOptionType.String: 		builder.addStringOption(new StringOptionObject(opt).build); break;
-				case ApplicationCommandOptionType.Integer: 		builder.addIntegerOption(new IntegerOptionObject(opt).build); break;
-				case ApplicationCommandOptionType.Boolean: 		builder.addBooleanOption(new BooleanOptionObject(opt).build); break;
-				case ApplicationCommandOptionType.User: 		builder.addUserOption(new UserOptionObject(opt).build); break;
-				case ApplicationCommandOptionType.Channel: 		builder.addChannelOption(new ChannelOptionObject(opt).build); break;
-				case ApplicationCommandOptionType.Role: 		builder.addRoleOption(new RoleOptionObject(opt).build); break;
-				case ApplicationCommandOptionType.Mentionable: 	builder.addMentionableOption(new MentionableOptionObject(opt).build); break;
-				case ApplicationCommandOptionType.Number: 		builder.addNumberOption(new NumberOptionObject(opt).build); break;
-				case ApplicationCommandOptionType.Attachment: 	builder.addAttachmentOption(new AttachmentOptionObject(opt).build); break;
+				case ApplicationCommandOptionType.String: 		builder.addStringOption(new StringOptionObject(opt).build()); break;
+				case ApplicationCommandOptionType.Integer: 		builder.addIntegerOption(new IntegerOptionObject(opt).build()); break;
+				case ApplicationCommandOptionType.Boolean: 		builder.addBooleanOption(new BooleanOptionObject(opt).build()); break;
+				case ApplicationCommandOptionType.User: 		builder.addUserOption(new UserOptionObject(opt).build()); break;
+				case ApplicationCommandOptionType.Channel: 		builder.addChannelOption(new ChannelOptionObject(opt).build()); break;
+				case ApplicationCommandOptionType.Role: 		builder.addRoleOption(new RoleOptionObject(opt).build()); break;
+				case ApplicationCommandOptionType.Mentionable: 	builder.addMentionableOption(new MentionableOptionObject(opt).build()); break;
+				case ApplicationCommandOptionType.Number: 		builder.addNumberOption(new NumberOptionObject(opt).build()); break;
+				case ApplicationCommandOptionType.Attachment: 	builder.addAttachmentOption(new AttachmentOptionObject(opt).build()); break;
 				default: break;
 			}
 		}
