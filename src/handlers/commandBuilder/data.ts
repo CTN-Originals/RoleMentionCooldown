@@ -137,9 +137,10 @@ export class BaseMethodCollection {}
 type ICommandInteractionData<
 	TButtons extends BaseButtonCollection = never,
 	TSelectMenus extends BaseSelectMenuCollection = never,
-	TEmbeds extends BaseEmbedCollection = never
+	TEmbeds extends BaseEmbedCollection = never,
+	TMethods extends BaseMethodCollection = never
 > = RequiredFields<
-	Partial<Pick<CommandInteractionData<TButtons, TSelectMenus, TEmbeds>, 'buttons' | 'selectMenus' | 'embeds' | 'methods'>> & Pick<CommandInteractionData<TButtons, TSelectMenus, TEmbeds>, 'command'>, 'command'
+	Partial<Pick<CommandInteractionData<TButtons, TSelectMenus, TEmbeds, TMethods>, 'buttons' | 'selectMenus' | 'embeds' | 'methods'>> & Pick<CommandInteractionData<TButtons, TSelectMenus, TEmbeds, TMethods>, 'command'>, 'command'
 >;
 
 type ICommandInteractionDataBuild = { command: SlashCommandBuilder | ContextMenuCommandBuilder, buttons: ButtonBuilder[], selectMenus: AnySelectMenuComponentBuilder[] };
@@ -162,7 +163,7 @@ export class CommandInteractionData<
 	private _methods?: TMethods;
 
 
-	constructor(input: ICommandInteractionData<TButtons, TSelectMenus, TEmbeds>) {
+	constructor(input: ICommandInteractionData<TButtons, TSelectMenus, TEmbeds, TMethods>) {
 		this.command = input.command;
 		this.interactionType = input.command.interactionType ?? IBaseInteractionType.Command;
 
@@ -182,8 +183,8 @@ export class CommandInteractionData<
 	public get embeds(): IOptionalCollectionObject<TEmbeds, BaseEmbedCollection> {
 		return this._embeds as IOptionalCollectionObject<TEmbeds, BaseEmbedCollection>;
 	}
-	public get methods(): IOptionalCollectionObject<TEmbeds, BaseEmbedCollection> {
-		return this._methods as IOptionalCollectionObject<TEmbeds, BaseEmbedCollection>;
+	public get methods(): IOptionalCollectionObject<TMethods, BaseMethodCollection> {
+		return this._methods as IOptionalCollectionObject<TMethods, BaseMethodCollection>;
 	}
 
 	public getCollection(type: DataCollectionTypes) {
