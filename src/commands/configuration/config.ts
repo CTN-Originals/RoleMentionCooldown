@@ -83,7 +83,6 @@ const command = new CommandInteractionData<ButtonCollection, SelectMenuCollectio
 			name: 'config',
 			description: 'Configure the bots settings',
 			contexts: [InteractionContextType.Guild],
-			default_member_permissions: (PermissionsBitField.Flags.Administrator).toString(),
 			subcommands: [
 				{
 					name: 'display',
