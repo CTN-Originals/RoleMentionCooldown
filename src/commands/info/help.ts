@@ -146,7 +146,6 @@ const command = new CommandInteractionData<ButtonCollection, SelectMenuCollectio
 		},
 		execute: async function (interaction: ChatInputCommandInteraction) {
 			const commandInfo = command.methods.getExecutableCommands();
-			console.log(commandInfo)
 			const commandSelect = new StringSelectMenuBuilder({
 				custom_id: `help_command-select`,
 				max_values: 1,
