@@ -8,7 +8,7 @@ import { cons } from '.';
 import { GeneralData } from './data'
 import { ICommandObject, IContextMenuCommandObject } from './handlers/commandBuilder';
 
-class DeployInstruction {
+export class DeployInstruction {
 	public guildId: string | undefined;
 	public deploy: string[]; //? The commands to deploy
 	public deployAll: boolean; //? Whether to deploy all commands or not
@@ -38,7 +38,7 @@ const clientID: string = process.env.CLIENT_ID as string;
 const rest = new REST({ version: '9' }).setToken(process.env.TOKEN!);
 
 type ICommandData = (ICommandObject | IContextMenuCommandObject);
-export async function doDeployCommands(client: Client): Promise<boolean> {
+export async function doDeployCommands(client: Client, deployInstructions: DeployInstruction[] = []): Promise<boolean> {
 	cons.log('Deploying commands...');
 	// getCommandFiles('commands');
 	// console.log(guildId);
@@ -60,7 +60,6 @@ export async function doDeployCommands(client: Client): Promise<boolean> {
 		})
 	}
 	
-	const deployInstructions: DeployInstruction[] = [];
 	const args = process.argv.slice(3).join(' ').split('--').slice(1);
 	
 	for (const arg of args) {
