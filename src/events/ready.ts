@@ -60,8 +60,15 @@ export default {
 	},
 
 	async runTests(client: Client) {
-		const guild: Guild|undefined = client.guilds.cache.get(process.env.DEV_GUILD_ID!);
+		const guild: Guild = client.guilds.cache.get(process.env.DEV_GUILD_ID!)!;
 		const channel: TextChannel = await DevEnvironment.client?.channels.fetch(DevEnvironment.channelId) as TextChannel;
+
+		// const commands = await client.application?.commands.fetch({force: true, cache: true, guildId: DevEnvironment.guildId});
+		// const ping = commands?.get('1310295745215336482')!;
+		// console.log(ping);
+		// console.log(await guild.commands.permissions.fetch({}))
+		// console.log(await ping.permissions.fetch({guild: guild}))
+
 		// const collector: MessageCollector = channel!.createMessageCollector({
 		// 	filter: (message) => message.content.includes('test')
 		// })

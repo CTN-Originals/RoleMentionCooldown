@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, InteractionContextType, ButtonInteraction, EmbedBuilder } from "discord.js";
+import { ChatInputCommandInteraction, InteractionContextType, ButtonInteraction, EmbedBuilder, PermissionFlagsBits } from "discord.js";
 
 import { hexToBit } from "../../utils";
 import { ColorTheme } from "../../data";
