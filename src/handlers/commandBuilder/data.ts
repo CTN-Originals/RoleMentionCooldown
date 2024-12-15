@@ -1,4 +1,25 @@
-import { AnySelectMenuInteraction, ApplicationCommandType, ButtonBuilder, ButtonInteraction, ChannelSelectMenuInteraction, ChatInputCommandInteraction, ComponentType, ContextMenuCommandBuilder, Interaction, MentionableSelectMenuInteraction, MessageContextMenuCommandInteraction, RoleSelectMenuInteraction, SlashCommandBuilder, StringSelectMenuInteraction, UserContextMenuCommandInteraction, UserSelectMenuInteraction } from "discord.js";
+import {
+	AnySelectMenuInteraction,
+	ApplicationCommandType,
+	BitField,
+	ButtonBuilder,
+	ButtonInteraction,
+	ChannelSelectMenuInteraction,
+	ChatInputCommandInteraction,
+	ComponentType,
+	ContextMenuCommandBuilder,
+	Interaction,
+	MentionableSelectMenuInteraction,
+	MessageContextMenuCommandInteraction,
+	PermissionFlagsBits,
+	PermissionsBitField,
+	PermissionsString,
+	RoleSelectMenuInteraction,
+	SlashCommandBuilder,
+	StringSelectMenuInteraction,
+	UserContextMenuCommandInteraction,
+	UserSelectMenuInteraction
+} from "discord.js";
 import {
 	ICommandObject,
 	IButtonComponentObject,
@@ -140,7 +161,8 @@ type ICommandInteractionData<
 	TEmbeds extends BaseEmbedCollection = never,
 	TMethods extends BaseMethodCollection = never
 > = RequiredFields<
-	Partial<Pick<CommandInteractionData<TButtons, TSelectMenus, TEmbeds, TMethods>, 'buttons' | 'selectMenus' | 'embeds' | 'methods'>> & Pick<CommandInteractionData<TButtons, TSelectMenus, TEmbeds, TMethods>, 'command'>, 'command'
+	Partial<Pick<CommandInteractionData<TButtons, TSelectMenus, TEmbeds, TMethods>, 'buttons' | 'selectMenus' | 'embeds' | 'methods'>> &
+	Pick<CommandInteractionData<TButtons, TSelectMenus, TEmbeds, TMethods>, 'command'>, 'command'
 >;
 
 type ICommandInteractionDataBuild = { command: SlashCommandBuilder | ContextMenuCommandBuilder, buttons: ButtonBuilder[], selectMenus: AnySelectMenuComponentBuilder[] };
@@ -162,15 +184,19 @@ export class CommandInteractionData<
 	private _embeds?: TEmbeds;
 	private _methods?: TMethods;
 
-
 	constructor(input: ICommandInteractionData<TButtons, TSelectMenus, TEmbeds, TMethods>) {
 		this.command = input.command;
 		this.interactionType = input.command.interactionType ?? IBaseInteractionType.Command;
 
 		if (input.buttons) { this._buttons = input.buttons as IOptionalCollection<TButtons, BaseButtonCollection>; }
 		if (input.selectMenus) { this._selectMenus = input.selectMenus as IOptionalCollection<TSelectMenus, BaseSelectMenuCollection>; }
-		if (input.embeds) { this._embeds = input.embeds as IOptionalCollection<TEmbeds, BaseEmbedCollection> }
-		if (input.methods) { this._methods = input.methods as IOptionalCollection<TMethods, BaseMethodCollection> }
+		if (input.embeds) { this._embeds = input.embeds as IOptionalCollection<TEmbeds, BaseEmbedCollection>; }
+		if (input.methods) { this._methods = input.methods as IOptionalCollection<TMethods, BaseMethodCollection>; }
+ 
+		for (const field in input) {
+			if (['command', 'interactionType', 'buttons', 'selectMenus', 'embeds', 'methods'].includes(field)) { continue; } //? dont set fields that are already set above here
+			this[field] = input[field];
+		}
 	}
 
 	//#region Getters

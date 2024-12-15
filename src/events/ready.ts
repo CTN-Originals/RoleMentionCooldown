@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { Client, ComponentType, EmbedBuilder, Events, Guild, Interaction, InteractionType, Message, Routes, TextChannel } from 'discord.js';
+import { Client, ComponentType, EmbedBuilder, Events, Guild, Interaction, InteractionType, Message, PermissionFlagsBits, Routes, TextChannel } from 'discord.js';
 
 import { ConsoleInstance } from 'better-console-utilities';
 
@@ -7,6 +7,8 @@ import { GeneralData } from '../data';
 import { DevEnvironment } from '../data';
 import { Mentionable } from '../data/orm/mentionables';
 import { UpdateBotListStats } from '../handlers/botLists';
+
+import PingCommand from '../commands/test/ping';
 
 // import ErrorHandler from '../handlers/errorHandler';
 

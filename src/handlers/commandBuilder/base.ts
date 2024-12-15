@@ -1,5 +1,5 @@
-import { LocalizationMap, SlashCommandSubcommandGroupBuilder, ApplicationCommandOption, ApplicationCommandOptionType } from "discord.js";
-import { AnySlashCommandBuilder } from ".";
+import { LocalizationMap, SlashCommandSubcommandGroupBuilder, ApplicationCommandOption, ApplicationCommandOptionType, PermissionsString, PermissionsBitField } from "discord.js";
+import { AnyDiscordCommandOption, AnySlashCommandBuilder } from ".";
 import { 
 	AttachmentOptionObject,
 	BooleanOptionObject,
@@ -112,5 +112,31 @@ export class BaseCommandObject {
 		const err = new Error(message)
 		EmitError(err);
 		return err.message;
+	}
+}
+
+export type ExecutableCommandObjectInput<
+    T extends BaseExecutableCommandObject,
+    Optional extends keyof T = never,
+    Required extends keyof T = never
+> = RequiredFields<
+    Partial<Pick<T, Optional | OptionalBaseFields | 'requiredPermissions' | 'options'>> & Pick<T, RequiredBaseFields | Required>,
+    RequiredBaseFields | Required
+>;
+
+export type IBaseExecutableCommandObject = ExecutableCommandObjectInput<BaseExecutableCommandObject>
+//? This class is different from the one above as this can actually be executed, unlike subcommandGroup, this applies to command, and subcommand
+export class BaseExecutableCommandObject extends BaseCommandObject {
+	/** The permissions that the bot requires to have to execute anything defined in this command */
+	public requiredPermissions?: PermissionsString[] = []
+
+	public options: AnyDiscordCommandOption[] = [];
+
+	constructor(input: IBaseExecutableCommandObject) {
+		super(input);
+	}
+
+	public get requiredPermissionBitField(): PermissionsBitField {
+		return new PermissionsBitField(this.requiredPermissions);
 	}
 }

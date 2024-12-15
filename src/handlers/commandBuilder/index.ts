@@ -21,7 +21,11 @@ import {
 } from "discord.js";
 
 import {
-	BaseCommandObject
+	CommandObjectInput,
+	BaseCommandObject,
+	BaseExecutableCommandObject,
+	ExecutableCommandObjectInput,
+	IBaseExecutableCommandObject,
 } from "./base";
 
 import {
@@ -39,10 +43,6 @@ import {
 	BaseEmbedCollection,
 	BaseMethodCollection
 } from "./data";
-
-import {
-	CommandObjectInput
-} from "./base";
 
 import {
 	CommandObject,
@@ -106,8 +106,11 @@ export {
 	BaseEmbedCollection,
 	BaseMethodCollection,
 
-	BaseCommandObject,
 	CommandObjectInput,
+	BaseCommandObject,
+	BaseExecutableCommandObject,
+	ExecutableCommandObjectInput,
+	IBaseExecutableCommandObject,
 	
 	ICommandObject,
 	CommandObject,

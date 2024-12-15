@@ -1,10 +1,10 @@
-import { InteractionContextType, ApplicationIntegrationType, SlashCommandBuilder, Permissions, ApplicationCommandOption, SlashCommandSubcommandBuilder, SlashCommandSubcommandGroupBuilder } from "discord.js";
+import { InteractionContextType, ApplicationIntegrationType, SlashCommandBuilder, Permissions, SlashCommandSubcommandBuilder, SlashCommandSubcommandGroupBuilder } from "discord.js";
 
-import { AnyDiscordCommandOption, BaseCommandObject, CommandObjectInput } from ".";
+import { BaseCommandObject, BaseExecutableCommandObject, CommandObjectInput, ExecutableCommandObjectInput } from ".";
 
 type SlashCommandBuilderFields = 'contexts' | 'default_member_permissions' | 'integration_types' | 'nsfw';
-export type ICommandObject = CommandObjectInput<CommandObject, SlashCommandBuilderFields | 'subcommandGroups' | 'subcommands' | 'options'>
-export class CommandObject extends BaseCommandObject {
+export type ICommandObject = ExecutableCommandObjectInput<CommandObject, SlashCommandBuilderFields | 'subcommandGroups' | 'subcommands'>
+export class CommandObject extends BaseExecutableCommandObject {
     /** The contexts for this command. */
     public contexts?: InteractionContextType[];
     /** The set of permissions represented as a bit set for the command. */
@@ -16,9 +16,6 @@ export class CommandObject extends BaseCommandObject {
 
 	public subcommandGroups: (SubCommandGroupObject|ISubCommandGroupObject)[] = [];
 	public subcommands: (SubCommandObject|ISubCommandObject)[] = [];
-
-	// public options: ApplicationCommandOption[] = [];
-	public options: AnyDiscordCommandOption[] = [];
 
 	/** A substitude for SlashCommandBuilder that allows an object to be put in, instead of the bs .addField() functions...
 	 * @param input The object to transform into a command
@@ -40,7 +37,6 @@ export class CommandObject extends BaseCommandObject {
 		}
 	}
 
-	//TODO Make this a function
 	public build() {
 		const cmd = this.resolveOptions(this.buildBase(new SlashCommandBuilder()), this.options);
 
@@ -50,10 +46,10 @@ export class CommandObject extends BaseCommandObject {
 		if (this.nsfw) 							{ cmd.setNSFW(this.nsfw); }
 		
 		for (const group of this.subcommandGroups) {
-			cmd.addSubcommandGroup(((group instanceof SubCommandGroupObject) ? group : new SubCommandGroupObject(group)).build);
+			cmd.addSubcommandGroup(((group instanceof SubCommandGroupObject) ? group : new SubCommandGroupObject(group)).build());
 		}
 		for (const sub of this.subcommands) {
-			cmd.addSubcommand(((sub instanceof SubCommandObject) ? sub : new SubCommandObject(sub)).build);
+			cmd.addSubcommand(((sub instanceof SubCommandObject) ? sub : new SubCommandObject(sub)).build());
 		}
 
 		return cmd
@@ -61,16 +57,14 @@ export class CommandObject extends BaseCommandObject {
 }
 
 
-export type ISubCommandObject = CommandObjectInput<SubCommandObject, 'options'>
-export class SubCommandObject extends BaseCommandObject {
-	public options: AnyDiscordCommandOption[] = [];
-
+export type ISubCommandObject = ExecutableCommandObjectInput<SubCommandObject>
+export class SubCommandObject extends BaseExecutableCommandObject {
 	constructor(input: ISubCommandObject) {
 		super(input);
 		this.assignFields(input);
 	}
 
-	public get build(): SlashCommandSubcommandBuilder {
+	public build(): SlashCommandSubcommandBuilder {
 		const cmd = this.resolveOptions(this.buildBase(new SlashCommandSubcommandBuilder()), this.options);
 		return cmd;
 	}
@@ -85,12 +79,12 @@ export class SubCommandGroupObject extends BaseCommandObject {
 		this.assignFields(input);
 	}
 
-	public get build(): SlashCommandSubcommandGroupBuilder {
+	public build(): SlashCommandSubcommandGroupBuilder {
 		const cmd = this.buildBase(new SlashCommandSubcommandGroupBuilder());
 
 		for (const sub of this.subcommands) {
 			const subObj: SubCommandObject = (sub instanceof SubCommandObject) ? sub : new SubCommandObject(sub);
-			cmd.addSubcommand(subObj.build);
+			cmd.addSubcommand(subObj.build());
 		}
 
 		return cmd;
