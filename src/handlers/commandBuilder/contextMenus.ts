@@ -1,11 +1,12 @@
-import { ApplicationCommandType, ApplicationIntegrationType, ContextMenuCommandBuilder, InteractionContextType, LocalizationMap } from "discord.js";
+import { ApplicationCommandType, ApplicationIntegrationType, ContextMenuCommandBuilder, InteractionContextType, LocalizationMap, PermissionsBitField, PermissionsString } from "discord.js";
 
 type RequiredBaseFields = 'name' | 'type';
 type OptionalBaseFields = 
 | 'name_localizations'
 | 'contexts'
 | 'default_member_permissions'
-| 'integration_types';
+| 'integration_types'
+| 'requiredPermissions';
 
 type ContextObjectInput<
     T extends ContextMenuCommandObject,
@@ -17,7 +18,6 @@ type ContextObjectInput<
 >;
 
 export type IContextMenuCommandObject = ContextObjectInput<ContextMenuCommandObject>;
-// export type ContextMenuCommandType = 
 export class ContextMenuCommandObject {
 	public name: string;
 	public type: (ApplicationCommandType.Message | ApplicationCommandType.User) | ('Message' | 'User');
@@ -27,6 +27,9 @@ export class ContextMenuCommandObject {
 	public default_member_permissions: string | null | undefined;
 	public integration_types?: ApplicationIntegrationType[];
 
+	/** The permissions that the bot requires to have to execute anything defined in this command */
+	public requiredPermissions?: PermissionsString[] = []
+
 	constructor(input: IContextMenuCommandObject) {
 		this.name = input.name;
 		this.type = input.type;
@@ -34,6 +37,10 @@ export class ContextMenuCommandObject {
 		for (const field in input) {
 			this[field] = input[field];
 		}
+	}
+
+	public get requiredPermissionBitField(): PermissionsBitField {
+		return new PermissionsBitField(this.requiredPermissions);
 	}
 
 	public build() {
