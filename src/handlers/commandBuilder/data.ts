@@ -35,7 +35,8 @@ import {
 	StringSelectComponentObject,
 	UserSelectComponentObject,
 	IContextMenuCommandObject,
-	ContextMenuCommandObject
+	ContextMenuCommandObject,
+	AnyComponentObject
 } from ".";
 
 type InteractionExecute<TInteraction extends Interaction = Interaction> = (interaction: TInteraction) => any | Promise<any>;
@@ -48,11 +49,16 @@ export interface IBaseInteractionField<T extends IBaseInteractionType> {
 	interactionType?: T;
 }
 
-type DataExtendent<T extends IBaseInteractionType = IBaseInteractionType.Command> = T extends IBaseInteractionType.Command ? ICommandObject | IAnyComponentObject : IContextMenuCommandObject;
+type DataExtendent<T extends IBaseInteractionType = IBaseInteractionType.Command, TRaw extends boolean = true> = 
+	T extends IBaseInteractionType.Command ? 
+		TRaw extends true ? (ICommandObject | IAnyComponentObject) : CommandObject | AnyComponentObject :
+		TRaw extends true ? IContextMenuCommandObject : ContextMenuCommandObject
+;
+
 type CommandInteractionContentInput<T extends IBaseInteractionType, TData extends DataExtendent<T>, TInteraction extends Interaction = Interaction> = RequiredFields<CommandInteractionContent<T, TData, TInteraction>, 'data' | 'execute'>;
 export interface CommandInteractionContent<
 	T extends IBaseInteractionType,
-	TData extends DataExtendent<T>,
+	TData extends DataExtendent<T, true>,
 	TInteraction extends Interaction = Interaction
 > extends IBaseInteractionField<T>  {
 	data: TData;
@@ -71,6 +77,7 @@ type CheckFields<T, TField> = {
  * @requires execute
 */
 export type ICommandField = CommandInteractionContentInput<IBaseInteractionType.Command, ICommandObject, ChatInputCommandInteraction>;
+
 /** 
  * @requires data > name, type
  * @requires execute
