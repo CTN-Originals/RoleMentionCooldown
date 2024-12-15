@@ -6,6 +6,7 @@ import { eventConsole } from ".";
 import { GuildConfig } from "../data/orm/guildConfig";
 import { GeneralData } from "../data";
 import { UpdateBotListStats } from "../handlers/botLists";
+import { client } from "..";
 
 export default {
 	name: Events.GuildCreate,
@@ -15,7 +16,7 @@ export default {
 		eventConsole.log(`\nOn: [fg=green]${this.name}[/>]\nName: ${guild.name}\nID: ${guild.id}\nMembers: ${guild.memberCount}\n`)
 
 		if (GeneralData.development) {
-			await doDeployCommands([new DeployInstruction({
+			await doDeployCommands(client, [new DeployInstruction({
 				guildId: guild.id,
 				deployAll: true
 			})])

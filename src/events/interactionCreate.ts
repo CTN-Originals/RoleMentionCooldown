@@ -1,20 +1,29 @@
 import { 
-	BaseInteraction,
 	CommandInteraction,
 	InteractionType,
 	Events,
 	CommandInteractionOption,
 	ChatInputCommandInteraction,
+	Interaction,
+	MessageContextMenuCommandInteraction,
+	UserContextMenuCommandInteraction,
+	ButtonInteraction,
+	ComponentType,
+	StringSelectMenuInteraction,
+	ChannelSelectMenuInteraction,
+	MentionableSelectMenuInteraction,
+	RoleSelectMenuInteraction,
+	UserSelectMenuInteraction,
+	ApplicationCommandType,
 } from 'discord.js';
 
 import { ConsoleInstance } from 'better-console-utilities';
 
-import { EmitError, eventConsole } from '.';
-import { errorConsole } from '..';
+import { EmitError } from '.';
 import { IInteractionTypeData, getHoistedOptions, getInteractionType } from '../utils/interactionUtils';
-import { GeneralData } from '../data';
-import { ErrorObject } from '../handlers/errorHandler';
-import { PermissionObject, validateUserPermission } from '../handlers/permissionHandler';
+import { ColorTheme, GeneralData } from '../data';
+import { errorConsole, ErrorObject } from '../handlers/errorHandler';
+import { IAnyInteractionField, IButtonCollectionField, ICommandField, IContextMenuField, ISelectMenuCollectionField, PickSelectMenuTypeFromComponent as PickSelectMenuTypeFromComponentType } from '../handlers/commandBuilder/data';
 
 const thisConsole = new ConsoleInstance();
 
@@ -22,9 +31,7 @@ export default {
 	name: Events.InteractionCreate,
 	once: false,
 
-    /** @param {CommandInteraction} interaction The command interaction */
-	async execute(interaction: BaseInteraction) {
-		// thisConsole.logDefault(interaction);
+	async execute(interaction: Interaction) {
 		const interactionType = getInteractionType(interaction);
 		
 		if (!interactionType.commandKey || interactionType.type == InteractionType.Ping) {
@@ -35,24 +42,32 @@ export default {
 		await this.executeInteraction(interaction, interactionType.commandKey);
 	},
 
-	async executeInteraction(interaction: BaseInteraction, nameKey: string) {
+	async executeInteraction(interaction: Interaction, nameKey: string) {
 		let response: any = null;
-		try {
-			const command = interaction.client.commands.get(interaction[nameKey]);
 
-			if (!interaction.inGuild() || !interaction.guild || !interaction.guildId) { //- extensive checking just to avoid confusion
-				throw new Error(`Interaction does not contain a guild`)
+		try {
+			let data: IAnyInteractionField | undefined;
+			if (interaction.isChatInputCommand()) {
+				data = interaction.client.commands.get(interaction[nameKey]);
+				response = await (data as ICommandField).execute(interaction as ChatInputCommandInteraction);
 			}
-			else if (Object.keys(command).includes('permissions') && !await validateUserPermission(command['permissions'], interaction.guild, interaction.user)) {
-				if (interaction.isRepliable()) {
-					await interaction.reply({
-						content: `You do not have permission to use this command.`,
-						ephemeral: true
-					})
-				}
-				response = 'User lacks permission';
-			} else {
-				response = await command.execute(interaction);
+			else if (interaction.isContextMenuCommand()) {
+				data = interaction.client.contextMenus.get(interaction[nameKey]);
+				response = await (data as IContextMenuField<ApplicationCommandType.Message | ApplicationCommandType.User>).execute(interaction as MessageContextMenuCommandInteraction | UserContextMenuCommandInteraction);
+			}
+			else if (interaction.isButton()) {
+				data = interaction.client.buttons.get(interaction[nameKey]);
+				response = await (data as IButtonCollectionField).execute(interaction as ButtonInteraction);
+			}
+			else if (interaction.isAnySelectMenu()) {
+				data = interaction.client.selectMenus.get(interaction[nameKey]);
+				response = await (data as ISelectMenuCollectionField).execute(interaction as PickSelectMenuTypeFromComponentType<
+					typeof interaction.componentType extends ComponentType.StringSelect ? StringSelectMenuInteraction :
+					typeof interaction.componentType extends ComponentType.UserSelect ? UserSelectMenuInteraction :
+					typeof interaction.componentType extends ComponentType.RoleSelect ? RoleSelectMenuInteraction :
+					typeof interaction.componentType extends ComponentType.MentionableSelect ? MentionableSelectMenuInteraction :
+					typeof interaction.componentType extends ComponentType.ChannelSelect ? ChannelSelectMenuInteraction : never
+				>);
 			}
 		} catch (err) {
 			const errorObject: ErrorObject = await EmitError(err as Error, interaction);
@@ -110,7 +125,7 @@ export default {
 			
 			if (interaction.options?.data && interaction.options.data.length > 0) {
 				const hoistedOptions = getHoistedOptions((interaction as CommandInteraction).options.data as CommandInteractionOption[]);
-				logFields.commandOptions = hoistedOptions.map(option => `[fg=dd8000]${option.name}[/>]:${option.value}`).join(' [st=dim,bold]|[/>] ');
+				logFields.commandOptions = hoistedOptions.map(option => `[fg=${ColorTheme.colors.orange.asHex}]${option.name}[/>]:${option.value}`).join(' [st=dim,bold]|[/>] ');
 			}
 			if (interaction.values && interaction.values.length > 0) {
 				logFields.commandValues = `[ ${interaction.values.join('[st=dim,bold], [/>]')} ]`
@@ -119,25 +134,24 @@ export default {
 
 			const logMessage: string[] = [];
 			logMessage.push([
-				`[fg=0080ff]${logFields.commandType}[/>]: [fg=00cc00 st=bold]${logFields.commandName}[/>]`,
-				`${(logFields.subCommandGroup) ? `[st=dim]>[/>] [fg=00cc66]${logFields.subCommandGroup}[/>]` : ''}`,
-				`${(logFields.subCommand) ? `[st=dim]>[/>] [fg=00cc66]${logFields.subCommand}[/>]` : ''}`
+				`[fg=${ColorTheme.colors.blue.asHex}]${logFields.commandType}[/>]: [fg=${ColorTheme.colors.green.asHex} st=bold]${logFields.commandName}[/>]`,
+				`${(logFields.subCommandGroup) ? `[st=dim]>[/>] [fg=${ColorTheme.colors.green.asHex}]${logFields.subCommandGroup}[/>]` : ''}`,
+				`${(logFields.subCommand) ? `[st=dim]>[/>] [fg=${ColorTheme.colors.green.asHex}]${logFields.subCommand}[/>]` : ''}`
 			].join(' '));
 
-			if (logFields.commandOptions) logMessage.push(`[fg=0080ff]options[/>]: ${logFields.commandOptions}`);
-			if (logFields.commandValues) logMessage.push(`[fg=0080ff]values[/>]: ${logFields.commandValues}`);
-			// if (logFields.commandValues) logMessage.push(`[fg=0080ff]values[/>]: ${logFields.commandValues}`);
+			if (logFields.commandOptions) logMessage.push(`[fg=${ColorTheme.colors.blue.asHex}]options[/>]: ${logFields.commandOptions}`);
+			if (logFields.commandValues) logMessage.push(`[fg=${ColorTheme.colors.blue.asHex}]values[/>]: ${logFields.commandValues}`);
 
-			logMessage.push(`[fg=#0080ff]guild[/>]: [fg=#dfbc22]${interaction.guild.name}[/>] (${interaction.guild.id})`);
-			logMessage.push(`[fg=#0080ff]user[/>]: [fg=#00ffff]${logFields.userName}[/>] (${logFields.userId})`);
-			logMessage.push(`[fg=#0080ff]channel[/>]: [fg=#ad1b70]${logFields.channelName}[/>] (${logFields.channelId})`);
+			logMessage.push(`[fg=${ColorTheme.colors.blue.asHex}]guild[/>]: [fg=${ColorTheme.colors.yellow.asHex}]${interaction.guild.name}[/>] (${interaction.guild.id})`);
+			logMessage.push(`[fg=${ColorTheme.colors.blue.asHex}]user[/>]: [fg=${ColorTheme.colors.cyan.asHex}]${logFields.userName}[/>] (${logFields.userId})`);
+			logMessage.push(`[fg=${ColorTheme.colors.blue.asHex}]channel[/>]: [fg=${ColorTheme.colors.purple.asHex}]${logFields.channelName}[/>] (${logFields.channelId})`);
 
 			if (logFields.response !== '') {
-				logMessage.push(`[fg=0080ff]Response[/>]:`);
-				thisConsole.log('\n' + logMessage.join('\n'), response, '\n');
+				logMessage.push(`[fg=${ColorTheme.colors.blue.asHex}]Response[/>]:`);
+				thisConsole.log('\n' + logMessage.join('\n'), response);
 			}
 			else {
-				thisConsole.log('\n' + logMessage.join('\n') + '\n'); '#ad1b70'
+				thisConsole.log('\n' + logMessage.join('\n') + '\n');
 			}
 		}
 	}

@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
-import { cons, errorConsole } from "../..";
+import { cons } from "../..";
 import { GeneralData } from '../index';
-import { EmitError } from "../../events";
+import { errorConsole } from "../../handlers/errorHandler";
 
 //? something like: mongodb+srv://<username>:<password>@<hostname>/<dbname>
 const dbURITemplate: string = process.env.DATABASE_URI_TEMPLATE!
