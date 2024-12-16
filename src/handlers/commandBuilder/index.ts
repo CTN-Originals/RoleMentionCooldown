@@ -10,6 +10,7 @@ import {
 	ApplicationCommandUserOption,
 	ButtonBuilder,
 	ChannelSelectMenuBuilder,
+	ComponentType,
 	LocalizationMap,
 	MentionableSelectMenuBuilder,
 	RoleSelectMenuBuilder,
@@ -41,7 +42,9 @@ import {
 	BaseButtonCollection,
 	BaseSelectMenuCollection,
 	BaseEmbedCollection,
-	BaseMethodCollection
+	BaseMethodCollection,
+	IAnyInteractionField,
+	CommandInteractionContent
 } from "./data";
 
 import {
@@ -87,6 +90,8 @@ import {
 	IUserSelectComponentObject,
 	ChannelSelectComponentObject
 } from "./components";
+
+import { includesAny } from "../../utils";
 
 //#endregion
 
@@ -162,6 +167,18 @@ export type AnyComponentBuilder =
  | MentionableSelectMenuBuilder
  | ChannelSelectMenuBuilder;
 
+export type AnyInteractionObject = 
+| CommandObject
+| ContextMenuCommandObject
+| ButtonComponentObject
+| AnySelectMenuComponentObject;
+
+export type IAnyInteractionObject = 
+| ICommandObject
+| IContextMenuCommandObject
+| IButtonComponentObject
+| IAnySelectMenuComponentObject;
+
 export type AnyComponentObject = 
  | ButtonComponentObject
  | StringSelectComponentObject
@@ -192,3 +209,27 @@ export type AnySelectMenuComponentBuilder = Exclude<AnyComponentBuilder, ButtonB
 export type AnySelectMenuComponentObject = Exclude<AnyComponentObject, ButtonComponentObject>;
 export type IAnySelectMenuComponentObject = Exclude<IAnyComponentObject, IButtonComponentObject>;
 //#endregion
+
+export function getInteractionObject(content: IAnyInteractionField): AnyInteractionObject | void {
+	const dataKeys: string[] = Object.keys(content.data);
+	if (dataKeys.includes('description')) { //- it must be a command
+		return new CommandObject(content.data as ICommandObject);
+	} else {
+		if (!dataKeys.includes('customId')) { //- must be contextMenu
+			return new ContextMenuCommandObject(content.data as IContextMenuCommandObject);
+		} else {
+			//? from here, it can only be a component
+			if (includesAny(dataKeys, ['label', 'emoji'])) { //- Must be a button
+				return new ButtonComponentObject(content.data as IButtonComponentObject);
+			} else {
+				switch (content.data['type'] as Omit<ComponentType, ComponentType.Button | ComponentType.ActionRow>) {
+					case ComponentType.StringSelect: 		{ return new StringSelectComponentObject(content.data as any); }
+					case ComponentType.UserSelect: 			{ return new UserSelectComponentObject(content.data as any); }
+					case ComponentType.RoleSelect: 			{ return new RoleSelectComponentObject(content.data as any); }
+					case ComponentType.MentionableSelect: 	{ return new MentionableSelectComponentObject(content.data as any); }
+					case ComponentType.ChannelSelect: 		{ return new ChannelSelectComponentObject(content.data as any); }
+				}
+			}
+		}
+	}
+}

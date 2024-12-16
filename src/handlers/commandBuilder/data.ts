@@ -55,7 +55,9 @@ type DataExtendent<T extends IBaseInteractionType = IBaseInteractionType.Command
 		TRaw extends true ? IContextMenuCommandObject : ContextMenuCommandObject
 ;
 
-type CommandInteractionContentInput<T extends IBaseInteractionType, TData extends DataExtendent<T>, TInteraction extends Interaction = Interaction> = RequiredFields<CommandInteractionContent<T, TData, TInteraction>, 'data' | 'execute'>;
+type CommandInteractionContentInput<TData extends DataExtendent<T>, TInteraction extends Interaction = Interaction, T extends IBaseInteractionType = IBaseInteractionType.Command> = 
+	RequiredFields<CommandInteractionContent<T, TData, TInteraction>, 'data' | 'execute'>;
+
 export interface CommandInteractionContent<
 	T extends IBaseInteractionType,
 	TData extends DataExtendent<T, true>,
@@ -76,7 +78,7 @@ type CheckFields<T, TField> = {
  * @requires data > name, description
  * @requires execute
 */
-export type ICommandField = CommandInteractionContentInput<IBaseInteractionType.Command, ICommandObject, ChatInputCommandInteraction>;
+export type ICommandField = CommandInteractionContentInput<ICommandObject, ChatInputCommandInteraction>;
 
 /** 
  * @requires data > name, type
@@ -84,17 +86,17 @@ export type ICommandField = CommandInteractionContentInput<IBaseInteractionType.
  * @requires interactionType
 */
 export type IContextMenuField<T extends (ApplicationCommandType.Message | ApplicationCommandType.User) = ApplicationCommandType.Message | ApplicationCommandType.User> = 
-CommandInteractionContentInput<IBaseInteractionType.ContextMenu, IContextMenuCommandObject,
+CommandInteractionContentInput<IContextMenuCommandObject,
 	T extends ApplicationCommandType.Message ? MessageContextMenuCommandInteraction : 
 	T extends ApplicationCommandType.User ? UserContextMenuCommandInteraction : 
-	MessageContextMenuCommandInteraction | UserContextMenuCommandInteraction
->;
+	MessageContextMenuCommandInteraction | UserContextMenuCommandInteraction,
+IBaseInteractionType.ContextMenu>;
 
 /** 
  * @requires data > customId, label | emoji
  * @requires execute
 */
-export type IButtonCollectionField = CommandInteractionContentInput<IBaseInteractionType.Command, IButtonComponentObject, ButtonInteraction>
+export type IButtonCollectionField = CommandInteractionContentInput<IButtonComponentObject, ButtonInteraction>
 export type IButtonCollection<T> = CheckFields<T, IButtonCollectionField>
 
 export type PickSelectMenuTypeFromComponent<T extends ComponentType = ComponentType.StringSelect> = 
@@ -108,7 +110,7 @@ T extends ComponentType.ChannelSelect ? ChannelSelectMenuInteraction : AnySelect
  * @requires data > customId, type
  * @requires execute
 */
-export type ISelectMenuCollectionField<T extends ComponentType = ComponentType.StringSelect> = CommandInteractionContentInput<IBaseInteractionType.Command, IAnySelectMenuComponentObject, PickSelectMenuTypeFromComponent<T>>
+export type ISelectMenuCollectionField<T extends ComponentType = ComponentType.StringSelect> = CommandInteractionContentInput<IAnySelectMenuComponentObject, PickSelectMenuTypeFromComponent<T>>
 export type ISelectMenuCollection<T> = CheckFields<T, ISelectMenuCollectionField>
 
 export type IAnyInteractionField =
@@ -119,9 +121,9 @@ export type IAnyInteractionField =
 
 export class BaseComponentCollection<TData extends IButtonComponentObject | IAnySelectMenuComponentObject> {
 	public asArray() {
-		const out: CommandInteractionContentInput<IBaseInteractionType.Command, TData>[] = []
+		const out: CommandInteractionContentInput<TData>[] = []
 		for (const field in this) {
-			out.push(this[field] as CommandInteractionContentInput<IBaseInteractionType.Command, TData>)
+			out.push(this[field] as CommandInteractionContentInput<TData>)
 		}
 
 		return out;
