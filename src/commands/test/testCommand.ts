@@ -52,7 +52,7 @@ const command = new CommandInteractionData<ButtonCollection, SelectMenuCollectio
 			name: 'test',
 			description: 'This command is for testing only',
 			contexts: [InteractionContextType.Guild],
-			requiredPermissions: ['CreateGuildExpressions'],
+			requiredPermissions: ['CreateGuildExpressions', 'ManageChannels', 'ManageWebhooks'],
 			options: [
 				{
 					type: ApplicationCommandOptionType.String,

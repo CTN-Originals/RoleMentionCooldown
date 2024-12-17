@@ -87,7 +87,7 @@ export default {
 		// })
 
 		
-		// new FakeInteraction('help').execute();
+		new FakeInteraction('test').execute();
 		// new FakeInteraction('rolecooldown', {
 		// 	subCommand: 'add',
 		// 	options: [
@@ -193,10 +193,7 @@ class FakeInteraction {
 			username: 'keybotkiller',
 			_equals: (user) => {return true},
 		}
-		this.channel = {
-			id: process.env.DEV_TEST_CHANNEL_ID!,
-			name: 'bot-testing',
-		}
+		this.channel = DevEnvironment.channel;
 
 		this.options = new FakeInteractionOptions(options?.options, options?.subCommand);
 	}

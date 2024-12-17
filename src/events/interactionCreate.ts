@@ -5,6 +5,9 @@ import {
 	CommandInteractionOption,
 	ChatInputCommandInteraction,
 	Interaction,
+	EmbedBuilder,
+	ContextMenuCommandInteraction,
+	PermissionsBitField,
 } from 'discord.js';
 
 import { ConsoleInstance } from 'better-console-utilities';
@@ -24,8 +27,33 @@ import { IInteractionTypeData, getHoistedOptions, getInteractionType } from '../
 import { ColorTheme, GeneralData } from '../data';
 import { errorConsole, ErrorObject } from '../handlers/errorHandler';
 import { client } from '..';
+import { validateEmbed } from '../utils/embedUtils';
+import { getUniqueItems, hexToBit, removeDuplicates } from '../utils';
 
 const thisConsole = new ConsoleInstance();
+
+function lackingPermissionEmbed(interaction: ChatInputCommandInteraction | ContextMenuCommandInteraction, neededPerms: PermissionsBitField) {
+	const selfMember = interaction.guild!.members.me!;
+	const missingRole: string[] = selfMember.permissions.missing(neededPerms);
+	const missingChannel: string[] = [];
+	
+	if (interaction.channel?.isTextBased() && !interaction.channel.isDMBased()) {
+		missingChannel.push(...selfMember.permissionsIn(interaction.channel).missing(neededPerms));
+	}
+
+	const missingPerms = removeDuplicates([...missingRole, ...missingChannel]);
+	
+	const embed = new EmbedBuilder({
+		title: `Lacking Permission`,
+		description: [
+			`To be able to perform this action, I need the following permission(s):`,
+			`**${missingPerms.join('**\n**')}**`,
+		].join('\n'),
+		color: hexToBit(ColorTheme.embeds.notice)
+	});
+
+	return embed;
+}
 
 export default {
 	name: Events.InteractionCreate,
@@ -62,7 +90,6 @@ export default {
 				}
 
 				const componentCollection: BaseButtonCollection | BaseSelectMenuCollection = command.collection[componentType + 's'];
-				console.log(componentCollection);
 
 				for (const key in componentCollection) {
 					const component: IButtonCollectionField | ISelectMenuCollectionField = componentCollection[key];
@@ -86,35 +113,31 @@ export default {
 			if (interaction.isChatInputCommand() || interaction.isContextMenuCommand()) {
 				interactionData = (interactionObject as CommandInteractionData<BaseButtonCollection, BaseSelectMenuCollection, BaseEmbedCollection, BaseMethodCollection>).command;
 				//TODO check required permissions
+				
+				if (interaction.inGuild()) {
+					const data = interactionData.data;
+					const perms = data.requiredPermissionBitField;
+					const selfMember = interaction.guild!.members.me;
+
+					if (!selfMember?.permissions.has(perms)) {
+						await interaction.reply({
+							content: `I am lacking the required permission(s) to perform this action.`,
+							embeds: [validateEmbed(lackingPermissionEmbed(interaction, perms))],
+							ephemeral: !GeneralData.development
+						});
+
+						response = `Lacking the required permission(s) to perform this action`
+					}
+				}
 			}
 			else {
 				interactionData = (interactionObject as IButtonCollectionField | ISelectMenuCollectionField);
 			}
-			
-			response = await interactionData.execute(interaction as any);
 
-			// if (interaction.isChatInputCommand()) {
-			// 	data = interaction.client.commands.get(interaction[nameKey]);
-			// 	response = await (data as ICommandField).execute(interaction as ChatInputCommandInteraction);
-			// }
-			// else if (interaction.isContextMenuCommand()) {
-			// 	data = interaction.client.contextMenus.get(interaction[nameKey]);
-			// 	response = await (data as IContextMenuField<ApplicationCommandType.Message | ApplicationCommandType.User>).execute(interaction as MessageContextMenuCommandInteraction | UserContextMenuCommandInteraction);
-			// }
-			// else if (interaction.isButton()) {
-			// 	data = interaction.client.buttons.get(interaction[nameKey]);
-			// 	response = await (data as IButtonCollectionField).execute(interaction as ButtonInteraction);
-			// }
-			// else if (interaction.isAnySelectMenu()) {
-			// 	data = interaction.client.selectMenus.get(interaction[nameKey]);
-			// 	response = await (data as ISelectMenuCollectionField).execute(interaction as PickSelectMenuTypeFromComponentType<
-			// 		typeof interaction.componentType extends ComponentType.StringSelect ? StringSelectMenuInteraction :
-			// 		typeof interaction.componentType extends ComponentType.UserSelect ? UserSelectMenuInteraction :
-			// 		typeof interaction.componentType extends ComponentType.RoleSelect ? RoleSelectMenuInteraction :
-			// 		typeof interaction.componentType extends ComponentType.MentionableSelect ? MentionableSelectMenuInteraction :
-			// 		typeof interaction.componentType extends ComponentType.ChannelSelect ? ChannelSelectMenuInteraction : never
-			// 	>);
-			// }
+			if (response === null) {
+				response = await interactionData.execute(interaction as any);
+			}
+			
 		} catch (err) {
 			const errorObject: ErrorObject = await EmitError(err as Error, interaction);
 

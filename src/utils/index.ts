@@ -140,40 +140,34 @@ export function includesAll(target: string|string[], items: string[]): boolean {
 	return true;
 }
 
-// // //? this is not my best function... but it works and i dont wanna do more recursion stuff so f it
-// export function getExecutableCommands__(commands: Client['commands'] = client.commands) {	
-// 	function parseCommands(commands: CommandInfo[], prefix: string = "") {
-// 		const result: { command: string; description: string; options: OptionInfo[] }[] = [];
-// 		for (const command of commands) {
-// 			if (!command.name || !command.description) { continue; }
-
-// 			const currentCommand = prefix ? `${prefix} ${command.name}` : `${command.name}`;
+export function getUniqueItems<T>(...arrays: T[][]): T[] {
+	const itemCount: { [key: string]: number } = {};
 	
-// 			if (!command.options || command.options.every((opt) => !opt.options)) {
-// 				// If there are no nested options or only terminal options, this is executable
-// 				result.push({
-// 					command: currentCommand,
-// 					description: command.description,
-// 					options: command.options || [],
-// 				});
-// 			} else {
-// 				//? Recursively look for executable subcommands/groups
-// 				const subcommandsOrGroups = command.options.filter((opt) => opt.options);
-// 				for (const subcommandOrGroup of subcommandsOrGroups) {
-// 					result.push(
-// 						...parseCommands([subcommandOrGroup], currentCommand)
-// 					);
-// 				}
-// 			}
-// 		}
+	// Combine all arrays into one
+	const allItems = arrays.reduce((acc, curr) => acc.concat(curr), []);
 	
-// 		return result;
-// 	}
+	// Count how many times each item appears
+	for (const item of allItems) {
+		const key = JSON.stringify(item);
+		if (itemCount[key]) {
+			itemCount[key]++;
+		} else {
+			itemCount[key] = 1;
+		}
+	}
+	
+	// Collect items that appear only once
+	const uniqueItems: T[] = [];
+	for (const key in itemCount) {
+		if (itemCount[key] === 1) {
+			uniqueItems.push(JSON.parse(key));
+		}
+	}
+	
+	return uniqueItems;
+}
 
-// 	let cmds: CommandInfo[] = []
-// 	for (const [k, v] of commands.entries()) {
-// 		cmds.push(v.data as never);
-// 	}
-
-// 	return parseCommands(cmds);
-//}
+// Inline function to remove duplicate items from an array
+export function removeDuplicates<T>(input: T[]): T[] {
+    return input.filter((item, index, self) => self.indexOf(item) === index);
+};
