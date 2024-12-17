@@ -6,7 +6,7 @@ import {
 	MentionableSelectMenuInteraction,
 	RoleSelectMenuInteraction,
 } from "discord.js";
-import { IButtonCollectionField, ISelectMenuCollectionField, ICommandField, IContextMenuField } from "../handlers/commandBuilder";
+import { IButtonCollectionField, ISelectMenuCollectionField, ICommandField, IContextMenuField, CommandObject, ContextMenuCommandObject, ButtonComponentObject, AnySelectMenuComponentObject } from "../handlers/commandBuilder";
 
 declare module "discord.js" {
 	interface Client {
@@ -14,6 +14,11 @@ declare module "discord.js" {
 		contextMenus: Collection<string, IContextMenuField>;
 		buttons: Collection<string, IButtonCollectionField>;
 		selectMenus: Collection<string, ISelectMenuCollectionField>;
+
+		// commandObjects: Collection<string, CommandObject>;
+		// contextMenuObjects: Collection<string, ContextMenuCommandObject>;
+		// buttonObjects: Collection<string, ButtonComponentObject>;
+		// selectMenuObjects: Collection<string, AnySelectMenuComponentObject>;
 	}
 }
 

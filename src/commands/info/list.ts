@@ -62,7 +62,7 @@ class EmbedCollection extends BaseEmbedCollection {
 
 const command = new CommandInteractionData<ButtonCollection, SelectMenuCollection, EmbedCollection>({
 	command: {
-		data: {
+		content: {
 			name: 'list',
 			description: 'Displays a list of mentionables',
 			contexts: [InteractionContextType.Guild],

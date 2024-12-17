@@ -3,7 +3,7 @@ import * as fs from 'node:fs';
 import { Client, Collection } from 'discord.js'; 
 
 import { cons } from '..';
-import { BaseButtonCollection, BaseSelectMenuCollection, CommandInteractionData, IButtonCollectionField } from '../handlers/commandBuilder';
+import { AnyInteractionObject, BaseButtonCollection, BaseSelectMenuCollection, CommandInteractionData, getInteractionObject, IButtonCollectionField } from '../handlers/commandBuilder';
 import { EmitError } from '../events';
 import { ColorTheme } from '../data';
 import { IAnyInteractionField, IBaseInteractionType, ICommandField, IContextMenuField, ISelectMenuCollectionField } from '../handlers/commandBuilder/data';
@@ -13,25 +13,26 @@ import { InteractionDataType } from '../@types/discord';
 
 
 
-function registerToClientCollection(client: Client, type: InteractionDataType, content: IAnyInteractionField, dir?: string, file?: string) {
+function registerToClientCollection(client: Client, type: InteractionDataType, cmd: IAnyInteractionField, dir?: string, file?: string) {
 	let name: string;
 	let collection: string = type + 's';
+	console.log(cmd)
 	switch (type) {
 		case 'command': {
-			content = content as ICommandField
-			name = content.data.name;
+			cmd = cmd as ICommandField;
+			name = cmd.content.name;
 		} break;
 		case 'contextMenu': {
-			content = content as IContextMenuField
-			name = content.data.name;
+			cmd = cmd as IContextMenuField;
+			name = cmd.content.name;
 		} break;
 		case 'button': {
-			content = content as IButtonCollectionField
-			name = content.data.customId;
+			cmd = cmd as IButtonCollectionField;
+			name = cmd.content.customId;
 		} break;
 		case 'selectMenu': {
-			content = content as ISelectMenuCollectionField
-			name = content.data.customId;
+			cmd = cmd as ISelectMenuCollectionField;
+			name = cmd.content.customId;
 		} break;
 	}
 
@@ -42,7 +43,8 @@ function registerToClientCollection(client: Client, type: InteractionDataType, c
 
 	cons.log(registeredLogString(type, name, dir, file));
 
-	client[collection].set(name, content);
+	client[collection].set(name, cmd);
+	// client[type + 'Objects'].set(name, getInteractionObject(content));
 }
 
 //? Register the command files to the client
@@ -53,7 +55,7 @@ function registerCommand(client: Client, dir: string, file: string) {
 		return;
 	}
 
-	registerToClientCollection(client, (commandData.interactionType !== IBaseInteractionType.ContextMenu) ? 'command' : 'contextMenu', commandData.command, dir, file);
+	registerToClientCollection(client, (commandData.interactionType !== IBaseInteractionType.ContextMenu) ? 'command' : 'contextMenu', commandData._command, dir, file);
 
 	for (const button of (commandData.getCollection('button') as BaseButtonCollection).asArray()) {
 		registerToClientCollection(client, 'button', button, dir, file);

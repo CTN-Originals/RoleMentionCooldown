@@ -20,7 +20,7 @@ class EmbedCollection extends BaseEmbedCollection {
 
 const command = new CommandInteractionData<ButtonCollection, SelectMenuCollection, EmbedCollection>({
 	command: {
-		data: {
+		content: {
 			name: 'ping',
 			description: 'Replies with latency stats',
 			contexts: [InteractionContextType.Guild],

@@ -222,7 +222,7 @@ class MethodCollection extends BaseMethodCollection {
 
 const command = new CommandInteractionData<ButtonCollection, SelectMenuCollection, EmbedCollection, MethodCollection>({
 	command: {
-		data: {
+		content: {
 			name: 'rolecooldown',
 			description: 'Manage role cooldowns',
 			contexts: [InteractionContextType.Guild],

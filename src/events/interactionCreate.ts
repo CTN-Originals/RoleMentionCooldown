@@ -24,6 +24,7 @@ import { IInteractionTypeData, getHoistedOptions, getInteractionType } from '../
 import { ColorTheme, GeneralData } from '../data';
 import { errorConsole, ErrorObject } from '../handlers/errorHandler';
 import { IAnyInteractionField, IButtonCollectionField, ICommandField, IContextMenuField, ISelectMenuCollectionField, PickSelectMenuTypeFromComponent as PickSelectMenuTypeFromComponentType } from '../handlers/commandBuilder/data';
+import { AnyInteractionObject, CommandObject, ContextMenuCommandObject, IAnyInteractionObject } from '../handlers/commandBuilder';
 
 const thisConsole = new ConsoleInstance();
 
@@ -45,30 +46,56 @@ export default {
 	async executeInteraction(interaction: Interaction, nameKey: string) {
 		let response: any = null;
 
-		try {
-			let data: IAnyInteractionField | undefined;
+		function getInteractionData() {
 			if (interaction.isChatInputCommand()) {
-				data = interaction.client.commands.get(interaction[nameKey]);
-				response = await (data as ICommandField).execute(interaction as ChatInputCommandInteraction);
+				return interaction.client.commands.get(interaction[nameKey]);;
 			}
 			else if (interaction.isContextMenuCommand()) {
-				data = interaction.client.contextMenus.get(interaction[nameKey]);
-				response = await (data as IContextMenuField<ApplicationCommandType.Message | ApplicationCommandType.User>).execute(interaction as MessageContextMenuCommandInteraction | UserContextMenuCommandInteraction);
+				return interaction.client.contextMenus.get(interaction[nameKey]);;
 			}
 			else if (interaction.isButton()) {
-				data = interaction.client.buttons.get(interaction[nameKey]);
-				response = await (data as IButtonCollectionField).execute(interaction as ButtonInteraction);
+				return interaction.client.buttons.get(interaction[nameKey]);;
 			}
 			else if (interaction.isAnySelectMenu()) {
-				data = interaction.client.selectMenus.get(interaction[nameKey]);
-				response = await (data as ISelectMenuCollectionField).execute(interaction as PickSelectMenuTypeFromComponentType<
-					typeof interaction.componentType extends ComponentType.StringSelect ? StringSelectMenuInteraction :
-					typeof interaction.componentType extends ComponentType.UserSelect ? UserSelectMenuInteraction :
-					typeof interaction.componentType extends ComponentType.RoleSelect ? RoleSelectMenuInteraction :
-					typeof interaction.componentType extends ComponentType.MentionableSelect ? MentionableSelectMenuInteraction :
-					typeof interaction.componentType extends ComponentType.ChannelSelect ? ChannelSelectMenuInteraction : never
-				>);
+				return interaction.client.selectMenus.get(interaction[nameKey]);;
 			}
+		}
+
+		try {
+			let data = getInteractionData();
+
+			if (!data) {
+				throw new Error('Unknown Interaction');
+			}
+
+			if (interaction.isChatInputCommand() || interaction.isContextMenuCommand()) {
+				// const reqPerms = data;
+			}
+
+			response = await data.execute(interaction as any)
+
+			// if (interaction.isChatInputCommand()) {
+			// 	data = interaction.client.commands.get(interaction[nameKey]);
+			// 	response = await (data as ICommandField).execute(interaction as ChatInputCommandInteraction);
+			// }
+			// else if (interaction.isContextMenuCommand()) {
+			// 	data = interaction.client.contextMenus.get(interaction[nameKey]);
+			// 	response = await (data as IContextMenuField<ApplicationCommandType.Message | ApplicationCommandType.User>).execute(interaction as MessageContextMenuCommandInteraction | UserContextMenuCommandInteraction);
+			// }
+			// else if (interaction.isButton()) {
+			// 	data = interaction.client.buttons.get(interaction[nameKey]);
+			// 	response = await (data as IButtonCollectionField).execute(interaction as ButtonInteraction);
+			// }
+			// else if (interaction.isAnySelectMenu()) {
+			// 	data = interaction.client.selectMenus.get(interaction[nameKey]);
+			// 	response = await (data as ISelectMenuCollectionField).execute(interaction as PickSelectMenuTypeFromComponentType<
+			// 		typeof interaction.componentType extends ComponentType.StringSelect ? StringSelectMenuInteraction :
+			// 		typeof interaction.componentType extends ComponentType.UserSelect ? UserSelectMenuInteraction :
+			// 		typeof interaction.componentType extends ComponentType.RoleSelect ? RoleSelectMenuInteraction :
+			// 		typeof interaction.componentType extends ComponentType.MentionableSelect ? MentionableSelectMenuInteraction :
+			// 		typeof interaction.componentType extends ComponentType.ChannelSelect ? ChannelSelectMenuInteraction : never
+			// 	>);
+			// }
 		} catch (err) {
 			const errorObject: ErrorObject = await EmitError(err as Error, interaction);
 

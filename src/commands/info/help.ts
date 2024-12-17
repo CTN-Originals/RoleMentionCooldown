@@ -17,7 +17,7 @@ type CommandInfo = {
 class ButtonCollection extends BaseButtonCollection implements IButtonCollection<ButtonCollection> {}
 class SelectMenuCollection extends BaseSelectMenuCollection implements ISelectMenuCollection<SelectMenuCollection> {
 	public helpSection: ISelectMenuCollectionField<ComponentType.StringSelect> = {
-		data: {
+		content: {
 			type: ComponentType.StringSelect,
 			customId: 'help_command-select',
 		},
@@ -113,20 +113,20 @@ class MethodCollection extends BaseMethodCollection {
 		for (const [key, value] of commands.entries()) {
 			if ((value.interactionType as IBaseInteractionType) === IBaseInteractionType.ContextMenu) { continue; }
 
-			if ((!value.data.subcommands || value.data.subcommands.length === 0) && (!value.data.subcommandGroups || value.data.subcommandGroups.length === 0)) {
-				addCommandInfo(value.data);
+			if ((!value.content.subcommands || value.content.subcommands.length === 0) && (!value.content.subcommandGroups || value.content.subcommandGroups.length === 0)) {
+				addCommandInfo(value.content);
 			}
 			else {
-				if (value.data.subcommands && value.data.subcommands.length > 0) {
-					for (const sub of value.data.subcommands) {
-						addCommandInfo(sub, value.data.name)
+				if (value.content.subcommands && value.content.subcommands.length > 0) {
+					for (const sub of value.content.subcommands) {
+						addCommandInfo(sub, value.content.name)
 					}
 				}
 
-				if (value.data.subcommandGroups && value.data.subcommandGroups.length > 0) {
-					for (const group of value.data.subcommandGroups) {
+				if (value.content.subcommandGroups && value.content.subcommandGroups.length > 0) {
+					for (const group of value.content.subcommandGroups) {
 						for (const sub of group.subcommands!) {
-							addCommandInfo(sub, `${value.data.name} ${group.name}`)
+							addCommandInfo(sub, `${value.content.name} ${group.name}`)
 						}
 					}
 				}
@@ -139,7 +139,7 @@ class MethodCollection extends BaseMethodCollection {
 
 const command = new CommandInteractionData<ButtonCollection, SelectMenuCollection, EmbedCollection, MethodCollection>({
 	command: {
-		data: {
+		content: {
 			name: 'help',
 			description: 'Displays an embed with all commands and their description',
 			contexts: [InteractionContextType.Guild],

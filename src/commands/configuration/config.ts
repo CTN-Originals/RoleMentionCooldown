@@ -81,7 +81,7 @@ class MethodCollection extends BaseMethodCollection {
 
 const command = new CommandInteractionData<ButtonCollection, SelectMenuCollection, EmbedCollection, MethodCollection>({
 	command: {
-		data: {
+		content: {
 			name: 'config',
 			description: 'Configure the bots settings',
 			contexts: [InteractionContextType.Guild],

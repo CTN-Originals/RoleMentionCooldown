@@ -7,6 +7,7 @@ import { GeneralData } from '../data';
 import { DevEnvironment } from '../data';
 import { Mentionable } from '../data/orm/mentionables';
 import { UpdateBotListStats } from '../handlers/botLists';
+import { getInteractionObject } from '../handlers/commandBuilder';
 
 import PingCommand from '../commands/test/ping';
 
@@ -64,6 +65,10 @@ export default {
 	async runTests(client: Client) {
 		const guild: Guild = client.guilds.cache.get(process.env.DEV_GUILD_ID!)!;
 		const channel: TextChannel = await DevEnvironment.client?.channels.fetch(DevEnvironment.channelId) as TextChannel;
+
+		// console.log(getInteractionObject(PingCommand.command));
+		// console.log(getInteractionObject(PingCommand.buttons.butt));
+		// console.log(getInteractionObject(PingCommand.selectMenus.str));
 
 		// const commands = await client.application?.commands.fetch({force: true, cache: true, guildId: DevEnvironment.guildId});
 		// const ping = commands?.get('1310295745215336482')!;
