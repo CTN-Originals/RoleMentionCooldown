@@ -5,26 +5,25 @@ import {
 	CommandInteractionOption,
 	ChatInputCommandInteraction,
 	Interaction,
-	MessageContextMenuCommandInteraction,
-	UserContextMenuCommandInteraction,
-	ButtonInteraction,
-	ComponentType,
-	StringSelectMenuInteraction,
-	ChannelSelectMenuInteraction,
-	MentionableSelectMenuInteraction,
-	RoleSelectMenuInteraction,
-	UserSelectMenuInteraction,
-	ApplicationCommandType,
 } from 'discord.js';
 
 import { ConsoleInstance } from 'better-console-utilities';
 
+import { BaseButtonCollection,
+	BaseEmbedCollection,
+	BaseMethodCollection,
+	BaseSelectMenuCollection,
+	CommandInteractionData,
+	IButtonCollectionField,
+	ICommandObjectContent,
+	IContextMenuObjectContent,
+	ISelectMenuCollectionField
+} from '../handlers/commandBuilder';
 import { EmitError } from '.';
 import { IInteractionTypeData, getHoistedOptions, getInteractionType } from '../utils/interactionUtils';
 import { ColorTheme, GeneralData } from '../data';
 import { errorConsole, ErrorObject } from '../handlers/errorHandler';
-import { IAnyInteractionField, IButtonCollectionField, ICommandField, IContextMenuField, ISelectMenuCollectionField, PickSelectMenuTypeFromComponent as PickSelectMenuTypeFromComponentType } from '../handlers/commandBuilder/data';
-import { AnyInteractionObject, CommandObject, ContextMenuCommandObject, IAnyInteractionObject } from '../handlers/commandBuilder';
+import { client } from '..';
 
 const thisConsole = new ConsoleInstance();
 
@@ -46,33 +45,53 @@ export default {
 	async executeInteraction(interaction: Interaction, nameKey: string) {
 		let response: any = null;
 
-		function getInteractionData() {
-			if (interaction.isChatInputCommand()) {
-				return interaction.client.commands.get(interaction[nameKey]);;
+		const getInteractionData = () => {
+			if (interaction.isChatInputCommand() || interaction.isContextMenuCommand()) {
+				return interaction.client.commands.get(interaction[nameKey]);
 			}
-			else if (interaction.isContextMenuCommand()) {
-				return interaction.client.contextMenus.get(interaction[nameKey]);;
+			else if (interaction.isButton() || interaction.isAnySelectMenu()) {
+				const componentType = (interaction.isButton()) ? 'button' : 'selectMenu';
+				const parent = client[componentType + 's'].get(interaction.customId);
+				if (!parent) {
+					throw new Error(`Unknown component interaction: "${interaction.customId}"`);
+				}
+				
+				const command = client.commands.get(parent);
+				if (!command) {
+					throw new Error(`Component origin unknown: "${parent}" > "${interaction.customId}"`);
+				}
+
+				const componentCollection: BaseButtonCollection | BaseSelectMenuCollection = command.collection[componentType + 's'];
+				console.log(componentCollection);
+
+				for (const key in componentCollection) {
+					const component: IButtonCollectionField | ISelectMenuCollectionField = componentCollection[key];
+					if (component.content.customId === interaction.customId) {
+						return component;
+					}
+				}
 			}
-			else if (interaction.isButton()) {
-				return interaction.client.buttons.get(interaction[nameKey]);;
-			}
-			else if (interaction.isAnySelectMenu()) {
-				return interaction.client.selectMenus.get(interaction[nameKey]);;
-			}
+
+			return null;
 		}
 
 		try {
-			let data = getInteractionData();
+			let interactionObject = getInteractionData();
+			let interactionData: ICommandObjectContent | IContextMenuObjectContent | IButtonCollectionField | ISelectMenuCollectionField;
 
-			if (!data) {
-				throw new Error('Unknown Interaction');
+			if (!interactionObject) {
+				throw new Error(`Unknown interaction: "${interaction[nameKey]}"`);
 			}
 
 			if (interaction.isChatInputCommand() || interaction.isContextMenuCommand()) {
-				// const reqPerms = data;
+				interactionData = (interactionObject as CommandInteractionData<BaseButtonCollection, BaseSelectMenuCollection, BaseEmbedCollection, BaseMethodCollection>).command;
+				//TODO check required permissions
 			}
-
-			response = await data.execute(interaction as any)
+			else {
+				interactionData = (interactionObject as IButtonCollectionField | ISelectMenuCollectionField);
+			}
+			
+			response = await interactionData.execute(interaction as any);
 
 			// if (interaction.isChatInputCommand()) {
 			// 	data = interaction.client.commands.get(interaction[nameKey]);

@@ -29,7 +29,7 @@ export const testWebhook = new WebhookClient({id: process.env.TEST_WEBHOOK_ID!, 
 
 async function Awake() {
 	client.commands = new Collection();
-	client.contextMenus = new Collection();
+	// client.contextMenus = new Collection();
 	client.buttons = new Collection();
 	client.selectMenus = new Collection();
 	

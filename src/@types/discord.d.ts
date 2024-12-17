@@ -6,19 +6,21 @@ import {
 	MentionableSelectMenuInteraction,
 	RoleSelectMenuInteraction,
 } from "discord.js";
-import { IButtonCollectionField, ISelectMenuCollectionField, ICommandField, IContextMenuField, CommandObject, ContextMenuCommandObject, ButtonComponentObject, AnySelectMenuComponentObject } from "../handlers/commandBuilder";
+import { IButtonCollectionField, ISelectMenuCollectionField, ICommandField, IContextMenuField, CommandObject, ContextMenuCommandObject, ButtonComponentObject, AnySelectMenuComponentObject, CommandInteractionData, BaseButtonCollection, BaseEmbedCollection, BaseMethodCollection, BaseSelectMenuCollection } from "../handlers/commandBuilder";
 
 declare module "discord.js" {
 	interface Client {
-		commands: Collection<string, ICommandField>;
-		contextMenus: Collection<string, IContextMenuField>;
-		buttons: Collection<string, IButtonCollectionField>;
-		selectMenus: Collection<string, ISelectMenuCollectionField>;
+		// commands: Collection<string, ICommandField>;
+		// contextMenus: Collection<string, IContextMenuField>;
+		// buttons: Collection<string, IButtonCollectionField>;
+		// selectMenus: Collection<string, ISelectMenuCollectionField>;
+		
+		commands: Collection<string, CommandInteractionData<BaseButtonCollection, BaseSelectMenuCollection, BaseEmbedCollection, BaseMethodCollection>>;
 
-		// commandObjects: Collection<string, CommandObject>;
-		// contextMenuObjects: Collection<string, ContextMenuCommandObject>;
-		// buttonObjects: Collection<string, ButtonComponentObject>;
-		// selectMenuObjects: Collection<string, AnySelectMenuComponentObject>;
+		//? lookup tables
+		//> <component ID, command name of the command that holds this component>
+		buttons: Collection<string, string>; 
+		selectMenus: Collection<string, string>;
 	}
 }
 

@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, InteractionContextType, ButtonInteraction, EmbedBuilder, PermissionFlagsBits, ApplicationCommandOptionType, ComponentType, StringSelectMenuInteraction } from "discord.js";
+import { ChatInputCommandInteraction, InteractionContextType, ButtonInteraction, EmbedBuilder, PermissionFlagsBits, ApplicationCommandOptionType, ComponentType, StringSelectMenuInteraction, ActionRow, ActionRowBuilder } from "discord.js";
 
 import { hexToBit } from "../../utils";
 import { ColorTheme, GeneralData } from "../../data";
@@ -71,9 +71,12 @@ const command = new CommandInteractionData<ButtonCollection, SelectMenuCollectio
 			const commandPing = Date.now() - interaction.createdTimestamp;
 			const apiPing = interaction.client.ws.ping;
 
+			const row: any = new ActionRowBuilder().setComponents(command.buildButtons())
+
 			await interaction.reply({
 				embeds: [validateEmbed(command.embeds.pingDisplay(commandPing, apiPing))],
-				ephemeral: true
+				components: [row],
+				ephemeral: true,
 			});
 			
 			return `${commandPing}ms | ${apiPing}ms`;

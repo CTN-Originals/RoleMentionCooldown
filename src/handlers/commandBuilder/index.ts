@@ -46,7 +46,9 @@ import {
 	BaseEmbedCollection,
 	BaseMethodCollection,
 	IAnyInteractionField,
-	CommandInteractionContent
+	CommandInteractionContent,
+	ICommandObjectContent,
+	IContextMenuObjectContent,
 } from "./data";
 
 import {
@@ -141,6 +143,8 @@ export {
 	RoleOptionObject,
 	StringOptionObject,
 	UserOptionObject,
+	ICommandObjectContent,
+	IContextMenuObjectContent,
 
 	IButtonComponentObject,
 	ButtonComponentObject,

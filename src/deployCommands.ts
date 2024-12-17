@@ -49,8 +49,7 @@ export async function doDeployCommands(client: Client, deployInstructions: Deplo
 	//> deleting all Global commands: --deleteAllGlobal=true
 
 	const rawCommandData: IRawCommandData[] = [
-		...client.commands.map(c => c.content),
-		...client.contextMenus.map(c => c.content),
+		...client.commands.map(c => c.command.content),
 	]
 
 	const commandData: ICommandData[] = [];

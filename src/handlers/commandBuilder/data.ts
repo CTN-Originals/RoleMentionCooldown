@@ -201,8 +201,8 @@ type IOptionalCollection<Field, Extend> = Field extends Extend ? Field : undefin
 type IOptionalCollectionObject<Field, Extend> = Field extends Extend ? Omit<Field, 'asArray' | 'build'> : undefined;
 type DataCollectionTypes = 'button' | 'selectMenu' | 'embed' | 'method';
 
-type ICommandObjectContent = CommandInteractionContent<ICommandObject, CommandObject, ChatInputCommandInteraction>;
-type IContextMenuObjectContent = CommandInteractionContent<IContextMenuCommandObject, ContextMenuCommandObject, AnyContextMenuInteraction, IBaseInteractionType.ContextMenu>;
+export type ICommandObjectContent = CommandInteractionContent<ICommandObject, CommandObject, ChatInputCommandInteraction>;
+export type IContextMenuObjectContent = CommandInteractionContent<IContextMenuCommandObject, ContextMenuCommandObject, AnyContextMenuInteraction, IBaseInteractionType.ContextMenu>;
 
 type PickCommandOrContextMenuContent<T extends IBaseInteractionType = IBaseInteractionType.Command> =
 	T extends IBaseInteractionType.Command ?  ICommandObjectContent :
@@ -296,6 +296,16 @@ export class CommandInteractionData<
 		return this._methods as IOptionalCollectionObject<TMethods, BaseMethodCollection>;
 	}
 
+	public get collection() {
+		return {
+			buttons: this._buttons as IOptionalCollection<TButtons, BaseButtonCollection>,
+			selectMenus: this._selectMenus as IOptionalCollection<TSelectMenus, BaseSelectMenuCollection>,
+			embeds: this._embeds as IOptionalCollection<TEmbeds, BaseSelectMenuCollection>,
+			methods: this._methods as IOptionalCollection<TMethods, BaseSelectMenuCollection>,
+		}
+	}
+
+	/** @deprecated use {@link CommandInteractionData.collection} instead */
 	public getCollection(type: DataCollectionTypes) {
 		switch (type) {
 			case 'button': return this._buttons as IOptionalCollection<TButtons, BaseButtonCollection>;

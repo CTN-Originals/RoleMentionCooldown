@@ -23,8 +23,8 @@ export function getAllFilesInDir(client: any, callback: (client: Client, dir: st
 export function registeredLogString(type: InteractionDataType|string, name: string, dir?: string, file?: string): string {
 	return [
 		`Registering [fg=${ColorTheme.colors.blue.asHex}]${type}[/>]: `,
-		`[fg=${ColorTheme.colors.green.asHex}]${name}[/>] - `,
-		(dir !== undefined) ? `./[fg=${ColorTheme.colors.yellow.asHex}]${dir}[/>]` : ``,
+		`[fg=${ColorTheme.colors.green.asHex}]${name}[/>]`,
+		(dir !== undefined) ? ` - ./[fg=${ColorTheme.colors.yellow.asHex}]${dir}[/>]` : ``,
 		(file !== undefined) ? `/[fg=${ColorTheme.colors.orange.asHex}]${file}[/>]` : ``,
 	].join('');
 }

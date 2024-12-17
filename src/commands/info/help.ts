@@ -1,5 +1,5 @@
 import { EmbedBuilder, ChatInputCommandInteraction, APIEmbedField, StringSelectMenuBuilder, ActionRowBuilder, StringSelectMenuInteraction, InteractionContextType, ComponentType, Client } from "discord.js";
-import { AnyDiscordCommandOption, BaseButtonCollection, BaseEmbedCollection, BaseMethodCollection, BaseSelectMenuCollection, CommandInteractionData, IBaseInteractionType, IButtonCollection, ISelectMenuCollection, ISelectMenuCollectionField } from "../../handlers/commandBuilder";
+import { AnyDiscordCommandOption, BaseButtonCollection, BaseEmbedCollection, BaseMethodCollection, BaseSelectMenuCollection, CommandInteractionData, CommandObject, IBaseInteractionType, IButtonCollection, ISelectMenuCollection, ISelectMenuCollectionField } from "../../handlers/commandBuilder";
 
 import { hexToBit } from "../../utils";
 import { ColorTheme, GeneralData } from "../../data";
@@ -113,20 +113,22 @@ class MethodCollection extends BaseMethodCollection {
 		for (const [key, value] of commands.entries()) {
 			if ((value.interactionType as IBaseInteractionType) === IBaseInteractionType.ContextMenu) { continue; }
 
-			if ((!value.content.subcommands || value.content.subcommands.length === 0) && (!value.content.subcommandGroups || value.content.subcommandGroups.length === 0)) {
-				addCommandInfo(value.content);
+			value.command.data = value.command.data as CommandObject;
+
+			if ((!value.command.data.subcommands || value.command.data.subcommands.length === 0) && (!value.command.data.subcommandGroups || value.command.data.subcommandGroups.length === 0)) {
+				addCommandInfo(value.command.data);
 			}
 			else {
-				if (value.content.subcommands && value.content.subcommands.length > 0) {
-					for (const sub of value.content.subcommands) {
-						addCommandInfo(sub, value.content.name)
+				if (value.command.data.subcommands && value.command.data.subcommands.length > 0) {
+					for (const sub of value.command.data.subcommands) {
+						addCommandInfo(sub, value.command.data.name)
 					}
 				}
 
-				if (value.content.subcommandGroups && value.content.subcommandGroups.length > 0) {
-					for (const group of value.content.subcommandGroups) {
+				if (value.command.data.subcommandGroups && value.command.data.subcommandGroups.length > 0) {
+					for (const group of value.command.data.subcommandGroups) {
 						for (const sub of group.subcommands!) {
-							addCommandInfo(sub, `${value.content.name} ${group.name}`)
+							addCommandInfo(sub, `${value.command.data.name} ${group.name}`)
 						}
 					}
 				}
