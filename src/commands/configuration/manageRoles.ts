@@ -1,5 +1,5 @@
 
-import { ChatInputCommandInteraction, CommandInteraction, EmbedBuilder, SlashCommandBuilder, InteractionContextType, ApplicationCommandOptionType, PermissionFlagsBits } from "discord.js";
+import { ChatInputCommandInteraction, CommandInteraction, EmbedBuilder, SlashCommandBuilder, InteractionContextType, ApplicationCommandOptionType, PermissionFlagsBits, GuildMember, Role } from "discord.js";
 import { BaseButtonCollection, BaseEmbedCollection, BaseSelectMenuCollection, CommandInteractionData, IButtonCollection, ISelectMenuCollection } from "../../handlers/commandBuilder";
 
 import { ColorTheme, GeneralData } from '../../data'
@@ -40,6 +40,38 @@ class EmbedCollection extends BaseEmbedCollection {
 			].join('\n'),
 			color: hexToBit(ColorTheme.embeds.notice)
 		});
+	}
+
+	public registeredNewRole(roleId: string, cooldown: PeriodOfTime) {
+		return new EmbedBuilder({
+			title: "Registered New Role Cooldown",
+			description: [
+				`**Note:** If I dont have permission to view a channel,`,
+				`I will also not be able to detect the usage of these roles.`,
+				`Make sure to add my role to any channel that you want to monitor for role usage.`,
+			].join('\n'),
+			fields: [
+				{name: 'role', value: `<@&${roleId}>`, inline: true},
+				{name: 'cooldown', value: `\`${cooldown.toString()}\``, inline: true},
+				{name: '\u200B', value: `\u200B`, inline: true},
+			],
+			color: hexToBit(ColorTheme.embeds.reply),
+		})
+	}
+
+	public targetRoleTooHigh(botMember: GuildMember, role: Role) {
+		return new EmbedBuilder({
+			title: 'Unable to add role',
+			description: [
+				`My highest role (<@&${botMember?.roles.highest.id}>)`,
+				`is positioned below the role you tried to add (<@&${role.id}>)`,
+				`I can not manage roles that are placed above my own.\n`,
+				`If you still like to add this role to this list,`,
+				`you have to raise my highest role (<@&${botMember?.roles.highest.id}>)`,
+				`above the role you want to add (<@&${role.id}>) or vise versa.`,
+			].join('\n'),
+			color: hexToBit(ColorTheme.embeds.notice)
+		})
 	}
 }
 class MethodCollection extends BaseMethodCollection {
@@ -88,6 +120,21 @@ class MethodCollection extends BaseMethodCollection {
 		return cooldown;
 	}
 
+	/** Check of the given role is lower then the bots highest role and is there fore editable */
+	public async validateRolePosition(interaction: ChatInputCommandInteraction, role: Role): Promise<boolean> {
+		const botMember = interaction.guild!.members.me!;
+		if (!botMember?.roles.highest.position || botMember?.roles.highest.position < role.position) {
+			await interaction.reply({
+				embeds: [validateEmbed(command.embeds.targetRoleTooHigh(botMember, role))],
+				ephemeral: true
+			});
+
+			return false
+		}
+
+		return true
+	}
+
 	public async addRole(interaction: ChatInputCommandInteraction) {
 		if (!interaction.guild) {
 			throw new Error(`Interaction did not contain guild`)
@@ -119,27 +166,9 @@ class MethodCollection extends BaseMethodCollection {
 		if (!role) {
 			throw new Error(`Unable to find role (${roleId})`);
 		}
-		else {
-			const botMember = interaction.guild.members.cache.get(client.user!.id);
-			if (!botMember?.roles.highest.position || botMember?.roles.highest.position < role.position) {
-				await interaction.reply({
-					embeds: [validateEmbed(new EmbedBuilder({
-						title: 'Unable to add role',
-						description: [
-							`My highest role (<@&${botMember?.roles.highest.id}>)`,
-							`is positioned below the role you tried to add (<@&${role.id}>)`,
-							`I can not manage roles that are placed above my own.\n`,
-							`If you still like to add this role to this list,`,
-							`you have to raise my highest role (<@&${botMember?.roles.highest.id}>)`,
-							`above the role you want to add (<@&${role.id}>) or vise versa.`,
-						].join('\n'),
-						color: hexToBit(ColorTheme.embeds.notice)
-					}))],
-					ephemeral: true
-				});
-
-				return `Selected role is above my highest role`
-			}
+		
+		if (!await this.validateRolePosition(interaction, role)) {
+			return `Selected role is above my highest role`
 		}
 
 		const res = await Mentionable.add(interaction.guild?.id, roleId as string, {
@@ -152,20 +181,7 @@ class MethodCollection extends BaseMethodCollection {
 
 			await role.setMentionable(true, 'RoleMentionCooldown - Registered'); //? set the role to mentionable so its able to be used
 			await interaction.reply({
-				embeds: [validateEmbed(new EmbedBuilder({
-					title: "Registered New Role Cooldown",
-					description: [
-						`**Note:** If I dont have permission to view a channel,`,
-						`I will also not be able to detect the usage of these roles.`,
-						`Make sure to add my role to any channel that you want to monitor for role usage.`,
-					].join('\n'),
-					fields: [
-						{name: 'role', value: `<@&${roleId}>`, inline: true},
-						{name: 'cooldown', value: `\`${cooldown.toString()}\``, inline: true},
-						{name: '\u200B', value: `\u200B`, inline: true},
-					],
-					color: hexToBit(ColorTheme.embeds.reply),
-				}))],
+				embeds: [validateEmbed(command.embeds.registeredNewRole(roleId as string, cooldown))],
 				ephemeral: !GeneralData.development
 			});
 		} else {
@@ -197,6 +213,10 @@ class MethodCollection extends BaseMethodCollection {
 		const role = interaction.guild.roles.cache.find(r => r.id == roleId);
 		if (!role) {
 			throw new Error(`Unable to find role (${roleId})`);
+		}
+
+		if (!await this.validateRolePosition(interaction, role)) {
+			return `Selected role is above my highest role`
 		}
 
 		const res = await Mentionable.remove(interaction.guild?.id, roleId as string)
