@@ -48,7 +48,7 @@ export default {
 			Mentionable.initialize(guild);
 		})
 
-		UpdateBotListStats();
+		// UpdateBotListStats();
 
 		this.Update(client); //? Start the update cycle
 	},
@@ -87,7 +87,7 @@ export default {
 		// })
 
 		
-		new FakeInteraction('test').execute();
+		// new FakeInteraction('test').execute();
 		// new FakeInteraction('rolecooldown', {
 		// 	subCommand: 'add',
 		// 	options: [

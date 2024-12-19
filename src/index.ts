@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { Client, Collection, WebhookClient } from 'discord.js';
+import { Client, Collection, IntentsBitField, WebhookClient } from 'discord.js';
 
 import { ConsoleInstance, Theme, ThemeOverride, defaultThemeProfile, defaultFilterKeys } from 'better-console-utilities';
 
@@ -20,8 +20,7 @@ export const client: Client = new Client({
 	intents: [
 		'Guilds',
 		'GuildMessages',
-		'GuildMembers',
-		'MessageContent'
+		'MessageContent',
 	]
 });
 export const logWebhook = new WebhookClient({id: process.env.LOG_WEBHOOK_ID!, token: process.env.LOG_WEBHOOK_TOKEN!});
