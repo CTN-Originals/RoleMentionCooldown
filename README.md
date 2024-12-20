@@ -1,3 +1,6 @@
+If you are unable to invite the bot to your server, the reason is likely because the bot is currently going through discords Verification process.
+In the mean time, you could instead invite the BETA version of the bot to your server: https://discord.com/oauth2/authorize?client_id=1319723378873077842
+
 # Role Mention Cooldown
 
 A discord bot that allows users to mention a role once, then apply a cooldown to the role before it can be mentioned again.
