@@ -153,11 +153,11 @@ function ExecuteUpdate() {
 	for (const item of listDefinitions) {
 		const list = new ListDefinition(item);
 		
-		if (!GeneralData.development) {
+		if (GeneralData.production) {
 			list.Update(guildCount, userCount);
 		}
-		// else {
-		// 	cons.log(`Updated ${list.domain}.${list.suffix}`);
-		// }
+		else if (GeneralData.beta) {
+			cons.log(`Updated ${list.domain}.${list.suffix}`);
+		}
 	}
 }
