@@ -191,7 +191,7 @@ export class Mentionable {
 		}
 		if (!mentionable) { return false; }
 
-		await role.setMentionable(false, `${process.env.APP_NAME} - Used`);
+		// await role.setMentionable(false, `${process.env.APP_NAME} - Used`);
 		Mentionable.activeCooldowns[guild.id][id] = mentionable;
 
 		return true;
@@ -260,11 +260,11 @@ export class Mentionable {
 	 * @returns Wether or not the role has been updated successfully
 	*/
 	public static async onCooldownExpired(role: Role): Promise<boolean> {
-		await role.setMentionable(true, `${process.env.APP_NAME} - Cooldown Expired`).catch((e: Error) => {
-			e.message = `Failed to update role to mentionable after expired cooldown\n${e.message}`
-			EmitError(e); //! if this is reached, there is a role stuck on not mentionable
-			return false;
-		});
+		// await role.setMentionable(true, `${process.env.APP_NAME} - Cooldown Expired`).catch((e: Error) => {
+		// 	e.message = `Failed to update role to mentionable after expired cooldown\n${e.message}`
+		// 	EmitError(e); //! if this is reached, there is a role stuck on not mentionable
+		// 	return false;
+		// });
 		return true;
 	}
 	//#endregion

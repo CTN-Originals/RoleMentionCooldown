@@ -179,7 +179,7 @@ class MethodCollection extends BaseMethodCollection {
 		if (res) {
 			// thisConsole.log(`[fg=green]${interaction.guild.name}[/>] Added new mentionable ${roleId}: ${res}`)
 
-			await role.setMentionable(true, 'RoleMentionCooldown - Registered'); //? set the role to mentionable so its able to be used
+			// await role.setMentionable(true, 'RoleMentionCooldown - Registered'); //? set the role to mentionable so its able to be used
 			await interaction.reply({
 				embeds: [validateEmbed(command.embeds.registeredNewRole(roleId as string, cooldown))],
 				ephemeral: !GeneralData.development
@@ -224,7 +224,7 @@ class MethodCollection extends BaseMethodCollection {
 		if (res) {
 			thisConsole.log(`[fg=green]${interaction.guild.name}[/>] Removed mentionable ${roleId}: ${res}`)
 			
-			await role.setMentionable(false, 'RoleMentionCooldown - Removed'); //? set the role to mentionable so its able to be used
+			// await role.setMentionable(false, 'RoleMentionCooldown - Removed'); //? set the role to mentionable so its able to be used
 			await interaction.reply({
 				embeds: [validateEmbed(new EmbedBuilder({
 					description: `Successfully removed <@&${roleId}> from the list.\nDisabled the ability to mention <@&${roleId}> for everyone.`,
