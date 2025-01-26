@@ -37,6 +37,7 @@ Once someone uses the `/mention` command, the role that they select will be put 
 ## Links
 
 - Bot Invite: https://discord.com/oauth2/authorize?client_id=1308469474768457748
+- BETA bot invite: https://discord.com/oauth2/authorize?client_id=1319723378873077842
 - Discord App Discovery Page: https://discord.com/application-directory/1308469474768457748
 - Official Discord Support Server: https://discord.gg/5eYZQNzMnx
 
