@@ -17,6 +17,10 @@ A discord bot that allows users to mention a role once, then apply a cooldown to
 
 ### User
 
+- General
+  - `/mention <role> [message]`: Mention a role in the current channel
+    - `role`: The role to mention
+    - `message`: A string of text to send after the role mention
 - List
   - `/list all`: Display a list of all registered mentionable roles along with their cooldown
   - `/list cooldowns`: Display a list of all roles currently on cooldown along with their remaining cooldown time
@@ -26,13 +30,9 @@ A discord bot that allows users to mention a role once, then apply a cooldown to
 
 ## Usage
 
-After adding mentionable roles with the `/rolecooldown add` command, anyone will be able to mention these roles across the whole server as usual (`@role-name` or `<@&roleid>`).
+After adding mentionable roles with the `/rolecooldown add` command, anyone can then user the command `/mention` and select the any role that is registered via `/rolecooldown add` in the command options.
 
-Once someone uses a monitored role mention, the bot will disable the "Allow anyone to @mention this role" permission for that role, preventing it from being mentioned during the cooldown.
-
-When the cooldown expires for that role, the bot will re-enable the "Allow anyone to @mention this role" permission.
-
-**Important note**: The bot can only put roles on cooldown in the channels it can read. Monitored role mentions in channels where the bot does not have read access will not start the cooldown.
+Once someone uses the `/mention` command, the role that they select will be put on a cooldown. If someone uses the `/mention` command and select a role that is at that moment on cooldown, the bot will tell the user that the entered role is on cooldown followed by the remaining cooldown time.
 
 ## Links
 
