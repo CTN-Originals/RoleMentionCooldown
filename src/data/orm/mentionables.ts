@@ -48,7 +48,7 @@ export class Mentionable {
 	 * @param id The ID of the mentionable
 	 * @returns The mentionable if found, null otherwise
 	*/
-	public static async get(guildId: string, id: string): Promise<IMentionableItem|null> {
+	public static async get(guildId: string, id: string): Promise<IMentionableItem|null|undefined> {
 		const list = await Mentionable.getAll(guildId);
 		if (list === null) { return null; }
 		return list[id];
