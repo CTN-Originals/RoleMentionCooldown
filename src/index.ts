@@ -19,8 +19,6 @@ export const cons = new ConsoleInstance();
 export const client: Client = new Client({
 	intents: [
 		'Guilds',
-		'GuildMessages',
-		'MessageContent',
 	]
 });
 export const logWebhook = new WebhookClient({id: process.env.LOG_WEBHOOK_ID!, token: process.env.LOG_WEBHOOK_TOKEN!});
