@@ -39,9 +39,12 @@ class SelectMenuCollection extends BaseSelectMenuCollection implements ISelectMe
 
 			for (const opt of cmd?.options!) {
 				let value = [
-					`${opt.description}`,
-					`Required: \`${opt.required}\``
+					`${opt.description}`
 				];
+				
+				if (opt.required !== undefined) {
+					value.push(`Required: \`${opt.required}\``)
+				}
 
 				if (Object.keys(opt).includes('minLength')) {
 					value.push(`Minimum Length: \`${opt['minLength']}\``);

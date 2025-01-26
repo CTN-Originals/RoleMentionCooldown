@@ -72,7 +72,7 @@ function registerCommand(client: Client, dir: string, file: string) {
 	}
 	for (const select of commandData.collection.selectMenus.asArray()) {
 		validateName(select.content.customId, 'button');
-		client.buttons.set(select.content.customId, commandName);
+		client.selectMenus.set(select.content.customId, commandName);
 		// cons.log(registeredLogString('button', select.content.customId));
 	}
 	
