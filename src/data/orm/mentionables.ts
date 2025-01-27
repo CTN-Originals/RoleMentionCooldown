@@ -1,6 +1,6 @@
 import { EmitError, eventConsole } from "../../events";
 import { default as DataModel, IMentionableData, IMentionableItem, IMentionableStorage } from "./schemas/mentionableData";
-import { Guild, Role } from "discord.js";
+import { Guild, GuildMember, PermissionsBitField, Role } from "discord.js";
 import { ObjectRelationalMap } from ".";
 import { ColorTheme, GeneralData } from "..";
 
@@ -91,8 +91,29 @@ export class Mentionable {
 		// Mentionable.activeCooldowns[guild.id] = {};
 		
 		// const mentionableDoc = await Mentionable.getDocument(guild.id, false);
-		// const mentionables = await Mentionable.getAll(guild.id);
-		Mentionable.getAll(guild.id);
+		const mentionables = await Mentionable.getAll(guild.id);
+		// Mentionable.getAll(guild.id);
+
+		//#region TMP reset role mentionable setting
+		//!! after its been pushed to beta and release, remove this the next patch
+		const selfMember: GuildMember = guild.members.me!;
+		const perm = new PermissionsBitField('ManageRoles');
+		if (selfMember.permissions.has(perm)) {
+			for (const roleId in mentionables) {
+				const role = guild.roles.cache.find(r => r.id == roleId);
+				if (!role) {
+					EmitError(new Error(`Unable to find role (${roleId})`));
+					continue;
+				}
+
+				if (role.mentionable) {
+					await role.setMentionable(false);
+					eventConsole.log(`[fg=yellow]${guild.name}[/>] [fg=red]RESETTING[/>]: [fg=${(role.hexColor != '#000000') ? role.hexColor : ColorTheme.colors.grey.asHex}]${role.name}[/>] to not mentionable`);
+				}
+			}
+
+		}
+		//#endregion
 		
 		// for (const roleId in mentionables) {
 		// 	if (roleId == 'placeholder') { continue; } //?? this used to be a thing, keeping it for some reason... i wanna i guess....
