@@ -50,14 +50,16 @@ export default {
 
 		// UpdateBotListStats();
 
-		this.Update(client); //? Start the update cycle
+		// this.Update(client); //? Start the update cycle
 	},
 
-	/** This function runs every second and calls out to things that need to be checked on the regular */
+	/** This function runs every second and calls out to things that need to be checked on the regular 
+	 * @deprecated The current only use case for this function was to call {@link Mentionable.validateGuildCooldowns()}, which has also been depricated
+	*/
 	async Update(client: Client) { //?? Initially this was inside index.ts, but that brought a bunch of errors so next best is here i guess...
 		const interval = setInterval(() => {
 			client.guilds.cache.forEach(guild => {
-				Mentionable.validateGuildCooldowns(guild);
+				// Mentionable.validateGuildCooldowns(guild);
 			})
 		}, 1000)
 	},

@@ -1,6 +1,6 @@
 import { EmitError, eventConsole } from "../../events";
 import { default as DataModel, IMentionableData, IMentionableItem, IMentionableStorage } from "./schemas/mentionableData";
-import { Guild, Role } from "discord.js";
+import { Guild, GuildMember, PermissionsBitField, Role } from "discord.js";
 import { ObjectRelationalMap } from ".";
 import { ColorTheme, GeneralData } from "..";
 
@@ -14,7 +14,9 @@ export class Mentionable {
 	*/
 	public static mentionablesCache: MentionableCache<IMentionableStorage> = {};
 
-	/** Stores an array of mentionables that are currently on cooldown */
+	/** Stores an array of mentionables that are currently on cooldown 
+	 * @deprecated Check if mentionable is on cooldown by calling {@link Mentionable.isOncooldown()}
+	*/
 	public static activeCooldowns: MentionableCache<IMentionableStorage> = {};
 	
 	//#region Getters
@@ -46,7 +48,7 @@ export class Mentionable {
 	 * @param id The ID of the mentionable
 	 * @returns The mentionable if found, null otherwise
 	*/
-	public static async get(guildId: string, id: string): Promise<IMentionableItem|null> {
+	public static async get(guildId: string, id: string): Promise<IMentionableItem|null|undefined> {
 		const list = await Mentionable.getAll(guildId);
 		if (list === null) { return null; }
 		return list[id];
@@ -86,35 +88,57 @@ export class Mentionable {
 	public static async initialize(guild: Guild) {
 		Mentionable.hasChanged[guild.id] = true;
 		Mentionable.mentionablesCache[guild.id] = {};
-		Mentionable.activeCooldowns[guild.id] = {};
+		// Mentionable.activeCooldowns[guild.id] = {};
 		
 		// const mentionableDoc = await Mentionable.getDocument(guild.id, false);
 		const mentionables = await Mentionable.getAll(guild.id);
-		
-		for (const roleId in mentionables) {
-			if (roleId == 'placeholder') { continue; } //?? this used to be a thing, keeping it for some reason... i wanna i guess....
+		// Mentionable.getAll(guild.id);
 
-			const role = guild.roles.cache.find(r => r.id == roleId);
-			if (!role) {
-				EmitError(new Error(`Unable to find role (${roleId})`));
-				return;
-			}
-
-			if (!role.mentionable) {
-				if (Mentionable.isOncooldown(mentionables[roleId])) {
-					if (GeneralData.development) {
-						eventConsole.log(`[fg=green]Restarting[/>] cooldown: [fg=${(role.hexColor != '#000000') ? role.hexColor : ColorTheme.colors.grey.asHex}]${role.name}[/>] | ${Mentionable.remainingCooldown(mentionables[roleId]) / 1000}s`)
-					}
-					Mentionable.startCooldown(guild, roleId, mentionables[roleId])
+		//#region TMP reset role mentionable setting
+		//!! after its been pushed to beta and release, remove this the next patch
+		const selfMember: GuildMember = guild.members.me!;
+		const perm = new PermissionsBitField('ManageRoles');
+		if (selfMember.permissions.has(perm)) {
+			for (const roleId in mentionables) {
+				const role = guild.roles.cache.find(r => r.id == roleId);
+				if (!role) {
+					EmitError(new Error(`Unable to find role (${roleId})`));
+					continue;
 				}
-				else {
-					if (GeneralData.development) {
-						eventConsole.log(`[fg=red]Expired[/>] cooldown: [fg=${(role.hexColor != '#000000') ? role.hexColor : ColorTheme.colors.grey.asHex}]${role.name}[/>] | ${Mentionable.remainingCooldown(mentionables[roleId]) / 1000}s`)
-					}
-					Mentionable.onCooldownExpired(role);
+
+				if (role.mentionable) {
+					await role.setMentionable(false);
+					eventConsole.log(`[fg=yellow]${guild.name}[/>] [fg=red]RESETTING[/>]: [fg=${(role.hexColor != '#000000') ? role.hexColor : ColorTheme.colors.grey.asHex}]${role.name}[/>] to not mentionable`);
 				}
 			}
+
 		}
+		//#endregion
+		
+		// for (const roleId in mentionables) {
+		// 	if (roleId == 'placeholder') { continue; } //?? this used to be a thing, keeping it for some reason... i wanna i guess....
+
+		// 	const role = guild.roles.cache.find(r => r.id == roleId);
+		// 	if (!role) {
+		// 		EmitError(new Error(`Unable to find role (${roleId})`));
+		// 		continue;
+		// 	}
+
+		// 	if (!role.mentionable) {
+		// 		if (Mentionable.isOncooldown(mentionables[roleId])) {
+		// 			if (GeneralData.development) {
+		// 				eventConsole.log(`[fg=green]Restarting[/>] cooldown: [fg=${(role.hexColor != '#000000') ? role.hexColor : ColorTheme.colors.grey.asHex}]${role.name}[/>] | ${Mentionable.remainingCooldown(mentionables[roleId]) / 1000}s`)
+		// 			}
+		// 			Mentionable.startCooldown(guild, roleId, mentionables[roleId])
+		// 		}
+		// 		else {
+		// 			if (GeneralData.development) {
+		// 				eventConsole.log(`[fg=red]Expired[/>] cooldown: [fg=${(role.hexColor != '#000000') ? role.hexColor : ColorTheme.colors.grey.asHex}]${role.name}[/>] | ${Mentionable.remainingCooldown(mentionables[roleId]) / 1000}s`)
+		// 			}
+		// 			Mentionable.onCooldownExpired(role);
+		// 		}
+		// 	}
+		// }
 	}
 
 	/**  Update the mentionable document
@@ -178,44 +202,48 @@ export class Mentionable {
 	 * @param  id The ID of the mentionable
 	 * @param mentionable The mentionable object
 	 * @returns true if the cooldown has been started successfully, false otherwise
+	 * @deprecated Doesnt do anything anymore after we stoped using role.setMentionable() and {@link Mentionable.activeCooldowns} was depricated.
 	*/
 	public static async startCooldown(guild: Guild, id: string, mentionable?: IMentionableItem|null): Promise<boolean> {
-		const role = guild.roles.cache.find(r => r.id == id);
-		if (!role) {
-			EmitError(new Error(`Unable to find role (${id})`));
-			return false;
-		}
+		// const role = guild.roles.cache.find(r => r.id == id);
+		// if (!role) {
+		// 	EmitError(new Error(`Unable to find role (${id})`));
+		// 	return false;
+		// }
 
-		if (mentionable === undefined) {
-			mentionable = await Mentionable.get(guild.id, id);
-		}
-		if (!mentionable) { return false; }
+		// if (mentionable === undefined) {
+		// 	mentionable = await Mentionable.get(guild.id, id);
+		// }
+		// if (!mentionable) { return false; }
 
-		await role.setMentionable(false, `${process.env.APP_NAME} - Used`);
-		Mentionable.activeCooldowns[guild.id][id] = mentionable;
+		// await role.setMentionable(false, `${process.env.APP_NAME} - Used`);
+		// Mentionable.activeCooldowns[guild.id][id] = mentionable;
 
 		return true;
 	}
 
 	/** Check all the active cooldowns for a guild and end them if they are expired
 	 * @param guild The guild to check the cooldowns for
+	 * @deprecated Roles do not have to be set to mentionable anymore and therefor do not need to be managed after a cooldown expires
 	*/
 	public static async validateGuildCooldowns(guild: Guild) {
-		for (const roleId in Mentionable.activeCooldowns[guild.id]) {
-			const item = Mentionable.activeCooldowns[guild.id][roleId];
-			if (!Mentionable.isOncooldown(item)) {
-				//? delete now as it doesnt matter if the role exists or not, it should not trigger again
-				delete Mentionable.activeCooldowns[guild.id][roleId]; 
+		// for (const roleId in Mentionable.activeCooldowns[guild.id]) {
+		// 	const item = Mentionable.activeCooldowns[guild.id][roleId];
+		// 	if (!Mentionable.isOncooldown(item)) {
+		// 		//? delete now as it doesnt matter if the role exists or not, it should not trigger again
+		// 		delete Mentionable.activeCooldowns[guild.id][roleId]; 
 
-				const role = guild.roles.cache.find(r => r.id == roleId);
-				if (!role) {
-					EmitError(new Error(`Unable to find role (${roleId})`));
-					continue;
-				}
+		// 		//?? Do we still need everything after this line after migrating to the /mention command?
+		// 		//?? onCooldownExpired doesnt do anything anymore now that we dont have to set the role to mentionable anymore
+		// 		const role = guild.roles.cache.find(r => r.id == roleId);
+		// 		if (!role) {
+		// 			EmitError(new Error(`Unable to find role (${roleId})`));
+		// 			continue;
+		// 		}
 
-				Mentionable.onCooldownExpired(role);
-			}
-		}
+		// 		Mentionable.onCooldownExpired(role);
+		// 	}
+		// }
 	}
 	//#endregion
 
@@ -236,7 +264,7 @@ export class Mentionable {
 	public static async onGuildDelete(guild: Guild): Promise<void> {
 		delete Mentionable.hasChanged[guild.id];
 		delete Mentionable.mentionablesCache[guild.id];
-		delete Mentionable.activeCooldowns[guild.id];
+		// delete Mentionable.activeCooldowns[guild.id];
 
 		await ObjectRelationalMap.onGuildDelete(DataModel, guild);
 	}
@@ -251,20 +279,21 @@ export class Mentionable {
 		if (!doc || !doc.mentionables[id]) { return false; }
 
 		doc.mentionables[id].lastUsed = new Date().getTime();
-		await Mentionable.startCooldown(guild, id, doc.mentionables[id]);
+		// await Mentionable.startCooldown(guild, id, doc.mentionables[id]);
 		return await Mentionable.update(doc);
 	}
 
 	/** Once a cooldown of a mentionable expires. Update the role to allow everyone to mention this role again.
 	 * @param role The role of the expired mentionable
 	 * @returns Wether or not the role has been updated successfully
+	 * @deprecated Stoped using role.setMentionable while migrating to /mention
 	*/
 	public static async onCooldownExpired(role: Role): Promise<boolean> {
-		await role.setMentionable(true, `${process.env.APP_NAME} - Cooldown Expired`).catch((e: Error) => {
-			e.message = `Failed to update role to mentionable after expired cooldown\n${e.message}`
-			EmitError(e); //! if this is reached, there is a role stuck on not mentionable
-			return false;
-		});
+		// await role.setMentionable(true, `${process.env.APP_NAME} - Cooldown Expired`).catch((e: Error) => {
+		// 	e.message = `Failed to update role to mentionable after expired cooldown\n${e.message}`
+		// 	EmitError(e); //! if this is reached, there is a role stuck on not mentionable
+		// 	return false;
+		// });
 		return true;
 	}
 	//#endregion

@@ -18,14 +18,15 @@ export namespace DevEnvironment {
 }
 
 export namespace GeneralData {
-	export const production: boolean = (process.env.PRODUCTION === 'true');
+	export const production: boolean = 	(process.env.PRODUCTION === 'true');
+	export const beta: boolean = 		(process.env.BETA === 'true');
 	export const development: boolean = (process.env.DEVELOPMENT === 'true');
 	
 	export const appName: string = process.env.APP_NAME!;
 	export const supportServerInvite: string = process.env.SUPPORT_SERVER_INVITE!;
 	
 	export const logging = {
-		streamSafe: false, //? If true, the custom console will filter out any dangerouse info like tokens
+		// streamSafe: false, //? If true, the custom console will filter out any dangerouse info like tokens
 		interaction: {
 			enabled: true,
 			verbose: true,

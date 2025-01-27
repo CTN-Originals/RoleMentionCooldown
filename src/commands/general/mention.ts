@@ -1,0 +1,99 @@
+import { ApplicationCommandOptionType, ChatInputCommandInteraction, EmbedBuilder, InteractionContextType, Role } from "discord.js";
+import { BaseButtonCollection, BaseEmbedCollection, BaseMethodCollection, BaseSelectMenuCollection, CommandInteractionData, IButtonCollection, ISelectMenuCollection } from "../../handlers/commandBuilder";
+import { Mentionable } from "../../data/orm/mentionables";
+import { ColorTheme, GeneralData } from "../../data";
+import { getTimeDisplay, getTimestamp, hexToBit } from "../../utils";
+import { IMentionableItem } from "../../data/orm/schemas/mentionableData";
+import { cons } from "../..";
+
+class ButtonCollection extends BaseButtonCollection implements IButtonCollection<ButtonCollection> {}
+class SelectMenuCollection extends BaseSelectMenuCollection implements ISelectMenuCollection<SelectMenuCollection> {}
+class EmbedCollection extends BaseEmbedCollection {
+	public roleNotRegistered(roleId: string): EmbedBuilder {
+		return new EmbedBuilder({
+			description: [
+				`The role you entered (<@&${roleId}>) is not registered as a cooldown role.`,
+				`Consider using the \`/list all\` command to see which roles can be used with this command.`
+			].join('\n'),
+			color: hexToBit(ColorTheme.embeds.notice)
+		});
+	}
+
+	public roleOnCooldown(roleId: string, mentionable: IMentionableItem): EmbedBuilder {
+		return new EmbedBuilder({
+			description: [
+				`The role you entered (<@&${roleId}>) is currently on cooldown.`,
+				`The cooldown expires <t:${getTimestamp(Date.now() + Mentionable.remainingCooldown(mentionable))}:R>.`
+			].join('\n'),
+			color: hexToBit(ColorTheme.embeds.notice)
+		});
+	}
+}
+class MethodCollection extends BaseMethodCollection {}
+
+const command = new CommandInteractionData<ButtonCollection, SelectMenuCollection, EmbedCollection, MethodCollection>({
+	command: {
+		content: {
+			name: 'mention',
+			description: 'Mention a role in the current channel',
+			contexts: [InteractionContextType.Guild],
+			requiredPermissions: ['MentionEveryone'],
+			options: [
+				{
+					type: ApplicationCommandOptionType.Role,
+					name: 'role',
+					description: 'The role to mention',
+					required: true
+				},
+				{ //TODO add syntax to allow the user to place the role somewhere inside the message
+					type: ApplicationCommandOptionType.String,
+					name: 'message',
+					description: 'A message you would like to be included',
+				}
+			]
+		},
+		execute: async function (interaction: ChatInputCommandInteraction) {
+			const role: Role = interaction.options.getRole('role', true) as Role;
+			const message: string | null = interaction.options.getString('message');
+			const mentionable = await Mentionable.get(interaction.guildId!, role.id)
+
+			if (!mentionable) {
+				await interaction.reply({
+					embeds: [command.embeds.roleNotRegistered(role.id)],
+					ephemeral: !GeneralData.development,
+				});
+				return `Role is not registered as mentionable`
+			}
+
+			if (Mentionable.isOncooldown(mentionable) === true) {
+				await interaction.reply({
+					embeds: [command.embeds.roleOnCooldown(role.id, mentionable)],
+					ephemeral: !GeneralData.development,
+				});
+				return `Role is on cooldown`
+			}
+
+			await interaction.reply({
+				content: `<@&${role.id}>${(message !== null) ? ` ${message}` : ''}`,
+				allowedMentions: {roles: [role.id]}
+			});
+
+			Mentionable.onUsed(interaction.guild!, role.id);
+
+			cons.log([
+				`[fg=${ColorTheme.colors.yellow.asHex}]${interaction.guild!.name}[/>]:`,
+				`[fg=${ColorTheme.colors.cyan.asHex}]${interaction.user.username}[/>] used mentionable`,
+				`[fg=${(role.hexColor != '#000000') ? role.hexColor : ColorTheme.colors.grey.asHex}]${role.name}[/>] |`,
+				`cooldown started: [fg=${ColorTheme.colors.green.asHex}]${getTimeDisplay(mentionable.cooldown)}[/>]`
+			].join(' '))
+
+			return true;
+		},
+	},
+	buttons: new ButtonCollection(),
+	selectMenus: new SelectMenuCollection(),
+	embeds: new EmbedCollection(),
+	methods: new MethodCollection(),
+});
+
+export default command;
