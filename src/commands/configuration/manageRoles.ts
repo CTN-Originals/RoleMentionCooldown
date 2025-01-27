@@ -46,9 +46,9 @@ class EmbedCollection extends BaseEmbedCollection {
 		return new EmbedBuilder({
 			title: "Registered New Role Cooldown",
 			description: [
-				`**Note:** If I dont have permission to view a channel,`,
-				`I will also not be able to detect the usage of these roles.`,
-				`Make sure to add my role to any channel that you want to monitor for role usage.`,
+				`**Note:** For users to mention this role,`,
+				`they have to use the \`/mention\` command `,
+				`followed by the \`role\` they like to mention.`,
 			].join('\n'),
 			fields: [
 				{name: 'role', value: `<@&${roleId}>`, inline: true},
@@ -80,6 +80,7 @@ class MethodCollection extends BaseMethodCollection {
 	 * @returns If valid, the PeriodOfTime object. If invalid, a message explaining why it is invalid
 	*/
 	public validateCooldownInput(input: string): PeriodOfTime | string {
+		//TODO Fix the ordering of checking
 		//- input includes unknow character(s)
 		for (const timeframe of input.split(' ')) {
 			const end = timeframe[timeframe.length - 1]

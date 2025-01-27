@@ -1,7 +1,7 @@
 {
 	"name": "role-mention-cooldown",
 	"author": "CTNOriginals",
-	"version": "1.3.0.0",
+	"version": "1.3.0.1",
 	"description": "A discord bot that allows users to mention a role once, and then applying a cooldown to this role before it can be mentioned again.",
 	"homepage": "https://github.com/CTN-Originals/RoleMentionCooldown/tree/stable",
 	"license": "BSD-4-Clause",
@@ -11,7 +11,7 @@
 		"fullbuild": "rimraf ./dist && tsc",
 		"build:start": "npm run build && npm run start",
 		"dev:deploy": "npm run build && node .\\dist\\index.js --deploy --guild=DEV_GUILD_ID deployAll=true",
-		"deploy": "npm run build && node .\\dist\\index.js --deploy --deployAllGlobal=true",
+		"deploy": "node ./dist/index.js --deploy --deployAllGlobal=true",
 		"start": "node dist/index.js",
 		"start:dev": "nodemon src/index.ts",
 		"start:tsx": "tsx watch src/index.ts",
