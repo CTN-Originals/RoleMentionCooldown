@@ -11,7 +11,7 @@
 		"fullbuild": "rimraf ./dist && tsc",
 		"build:start": "npm run build && npm run start",
 		"dev:deploy": "npm run build && node .\\dist\\index.js --deploy --guild=DEV_GUILD_ID deployAll=true",
-		"deploy": "npm run build && node .\\dist\\index.js --deploy --deployAllGlobal=true",
+		"deploy": "node ./dist/index.js --deploy --deployAllGlobal=true",
 		"start": "node dist/index.js",
 		"start:dev": "nodemon src/index.ts",
 		"start:tsx": "tsx watch src/index.ts",
