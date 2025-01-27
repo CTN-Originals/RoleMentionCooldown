@@ -10,7 +10,7 @@ const mongoUser = encodeURIComponent(process.env.DATABASE_USERNAME!);
 const mongoPass = encodeURIComponent(process.env.DATABASE_PASSWORD!);
 const mongoHost = encodeURIComponent(process.env.DATABASE_HOSTNAME!);
 
-const dbURI =  GeneralData.production ?
+const dbURI = (GeneralData.production || GeneralData.beta) ?
 	dbURITemplate
 		.replace('<username>', mongoUser)
 		.replace('<password>', mongoPass)
