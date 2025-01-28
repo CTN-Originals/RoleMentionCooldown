@@ -66,7 +66,8 @@ const command = new CommandInteractionData<ButtonCollection, SelectMenuCollectio
 				await interaction.reply({
 					embeds: [validateEmbed(command.embeds.availableInDevelopent())],
 					ephemeral: true
-				})
+				});
+				return 'Command not available';
 			}
 			const commandPing = Date.now() - interaction.createdTimestamp;
 			const apiPing = interaction.client.ws.ping;
