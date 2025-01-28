@@ -1,19 +1,17 @@
 import 'dotenv/config';
-import { Client, ComponentType, EmbedBuilder, Events, Guild, Interaction, InteractionType, Message, Routes, TextChannel } from 'discord.js';
+import { Client, ComponentType, EmbedBuilder, Events, Guild, Interaction, InteractionType, Message, PermissionFlagsBits, Routes, TextChannel } from 'discord.js';
 
 import { ConsoleInstance } from 'better-console-utilities';
 
 import { GeneralData } from '../data';
 import { DevEnvironment } from '../data';
-import { EmitError, customEvents, eventConsole } from '.';
-import { cons, errorConsole, testWebhook } from '..';
-import { testEmbed, validateEmbed } from '../utils/embedUtils';
 import { Mentionable } from '../data/orm/mentionables';
-import { IMentionableStorage, default as MentionableData } from '../data/orm/schemas/mentionableData'
-import { timeUnits } from '../utils';
-import { getCurrentCooldownsEmbed } from '../commands/info/list';
-import { UserPermissions } from '../handlers/permissionHandler';
 import { UpdateBotListStats } from '../handlers/botLists';
+import { getInteractionObject } from '../handlers/commandBuilder';
+
+import PingCommand from '../commands/test/ping';
+import ListCommand from '../commands/info/list';
+import { testWebhook } from '..';
 
 // import ErrorHandler from '../handlers/errorHandler';
 
@@ -52,23 +50,40 @@ export default {
 			Mentionable.initialize(guild);
 		})
 
-		UpdateBotListStats();
+		// UpdateBotListStats();
 
-		this.Update(client); //? Start the update cycle
+		// this.Update(client); //? Start the update cycle
 	},
 
-	/** This function runs every second and calls out to things that need to be checked on the regular */
+	/** This function runs every second and calls out to things that need to be checked on the regular 
+	 * @deprecated The current only use case for this function was to call {@link Mentionable.validateGuildCooldowns()}, which has also been depricated
+	*/
 	async Update(client: Client) { //?? Initially this was inside index.ts, but that brought a bunch of errors so next best is here i guess...
 		const interval = setInterval(() => {
 			client.guilds.cache.forEach(guild => {
-				Mentionable.validateGuildCooldowns(guild);
+				// Mentionable.validateGuildCooldowns(guild);
 			})
 		}, 1000)
 	},
 
 	async runTests(client: Client) {
-		const guild: Guild|undefined = client.guilds.cache.get(process.env.DEV_GUILD_ID!);
+		const guild: Guild = client.guilds.cache.get(process.env.DEV_GUILD_ID!)!;
 		const channel: TextChannel = await DevEnvironment.client?.channels.fetch(DevEnvironment.channelId) as TextChannel;
+
+		// testWebhook.send({
+		// 	embeds: [await ListCommand.embeds.getCurrentCooldownsEmbed(guild, 'all')]
+		// })
+
+		// console.log(getInteractionObject(PingCommand.command));
+		// console.log(getInteractionObject(PingCommand.buttons.butt));
+		// console.log(getInteractionObject(PingCommand.selectMenus.str));
+
+		// const commands = await client.application?.commands.fetch({force: true, cache: true, guildId: DevEnvironment.guildId});
+		// const ping = commands?.get('1310295745215336482')!;
+		// console.log(ping);
+		// console.log(await guild.commands.permissions.fetch({}))
+		// console.log(await ping.permissions.fetch({guild: guild}))
+
 		// const collector: MessageCollector = channel!.createMessageCollector({
 		// 	filter: (message) => message.content.includes('test')
 		// })
@@ -80,13 +95,7 @@ export default {
 		// })
 
 		
-		// new FakeInteraction('rolecooldown', {
-		// 	subCommand: 'add',
-		// 	options: [
-		// 		{name: 'role', value: '1309653896788050043'},
-		// 		{name: 'cooldown', value: '120.9i'}
-		// 	]
-		// }).execute();
+		// new FakeInteraction('test').execute();
 		// new FakeInteraction('rolecooldown', {
 		// 	subCommand: 'add',
 		// 	options: [
@@ -99,6 +108,20 @@ export default {
 		// 	options: [
 		// 		{name: 'role', value: '1309653896788050043'},
 		// 		{name: 'cooldown', value: '12s-1s'}
+		// 	]
+		// }).execute();
+		// new FakeInteraction('rolecooldown', {
+		// 	subCommand: 'add',
+		// 	options: [
+		// 		{name: 'role', value: '1309653896788050043'},
+		// 		{name: 'cooldown', value: '0d 15m 0:00'}
+		// 	]
+		// }).execute();
+		// new FakeInteraction('rolecooldown', {
+		// 	subCommand: 'add',
+		// 	options: [
+		// 		{name: 'role', value: '1309653896788050043'},
+		// 		{name: 'cooldown', value: '1203'}
 		// 	]
 		// }).execute();
 		// new FakeInteraction('rolecooldown', {
@@ -192,10 +215,7 @@ class FakeInteraction {
 			username: 'keybotkiller',
 			_equals: (user) => {return true},
 		}
-		this.channel = {
-			id: process.env.DEV_TEST_CHANNEL_ID!,
-			name: 'bot-testing',
-		}
+		this.channel = DevEnvironment.channel;
 
 		this.options = new FakeInteractionOptions(options?.options, options?.subCommand);
 	}
@@ -203,6 +223,7 @@ class FakeInteraction {
 	public get channelId() { return this.channel.id }
 	public get guildId() { return this.guild.id };
 
+	public isChatInputCommand() {return true}
 	public isRepliable() {return true}
 	public inGuild() { return true; }
 

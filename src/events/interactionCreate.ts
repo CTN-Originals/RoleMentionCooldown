@@ -1,30 +1,65 @@
 import { 
-	BaseInteraction,
 	CommandInteraction,
 	InteractionType,
 	Events,
 	CommandInteractionOption,
 	ChatInputCommandInteraction,
+	Interaction,
+	EmbedBuilder,
+	ContextMenuCommandInteraction,
+	PermissionsBitField,
 } from 'discord.js';
 
 import { ConsoleInstance } from 'better-console-utilities';
 
-import { EmitError, eventConsole } from '.';
-import { errorConsole } from '..';
+import { BaseButtonCollection,
+	BaseEmbedCollection,
+	BaseMethodCollection,
+	BaseSelectMenuCollection,
+	CommandInteractionData,
+	IButtonCollectionField,
+	ICommandObjectContent,
+	IContextMenuObjectContent,
+	ISelectMenuCollectionField
+} from '../handlers/commandBuilder';
+import { EmitError } from '.';
 import { IInteractionTypeData, getHoistedOptions, getInteractionType } from '../utils/interactionUtils';
-import { GeneralData } from '../data';
-import { ErrorObject } from '../handlers/errorHandler';
-import { PermissionObject, validateUserPermission } from '../handlers/permissionHandler';
+import { ColorTheme, GeneralData } from '../data';
+import { errorConsole, ErrorObject } from '../handlers/errorHandler';
+import { client } from '..';
+import { validateEmbed } from '../utils/embedUtils';
+import { getUniqueItems, hexToBit, removeDuplicates } from '../utils';
 
 const thisConsole = new ConsoleInstance();
+
+function lackingPermissionEmbed(interaction: ChatInputCommandInteraction | ContextMenuCommandInteraction, neededPerms: PermissionsBitField) {
+	const selfMember = interaction.guild!.members.me!;
+	const missingRole: string[] = selfMember.permissions.missing(neededPerms);
+	const missingChannel: string[] = [];
+	
+	if (interaction.channel?.isTextBased() && !interaction.channel.isDMBased()) {
+		missingChannel.push(...selfMember.permissionsIn(interaction.channel).missing(neededPerms));
+	}
+
+	const missingPerms = removeDuplicates([...missingRole, ...missingChannel]);
+	
+	const embed = new EmbedBuilder({
+		title: `Lacking Permission`,
+		description: [
+			`To be able to perform this action, I need the following permission(s):`,
+			`**${missingPerms.join('**\n**')}**`,
+		].join('\n'),
+		color: hexToBit(ColorTheme.embeds.notice)
+	});
+
+	return embed;
+}
 
 export default {
 	name: Events.InteractionCreate,
 	once: false,
 
-    /** @param {CommandInteraction} interaction The command interaction */
-	async execute(interaction: BaseInteraction) {
-		// thisConsole.logDefault(interaction);
+	async execute(interaction: Interaction) {
 		const interactionType = getInteractionType(interaction);
 		
 		if (!interactionType.commandKey || interactionType.type == InteractionType.Ping) {
@@ -35,25 +70,74 @@ export default {
 		await this.executeInteraction(interaction, interactionType.commandKey);
 	},
 
-	async executeInteraction(interaction: BaseInteraction, nameKey: string) {
+	async executeInteraction(interaction: Interaction, nameKey: string) {
 		let response: any = null;
-		try {
-			const command = interaction.client.commands.get(interaction[nameKey]);
 
-			if (!interaction.inGuild() || !interaction.guild || !interaction.guildId) { //- extensive checking just to avoid confusion
-				throw new Error(`Interaction does not contain a guild`)
+		const getInteractionData = () => {
+			if (interaction.isChatInputCommand() || interaction.isContextMenuCommand()) {
+				return interaction.client.commands.get(interaction[nameKey]);
 			}
-			else if (Object.keys(command).includes('permissions') && !await validateUserPermission(command['permissions'], interaction.guild, interaction.user)) {
-				if (interaction.isRepliable()) {
-					await interaction.reply({
-						content: `You do not have permission to use this command.`,
-						ephemeral: true
-					})
+			else if (interaction.isButton() || interaction.isAnySelectMenu()) {
+				const componentType = (interaction.isButton()) ? 'button' : 'selectMenu';
+				const parent = client[componentType + 's'].get(interaction.customId);
+				if (!parent) {
+					throw new Error(`Unknown component interaction: "${interaction.customId}"`);
 				}
-				response = 'User lacks permission';
-			} else {
-				response = await command.execute(interaction);
+				
+				const command = client.commands.get(parent);
+				if (!command) {
+					throw new Error(`Component origin unknown: "${parent}" > "${interaction.customId}"`);
+				}
+
+				const componentCollection: BaseButtonCollection | BaseSelectMenuCollection = command.collection[componentType + 's'];
+
+				for (const key in componentCollection) {
+					const component: IButtonCollectionField | ISelectMenuCollectionField = componentCollection[key];
+					if (component.content.customId === interaction.customId) {
+						return component;
+					}
+				}
 			}
+
+			return null;
+		}
+
+		try {
+			let interactionObject = getInteractionData();
+			let interactionData: ICommandObjectContent | IContextMenuObjectContent | IButtonCollectionField | ISelectMenuCollectionField;
+
+			if (!interactionObject) {
+				throw new Error(`Unknown interaction: "${interaction[nameKey]}"`);
+			}
+
+			if (interaction.isChatInputCommand() || interaction.isContextMenuCommand()) {
+				interactionData = (interactionObject as CommandInteractionData<BaseButtonCollection, BaseSelectMenuCollection, BaseEmbedCollection, BaseMethodCollection>).command;
+				//TODO check required permissions
+				
+				if (interaction.inGuild()) {
+					const data = interactionData.data;
+					const perms = data.requiredPermissionBitField;
+					const selfMember = interaction.guild!.members.me;
+
+					if (!selfMember?.permissions.has(perms)) {
+						await interaction.reply({
+							content: `I am lacking the required permission(s) to perform this action.`,
+							embeds: [validateEmbed(lackingPermissionEmbed(interaction, perms))],
+							ephemeral: !GeneralData.development
+						});
+
+						response = `Lacking the required permission(s) to perform this action`
+					}
+				}
+			}
+			else {
+				interactionData = (interactionObject as IButtonCollectionField | ISelectMenuCollectionField);
+			}
+
+			if (response === null) {
+				response = await interactionData.execute(interaction as any);
+			}
+			
 		} catch (err) {
 			const errorObject: ErrorObject = await EmitError(err as Error, interaction);
 
@@ -110,7 +194,7 @@ export default {
 			
 			if (interaction.options?.data && interaction.options.data.length > 0) {
 				const hoistedOptions = getHoistedOptions((interaction as CommandInteraction).options.data as CommandInteractionOption[]);
-				logFields.commandOptions = hoistedOptions.map(option => `[fg=dd8000]${option.name}[/>]:${option.value}`).join(' [st=dim,bold]|[/>] ');
+				logFields.commandOptions = hoistedOptions.map(option => `[fg=${ColorTheme.colors.orange.asHex}]${option.name}[/>]:${option.value}`).join(' [st=dim,bold]|[/>] ');
 			}
 			if (interaction.values && interaction.values.length > 0) {
 				logFields.commandValues = `[ ${interaction.values.join('[st=dim,bold], [/>]')} ]`
@@ -119,25 +203,24 @@ export default {
 
 			const logMessage: string[] = [];
 			logMessage.push([
-				`[fg=0080ff]${logFields.commandType}[/>]: [fg=00cc00 st=bold]${logFields.commandName}[/>]`,
-				`${(logFields.subCommandGroup) ? `[st=dim]>[/>] [fg=00cc66]${logFields.subCommandGroup}[/>]` : ''}`,
-				`${(logFields.subCommand) ? `[st=dim]>[/>] [fg=00cc66]${logFields.subCommand}[/>]` : ''}`
+				`[fg=${ColorTheme.colors.blue.asHex}]${logFields.commandType}[/>]: [fg=${ColorTheme.colors.green.asHex} st=bold]${logFields.commandName}[/>]`,
+				`${(logFields.subCommandGroup) ? `[st=dim]>[/>] [fg=${ColorTheme.colors.green.asHex}]${logFields.subCommandGroup}[/>]` : ''}`,
+				`${(logFields.subCommand) ? `[st=dim]>[/>] [fg=${ColorTheme.colors.green.asHex}]${logFields.subCommand}[/>]` : ''}`
 			].join(' '));
 
-			if (logFields.commandOptions) logMessage.push(`[fg=0080ff]options[/>]: ${logFields.commandOptions}`);
-			if (logFields.commandValues) logMessage.push(`[fg=0080ff]values[/>]: ${logFields.commandValues}`);
-			// if (logFields.commandValues) logMessage.push(`[fg=0080ff]values[/>]: ${logFields.commandValues}`);
+			if (logFields.commandOptions) logMessage.push(`[fg=${ColorTheme.colors.blue.asHex}]options[/>]: ${logFields.commandOptions}`);
+			if (logFields.commandValues) logMessage.push(`[fg=${ColorTheme.colors.blue.asHex}]values[/>]: ${logFields.commandValues}`);
 
-			logMessage.push(`[fg=#0080ff]guild[/>]: [fg=#dfbc22]${interaction.guild.name}[/>] (${interaction.guild.id})`);
-			logMessage.push(`[fg=#0080ff]user[/>]: [fg=#00ffff]${logFields.userName}[/>] (${logFields.userId})`);
-			logMessage.push(`[fg=#0080ff]channel[/>]: [fg=#ad1b70]${logFields.channelName}[/>] (${logFields.channelId})`);
+			logMessage.push(`[fg=${ColorTheme.colors.blue.asHex}]guild[/>]: [fg=${ColorTheme.colors.yellow.asHex}]${interaction.guild.name}[/>] (${interaction.guild.id})`);
+			logMessage.push(`[fg=${ColorTheme.colors.blue.asHex}]user[/>]: [fg=${ColorTheme.colors.cyan.asHex}]${logFields.userName}[/>] (${logFields.userId})`);
+			logMessage.push(`[fg=${ColorTheme.colors.blue.asHex}]channel[/>]: [fg=${ColorTheme.colors.purple.asHex}]${logFields.channelName}[/>] (${logFields.channelId})`);
 
 			if (logFields.response !== '') {
-				logMessage.push(`[fg=0080ff]Response[/>]:`);
-				thisConsole.log('\n' + logMessage.join('\n'), response, '\n');
+				logMessage.push(`[fg=${ColorTheme.colors.blue.asHex}]Response[/>]:`);
+				thisConsole.log('\n' + logMessage.join('\n'), response);
 			}
 			else {
-				thisConsole.log('\n' + logMessage.join('\n') + '\n'); '#ad1b70'
+				thisConsole.log('\n' + logMessage.join('\n') + '\n');
 			}
 		}
 	}

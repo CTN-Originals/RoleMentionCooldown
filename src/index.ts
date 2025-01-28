@@ -1,41 +1,53 @@
 import 'dotenv/config';
-import { Client, Collection, WebhookClient } from 'discord.js';
+import { Client, Collection, IntentsBitField, WebhookClient } from 'discord.js';
 
-import { ConsoleInstance, Theme, ThemeOverride, defaultThemeProfile, defaultFilterKeys } from 'better-console-utilities';
+import { ConsoleInstance, Theme, ThemeOverride, defaultThemeProfile } from 'better-console-utilities';
 
-import { getEventFiles } from './startup/registerEvents';
-import { getCommandFiles } from './startup/registerCommands';
+import { registertAllEvents } from './register/registerEvents';
+import { registerAllCommands } from './register/registerCommands';
 import { GeneralData } from './data';
 
 import * as deployScript from './deployCommands';
 import { Database } from './data/orm/connect';
+import { EmitError, onError } from './events';
 
 //? Set the default theme profile to my preferences
 defaultThemeProfile.overrides.push(...[]);
-// defaultFilterKeys.push(...((GeneralData.logging.streamSafe) ? ['token'] : [])); //! Disabled until this feature actually gets introduced in the better-console-utilities module
 
 export const cons = new ConsoleInstance();
-export const errorConsole = new ConsoleInstance(defaultThemeProfile.clone());
-errorConsole.theme.default = new Theme('#ff0000');
-errorConsole.theme.typeThemes.default = new Theme('#dd0000');
 
 export const client: Client = new Client({
 	intents: [
 		'Guilds',
-		'GuildMessages',
-		'GuildMembers',
-		'MessageContent'
 	]
 });
 export const logWebhook = new WebhookClient({id: process.env.LOG_WEBHOOK_ID!, token: process.env.LOG_WEBHOOK_TOKEN!});
 export const testWebhook = new WebhookClient({id: process.env.TEST_WEBHOOK_ID!, token: process.env.TEST_WEBHOOK_TOKEN!});
 
 async function Awake() {
+	//- Check if more then one flag is true
+	if (
+		GeneralData.production && (GeneralData.beta || GeneralData.development) ||
+		GeneralData.beta && (GeneralData.development || GeneralData.production) ||
+		GeneralData.development && (GeneralData.production || GeneralData.beta)
+	) {
+		EmitError(new Error([
+			`More then one startup flags are set to true, these flags need to be exclusive`,
+			`production (${GeneralData.production}), beta (${GeneralData.beta}), development (${GeneralData.development})`,
+		].join('\n')));
+		throw `Start-up flags are non-exclusive`;
+	}
+
+	client.commands = new Collection();
+	client.buttons = new Collection();
+	client.selectMenus = new Collection();
+	
+	registertAllEvents(client, 'events');
+	registerAllCommands(client, 'commands');
+
 	if (process.argv.includes('--deploy')) {
-		if (GeneralData.development) {
-			cons.log(process.argv);
-		}
-		await deployScript.doDeployCommands(process.argv.slice(3)).then(() => {
+		cons.log(process.argv);
+		await deployScript.doDeployCommands(client).then(() => {
 			process.exit(0);
 		});
 	}
@@ -46,14 +58,11 @@ async function Awake() {
 
 async function Start() {
 	const db = new Database();
-	db.connect();
-	
-	client.commands = new Collection();
-
-	getEventFiles(client, 'events');
-	getCommandFiles(client, 'commands');
+	await db.connect();
 	
 	await client.login(process.env.TOKEN);
 }
 
-Awake();
+if (!process.argv.includes('--test')) {
+	Awake();
+}

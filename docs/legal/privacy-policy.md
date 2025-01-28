@@ -1,3 +1,4 @@
+
 # Privacy Policy
 ## Definitions
 - "Bot": The discord bot application (`Role Mention Cooldown#9802`, ID: `1308469474768457748`).
@@ -15,7 +16,7 @@ The bot collects the following data:
 - The use of Role ID's in message content (i.e. when you ping a role)
 
 ## How do we collect your data?
-You directly provide the bot with most of the data it collect. 
+You directly provide the bot with most of the data it collects. 
 The bot collects data and process data when you:
 - Invite it to a server
 - Use or interact with any of its features
@@ -25,18 +26,22 @@ The bot collects data and process data when you:
 The bot collects your data so that it can:
 - Offer the features it intends to offer
 - Remember what it has been told to do (like configurations)
-- Be read, and used by the developer to contact you if necessary on the platform.
+- Be read, and used by the developer to contact you on the platform
 
 ## How do we store your data?
 The bot securely stores server data in a database managed by [MongoDB](https://www.mongodb.com/).
-The bot will keep sevrer configurations for as long as the bot is within that server.
-The bot will not keep any user data or message content and does not ever store this in any databse, this data is not sotred with the intend of keeping it and is cleared on regular basis.
+The bot will keep server configurations for as long as the bot is within that server.
+The bot will not keep any user data or message content and does not ever store this in any database, this data is not stored with the intent of keeping it and is cleared on a regular basis.
 
 ## What are your rights pertaining your data?
-You have the right to remove the bot from any server you have sufficient permissions on to remove such an application at any time, upon doing so, the bot will delete the related data out of its memory and any database within a few hours.
-You have the right to leave any server you share with the bot, the bot will stop tracking any messages send by you in that server upon leaving.
+### Administrators
+You have the right to remove the bot from any server you have sufficient permissions on to remove such an application at any time.
+Upon doing so, the bot will delete the related data out of its memory and any database within a few hours.
+### Users
+The bot will only collect user data if you interact with it in any way (like using its commands).
+You have the right to choose not to interact with the bot.
 
-## Temporarely stored Information
+## Temporarily stored Information
 The Bot may keep some information in an internal caching mechanic for a certain amount of time to reduce requests to its database or for logging purposes.
 This data is not kept indefinitely and is overwritten or removed on a regular basis.
 Data may be dropped from cache pre-maturely through actions such as removing the bot from the Server.

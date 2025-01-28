@@ -2,9 +2,9 @@ import 'dotenv/config';
 import { Events, CommandInteraction, EmbedBuilder, Colors, ChannelType, ChatInputCommandInteraction, CommandInteractionOption  } from 'discord.js';
 
 import { eventConsole } from '.';
-import { client, errorConsole, logWebhook } from '..';
+import { client, logWebhook } from '..';
 import { getInteractionType, getHoistedOptions } from '../utils/interactionUtils';
-import { ErrorObject } from '../handlers/errorHandler';
+import { errorConsole, ErrorObject } from '../handlers/errorHandler';
 import { validateEmbed } from '../utils/embedUtils';
 
 
@@ -13,7 +13,7 @@ export default {
 	name: Events.Error,
 	once: false,
 
-	async execute(error: Error, interaction?: CommandInteraction|ChatInputCommandInteraction): Promise<ErrorObject> {
+	async execute(error: Error, interaction?: CommandInteraction): Promise<ErrorObject> {
 		const errorObject = new ErrorObject(error);
 
 		errorConsole.log(errorObject.formatError({
@@ -25,7 +25,7 @@ export default {
 		return errorObject;
 	},
 
-	outputLog(errorObject: ErrorObject, interaction: CommandInteraction|ChatInputCommandInteraction) {
+	outputLog(errorObject: ErrorObject, interaction: CommandInteraction) {
 		const interactionType = getInteractionType(interaction);
 
 		const descriptionLines = [`### ${errorObject.errorMessage}`]

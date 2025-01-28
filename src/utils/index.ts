@@ -1,7 +1,8 @@
 import { Color } from "better-console-utilities";
-import { Collection } from "discord.js";
+import { ApplicationCommandOption, Client, Collection, EmbedBuilder } from "discord.js";
 import { duration } from "moment";
 import { client } from "..";
+import { AnyDiscordCommandOption, IBaseInteractionType, ICommandField } from "../handlers/commandBuilder";
 
 //? a class that can take a string like 23s 69m 2h and turn it into a time length of 23 seconds, 9 minutes and 3 hours.
 export class PeriodOfTime {
@@ -139,56 +140,34 @@ export function includesAll(target: string|string[], items: string[]): boolean {
 	return true;
 }
 
-type CommandInfo = {
-	name: string;
-	description: string;
-	options?: OptionInfo[];
-};
-
-type OptionInfo = {
-	name: string;
-	description: string;
-	required: boolean;
-	type: number;
-	min_length?: number;
-	max_length?: number;
-	options?: OptionInfo[];
-};
-//? this is not my best function... but it works and i dont wanna do more recursion stuff so f it
-export function getExecutableCommands(commands: Collection<string, {data: CommandInfo}> = client.commands) {	
-	function parseCommands(commands: CommandInfo[], prefix: string = "") {
-		const result: { command: string; description: string; options: OptionInfo[] }[] = [];
+export function getUniqueItems<T>(...arrays: T[][]): T[] {
+	const itemCount: { [key: string]: number } = {};
 	
-		for (const command of commands) {
-			if (!command.name || !command.description) { continue; }
-
-			const currentCommand = prefix ? `${prefix} ${command.name}` : `${command.name}`;
+	// Combine all arrays into one
+	const allItems = arrays.reduce((acc, curr) => acc.concat(curr), []);
 	
-			if (!command.options || command.options.every((opt) => !opt.options)) {
-				// If there are no nested options or only terminal options, this is executable
-				result.push({
-					command: currentCommand,
-					description: command.description,
-					options: command.options || [],
-				});
-			} else {
-				//? Recursively look for executable subcommands/groups
-				const subcommandsOrGroups = command.options.filter((opt) => opt.options);
-				for (const subcommandOrGroup of subcommandsOrGroups) {
-					result.push(
-						...parseCommands([subcommandOrGroup], currentCommand)
-					);
-				}
-			}
+	// Count how many times each item appears
+	for (const item of allItems) {
+		const key = JSON.stringify(item);
+		if (itemCount[key]) {
+			itemCount[key]++;
+		} else {
+			itemCount[key] = 1;
 		}
+	}
 	
-		return result;
+	// Collect items that appear only once
+	const uniqueItems: T[] = [];
+	for (const key in itemCount) {
+		if (itemCount[key] === 1) {
+			uniqueItems.push(JSON.parse(key));
+		}
 	}
-
-	let cmds: CommandInfo[] = []
-	for (const [k, v] of commands.entries()) {
-		cmds.push(v.data);
-	}
-
-	return parseCommands(cmds);
+	
+	return uniqueItems;
 }
+
+// Inline function to remove duplicate items from an array
+export function removeDuplicates<T>(input: T[]): T[] {
+    return input.filter((item, index, self) => self.indexOf(item) === index);
+};
