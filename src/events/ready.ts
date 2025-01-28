@@ -10,6 +10,8 @@ import { UpdateBotListStats } from '../handlers/botLists';
 import { getInteractionObject } from '../handlers/commandBuilder';
 
 import PingCommand from '../commands/test/ping';
+import ListCommand from '../commands/info/list';
+import { testWebhook } from '..';
 
 // import ErrorHandler from '../handlers/errorHandler';
 
@@ -68,6 +70,10 @@ export default {
 		const guild: Guild = client.guilds.cache.get(process.env.DEV_GUILD_ID!)!;
 		const channel: TextChannel = await DevEnvironment.client?.channels.fetch(DevEnvironment.channelId) as TextChannel;
 
+		// testWebhook.send({
+		// 	embeds: [await ListCommand.embeds.getCurrentCooldownsEmbed(guild, 'all')]
+		// })
+
 		// console.log(getInteractionObject(PingCommand.command));
 		// console.log(getInteractionObject(PingCommand.buttons.butt));
 		// console.log(getInteractionObject(PingCommand.selectMenus.str));
@@ -102,6 +108,20 @@ export default {
 		// 	options: [
 		// 		{name: 'role', value: '1309653896788050043'},
 		// 		{name: 'cooldown', value: '12s-1s'}
+		// 	]
+		// }).execute();
+		// new FakeInteraction('rolecooldown', {
+		// 	subCommand: 'add',
+		// 	options: [
+		// 		{name: 'role', value: '1309653896788050043'},
+		// 		{name: 'cooldown', value: '0d 15m 0:00'}
+		// 	]
+		// }).execute();
+		// new FakeInteraction('rolecooldown', {
+		// 	subCommand: 'add',
+		// 	options: [
+		// 		{name: 'role', value: '1309653896788050043'},
+		// 		{name: 'cooldown', value: '1203'}
 		// 	]
 		// }).execute();
 		// new FakeInteraction('rolecooldown', {

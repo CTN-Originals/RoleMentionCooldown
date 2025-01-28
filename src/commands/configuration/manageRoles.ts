@@ -1,15 +1,12 @@
 
-import { ChatInputCommandInteraction, CommandInteraction, EmbedBuilder, SlashCommandBuilder, InteractionContextType, ApplicationCommandOptionType, PermissionFlagsBits, GuildMember, Role } from "discord.js";
+import { ChatInputCommandInteraction, EmbedBuilder, InteractionContextType, ApplicationCommandOptionType, PermissionFlagsBits, GuildMember, Role } from "discord.js";
 import { BaseButtonCollection, BaseEmbedCollection, BaseSelectMenuCollection, CommandInteractionData, IButtonCollection, ISelectMenuCollection } from "../../handlers/commandBuilder";
 
 import { ColorTheme, GeneralData } from '../../data'
-import { hexToBit, PeriodOfTime, includesAll, includesAny } from "../../utils";
+import { hexToBit, PeriodOfTime, includesAny } from "../../utils";
 import { Mentionable } from "../../data/orm/mentionables";
-import { EmitError } from "../../events";
 import { ConsoleInstance } from "better-console-utilities";
 import { validateEmbed } from "../../utils/embedUtils";
-import { client } from "../..";
-import { PermissionObject } from "../../handlers/permissionHandler";
 import { BaseMethodCollection } from "../../handlers/commandBuilder/data";
 
 const thisConsole = new ConsoleInstance();
@@ -23,6 +20,7 @@ class EmbedCollection extends BaseEmbedCollection {
 		return new EmbedBuilder({
 			title: `Invalid Cooldown Input: \`${cooldownInput}\``,
 			description: [
+				`**Reason**:`,
 				`The cooldown you have entered is incorrect.${(message !== undefined) ? `\n${message}` : ''}`,
 				``,
 				`**Cooldown Instructions**:`,
@@ -80,18 +78,9 @@ class MethodCollection extends BaseMethodCollection {
 	 * @returns If valid, the PeriodOfTime object. If invalid, a message explaining why it is invalid
 	*/
 	public validateCooldownInput(input: string): PeriodOfTime | string {
-		//TODO Fix the ordering of checking
-		//- input includes unknow character(s)
-		for (const timeframe of input.split(' ')) {
-			const end = timeframe[timeframe.length - 1]
-			if (!timeframes.includes(end)) {
-				return `\`${timeframe}\` contains unknown timeframe suffix: \`${end}\``;
-			}
-		}
-		
 		//- no timeframe letters included
 		if (!includesAny(input, timeframes)) {
-			if (input.split(' ').length == 1) { //- is the input just a single number
+			if (input.split(' ').length == 1 && input.split('').every((n => '1234567890'.includes(n)))) { //- is the input just a single number
 				input += 's' //? convert it to seconds for ease of use
 			}
 			else {
@@ -110,7 +99,15 @@ class MethodCollection extends BaseMethodCollection {
 		if (timeframeCount > 1 && !input.includes(' ')) {
 			return 'The timeframes were not seperated by spaces.';
 		}
-
+		
+		//- input includes unknow character(s)
+		for (const timeframe of input.split(' ')) {
+			const end = timeframe[timeframe.length - 1]
+			if (!timeframes.includes(end)) {
+				return `\`${timeframe}\` contains unknown timeframe suffix: \`${end}\``;
+			}
+		}
+		
 		const cooldown = new PeriodOfTime(input);
 
 		//- cooldown returned as 0
