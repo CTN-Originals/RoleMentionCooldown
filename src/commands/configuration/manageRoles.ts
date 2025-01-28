@@ -1,15 +1,12 @@
 
-import { ChatInputCommandInteraction, CommandInteraction, EmbedBuilder, SlashCommandBuilder, InteractionContextType, ApplicationCommandOptionType, PermissionFlagsBits, GuildMember, Role } from "discord.js";
+import { ChatInputCommandInteraction, EmbedBuilder, InteractionContextType, ApplicationCommandOptionType, PermissionFlagsBits, GuildMember, Role } from "discord.js";
 import { BaseButtonCollection, BaseEmbedCollection, BaseSelectMenuCollection, CommandInteractionData, IButtonCollection, ISelectMenuCollection } from "../../handlers/commandBuilder";
 
 import { ColorTheme, GeneralData } from '../../data'
-import { hexToBit, PeriodOfTime, includesAll, includesAny } from "../../utils";
+import { hexToBit, PeriodOfTime, includesAny } from "../../utils";
 import { Mentionable } from "../../data/orm/mentionables";
-import { EmitError } from "../../events";
 import { ConsoleInstance } from "better-console-utilities";
 import { validateEmbed } from "../../utils/embedUtils";
-import { client } from "../..";
-import { PermissionObject } from "../../handlers/permissionHandler";
 import { BaseMethodCollection } from "../../handlers/commandBuilder/data";
 
 const thisConsole = new ConsoleInstance();
