@@ -13,12 +13,14 @@
 The bot collects the following data:
 - User information (Username and ID)
 - Server Information (name, ID, member count, role's and channel's)
+- The use of Role ID's in message content (i.e. when you ping a role)
 
 ## How do we collect your data?
 You directly provide the bot with most of the data it collects. 
 The bot collects data and process data when you:
 - Invite it to a server
 - Use or interact with any of its features
+- Send a message in a channel the bot has access to
 
 ## How will we use your data?
 The bot collects your data so that it can:
