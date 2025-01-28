@@ -38,21 +38,35 @@ class EmbedCollection extends BaseEmbedCollection {
 				default: break;
 			}
 		}
-	
-		switch (type) {
-			case 'all': 
-				stats.sort((a, b) => mentionables[a[0]].cooldown - mentionables[b[0]].cooldown); 
-			break;
-			case 'cooldowns':
-				stats.sort((a, b) => (Date.now() + Mentionable.remainingCooldown(mentionables[a[0]])) - (Date.now() + Mentionable.remainingCooldown(mentionables[b[0]]))); 
-			break;
-			default: break;
+
+		if (stats.length === 0) {
+			stats.push(['-', '-']);
 		}
-			
+		else {
+			switch (type) {
+				case 'all': 
+					stats.sort((a, b) => mentionables[a[0]].cooldown - mentionables[b[0]].cooldown);
+				break;
+				case 'cooldowns':
+					stats.sort((a, b) => (Date.now() + Mentionable.remainingCooldown(mentionables[a[0]])) - (Date.now() + Mentionable.remainingCooldown(mentionables[b[0]]))); 
+				break;
+				default: break;
+			}
+		}
+
 		return new EmbedBuilder({
 			title: 'Role Mention Cooldowns',
+			description: [
+				`**NOTE**: I had a mojor update recently,`,
+				`it updated the way users can use role mentions.`,
+				`Instead of user being able to mention a role via message`,
+				`they now need to use the new \`/mention\` command`,
+				`and enter the role they like to be mention in the command option.`,
+				``,
+				`If you have any questions about this, please join the [support server](${GeneralData.supportServerInvite}).`
+			].join('\n'),
 			fields: [
-				{name: `Role`, value: stats.map(s => `<@&${s[0]}>`).join('\n'), inline: true},
+				{name: `Role`, value: stats.map(s => (s[0] === '-') ? s[0] : `<@&${s[0]}>`).join('\n'), inline: true},
 				{name: `Cooldown`, value: stats.map(s => s[1]).join('\n'), inline: true},
 			],
 			color: hexToBit(ColorTheme.embeds.info.asHex),
