@@ -59,9 +59,9 @@ class EmbedCollection extends BaseEmbedCollection {
 			description: [
 				`**NOTE**: I had a mojor update recently,`,
 				`it updated the way users can use role mentions.`,
-				`Instead of user being able to mention a role via message`,
-				`they now need to use the new \`/mention\` command`,
-				`and enter the role they like to be mention in the command option.`,
+				`Instead of being able to mention a role in the message content`,
+				`you now need to use the new \`/mention\` command`,
+				`and enter the role you would like to be mentioned in the command options.`,
 				``,
 				`If you have any questions about this, please join the [support server](${GeneralData.supportServerInvite}).`
 			].join('\n'),
