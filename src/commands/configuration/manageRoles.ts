@@ -118,17 +118,19 @@ class MethodCollection extends BaseMethodCollection {
 		return cooldown;
 	}
 
-	/** Check of the given role is lower then the bots highest role and is there fore editable */
+	/** Check of the given role is lower then the bots highest role and is there fore editable 
+	 * @deprecated The bot doesnt edit roles anymore and mentioning the role does not require the role to be below the mentioners highest role.
+	*/
 	public async validateRolePosition(interaction: ChatInputCommandInteraction, role: Role): Promise<boolean> {
-		const botMember = interaction.guild!.members.me!;
-		if (!botMember?.roles.highest.position || botMember?.roles.highest.position < role.position) {
-			await interaction.reply({
-				embeds: [validateEmbed(command.embeds.targetRoleTooHigh(botMember, role))],
-				ephemeral: true
-			});
+		// const botMember = interaction.guild!.members.me!;
+		// if (!botMember?.roles.highest.position || botMember?.roles.highest.position < role.position) {
+		// 	await interaction.reply({
+		// 		embeds: [validateEmbed(command.embeds.targetRoleTooHigh(botMember, role))],
+		// 		ephemeral: true
+		// 	});
 
-			return false
-		}
+		// 	return false
+		// }
 
 		return true
 	}
@@ -159,15 +161,6 @@ class MethodCollection extends BaseMethodCollection {
 
 			return cooldown; //`Invalid cooldown input`
 		}
-		
-		const role = interaction.guild.roles.cache.find(r => r.id == roleId);
-		if (!role) {
-			throw new Error(`Unable to find role (${roleId})`);
-		}
-		
-		if (!await this.validateRolePosition(interaction, role)) {
-			return `Selected role is above my highest role`
-		}
 
 		const res = await Mentionable.add(interaction.guild?.id, roleId as string, {
 			cooldown: cooldown.time,
@@ -175,15 +168,12 @@ class MethodCollection extends BaseMethodCollection {
 		})
 
 		if (res) {
-			// thisConsole.log(`[fg=green]${interaction.guild.name}[/>] Added new mentionable ${roleId}: ${res}`)
-
-			// await role.setMentionable(true, 'RoleMentionCooldown - Registered'); //? set the role to mentionable so its able to be used
 			await interaction.reply({
 				embeds: [validateEmbed(command.embeds.registeredNewRole(roleId as string, cooldown))],
 				ephemeral: !GeneralData.development
 			});
 		} else {
-			throw new Error(`"${interaction.guild.name}" Attempted to add new mentionable (${roleId}) and was unsuccessfull`)
+			throw new Error(`"${interaction.guild.name}" Attempted to add new mentionable (${roleId}) unsuccessfully`)
 		}
 
 		return true;
@@ -206,15 +196,6 @@ class MethodCollection extends BaseMethodCollection {
 				ephemeral: true
 			});
 			return 'Role not present in list';
-		}
-
-		const role = interaction.guild.roles.cache.find(r => r.id == roleId);
-		if (!role) {
-			throw new Error(`Unable to find role (${roleId})`);
-		}
-
-		if (!await this.validateRolePosition(interaction, role)) {
-			return `Selected role is above my highest role`
 		}
 
 		const res = await Mentionable.remove(interaction.guild?.id, roleId as string)
@@ -259,7 +240,7 @@ const command = new CommandInteractionData<ButtonCollection, SelectMenuCollectio
 						{
 							type: ApplicationCommandOptionType.String,
 							name: 'cooldown',
-							description: 'The cooldown to apply to the this once its used (seperate with spaces). 8s 69m 28h 1d = 2d 05:09:08',
+							description: 'The cooldown to apply to this once its used (seperate with spaces). 8s 69m 28h 1d = 2d 05:09:08',
 							minLength: 2,
 							required: true,
 						}
