@@ -165,7 +165,7 @@ export default {
 			response = err;
 		}
 
-		if (doOutputLog) {
+		if (doOutputLog !== false) {
 			this.outputLog(interaction, response);
 		} 
 	},
