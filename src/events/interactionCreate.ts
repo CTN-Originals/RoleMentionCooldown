@@ -13,6 +13,7 @@ import {
 import { ConsoleInstance } from 'better-console-utilities';
 
 import { BaseButtonCollection,
+	BaseCommandObject,
 	BaseEmbedCollection,
 	BaseMethodCollection,
 	BaseSelectMenuCollection,
@@ -102,6 +103,8 @@ export default {
 			return null;
 		}
 
+		let doOutputLog = true;
+
 		try {
 			let interactionObject = getInteractionData();
 			let interactionData: ICommandObjectContent | IContextMenuObjectContent | IButtonCollectionField | ISelectMenuCollectionField;
@@ -112,7 +115,6 @@ export default {
 
 			if (interaction.isChatInputCommand() || interaction.isContextMenuCommand()) {
 				interactionData = (interactionObject as CommandInteractionData<BaseButtonCollection, BaseSelectMenuCollection, BaseEmbedCollection, BaseMethodCollection>).command;
-				//TODO check required permissions
 				
 				if (interaction.inGuild()) {
 					const data = interactionData.data;
@@ -137,6 +139,8 @@ export default {
 			if (response === null) {
 				response = await interactionData.execute(interaction as any);
 			}
+
+			doOutputLog = (interactionData.content as BaseCommandObject).outputLogInteraction
 			
 		} catch (err) {
 			const errorObject: ErrorObject = await EmitError(err as Error, interaction);
@@ -161,7 +165,9 @@ export default {
 			response = err;
 		}
 
-		this.outputLog(interaction, response);
+		if (doOutputLog) {
+			this.outputLog(interaction, response);
+		} 
 	},
 
 	outputLog(interaction, response = null) {

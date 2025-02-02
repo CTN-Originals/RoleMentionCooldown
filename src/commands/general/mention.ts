@@ -38,6 +38,7 @@ const command = new CommandInteractionData<ButtonCollection, SelectMenuCollectio
 			description: 'Mention a role in the current channel',
 			contexts: [InteractionContextType.Guild],
 			requiredPermissions: ['MentionEveryone'],
+			outputLogInteraction: false,
 			options: [
 				{
 					type: ApplicationCommandOptionType.Role,

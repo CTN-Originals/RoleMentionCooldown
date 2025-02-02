@@ -21,7 +21,7 @@ const nameAllowedCharacters = [
 ];
 
 type RequiredBaseFields = 'name' | 'description';
-type OptionalBaseFields = 'name_localizations' | 'description_localizations';
+type OptionalBaseFields = 'name_localizations' | 'description_localizations' | 'outputLogInteraction';
 
 export type CommandObjectInput<
     T extends BaseCommandObject,
@@ -48,6 +48,9 @@ export class BaseCommandObject {
 	public name_localizations?: LocalizationMap;
 	/** The description localizations of this command. */
 	public description_localizations?: LocalizationMap;
+
+	/** Wether or not to log the interaction to the console on InteractionCreate */
+	public outputLogInteraction = true;
 
 	constructor(input: IBaseCommandObject) {
 		this.name = input.name;
