@@ -100,6 +100,13 @@ export default {
 		// 	subCommand: 'add',
 		// 	options: [
 		// 		{name: 'role', value: '1309653896788050043'},
+		// 		{name: 'cooldown', value: '1203'}
+		// 	]
+		// }).execute();
+		// new FakeInteraction('rolecooldown', {
+		// 	subCommand: 'add',
+		// 	options: [
+		// 		{name: 'role', value: '1309653896788050043'},
 		// 		{name: 'cooldown', value: '123minutes456sec'}
 		// 	]
 		// }).execute();
@@ -107,7 +114,7 @@ export default {
 		// 	subCommand: 'add',
 		// 	options: [
 		// 		{name: 'role', value: '1309653896788050043'},
-		// 		{name: 'cooldown', value: '12s-1s'}
+		// 		{name: 'cooldown', value: '12s-1m'}
 		// 	]
 		// }).execute();
 		// new FakeInteraction('rolecooldown', {
@@ -121,16 +128,17 @@ export default {
 		// 	subCommand: 'add',
 		// 	options: [
 		// 		{name: 'role', value: '1309653896788050043'},
-		// 		{name: 'cooldown', value: '1203'}
+		// 		{name: 'cooldown', value: '23grm 43rts'}
 		// 	]
 		// }).execute();
 		// new FakeInteraction('rolecooldown', {
 		// 	subCommand: 'add',
 		// 	options: [
 		// 		{name: 'role', value: '1309653896788050043'},
-		// 		{name: 'cooldown', value: '123minutes 456sec'}
+		// 		{name: 'cooldown', value: '123gr 456te'}
 		// 	]
 		// }).execute();
+
 		// const removeRole = new FakeInteraction('rolecooldown', {
 		// 	subCommand: 'remove',
 		// 	options: [
