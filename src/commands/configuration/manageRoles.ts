@@ -78,14 +78,16 @@ class MethodCollection extends BaseMethodCollection {
 	 * @returns If valid, the PeriodOfTime object. If invalid, a message explaining why it is invalid
 	*/
 	public validateCooldownInput(input: string): PeriodOfTime | string {
-		//- no timeframe letters included
-		if (!includesAny(input, timeframes)) {
-			if (input.split(' ').length == 1 && input.split('').every((n => '1234567890'.includes(n)))) { //- is the input just a single number
-				input += 's' //? convert it to seconds for ease of use
-			}
-			else {
-				return 'Some/All timeframes entered did not end in any of the timeframe letters.';
-			}
+		//? help out the user a bit and prevent the time from being 0 ms if they enter the full word time frame (yes, this happend before)
+		input = input
+		.replaceAll('seconds', 's').replaceAll('second', 's').replaceAll('sec', 's')
+		.replaceAll('minutes', 'm').replaceAll('minute', 'm').replaceAll('min', 'm')
+		.replaceAll('hours', 'h').replaceAll('hour', 'h')
+		.replaceAll('days', 'd').replaceAll('day', 'd');
+
+		//- no timeframe letters included but only single value
+		if (!includesAny(input, timeframes) && input.split(' ').length == 1 && input.split('').every((n => '1234567890'.includes(n)))) {
+			input += 's' //? convert it to seconds for ease of use
 		}
 
 		//- not seperated by spaces
@@ -102,10 +104,15 @@ class MethodCollection extends BaseMethodCollection {
 		
 		//- input includes unknow character(s)
 		for (const timeframe of input.split(' ')) {
-			const end = timeframe[timeframe.length - 1]
-			if (!timeframes.includes(end)) {
-				return `\`${timeframe}\` contains unknown timeframe suffix: \`${end}\``;
+			const suffix = timeframe.replace(parseFloat(timeframe).toString(), '')
+			if (!timeframes.includes(suffix)) {
+				return `\`${timeframe}\` contains unknown timeframe suffix: \`${suffix}\``;
 			}
+		}
+
+		//- no timeframe letters included
+		if (!includesAny(input, timeframes)) {
+			return 'Some/All timeframes entered did not end in any of the timeframe letters.';
 		}
 		
 		const cooldown = new PeriodOfTime(input);
@@ -142,13 +149,6 @@ class MethodCollection extends BaseMethodCollection {
 		const roleId = interaction.options.get('role', true).value;
 		
 		let cooldownInput = interaction.options.getString('cooldown', true);
-
-		//? help out the user a bit and prevent the time from being 0 ms if they enter the full word time frame (yes, this happend before)
-		cooldownInput = cooldownInput
-		.replaceAll('seconds', 's').replaceAll('second', 's').replaceAll('sec', 's')
-		.replaceAll('minutes', 'm').replaceAll('minute', 'm').replaceAll('min', 'm')
-		.replaceAll('hours', 'h').replaceAll('hour', 'h')
-		.replaceAll('days', 'd').replaceAll('day', 'd');
 
 		const cooldown = this.validateCooldownInput(cooldownInput)
 		
