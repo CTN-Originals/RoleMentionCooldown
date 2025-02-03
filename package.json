@@ -8,7 +8,7 @@
 	"main": "dist/index.js",
 	"scripts": {
 		"build": "tsc",
-		"fullbuild": "rimraf ./dist && tsc",
+		"fullbuild": "rimraf ./dist && npm run build",
 		"build:start": "npm run build && npm run start",
 		"dev:deploy": "npm run build && node .\\dist\\index.js --deploy --guild=DEV_GUILD_ID deployAll=true",
 		"deploy": "node ./dist/index.js --deploy --deployAllGlobal=true",
