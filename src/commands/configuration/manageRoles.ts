@@ -13,31 +13,43 @@ const thisConsole = new ConsoleInstance();
 
 const timeframes = ['s', 'm', 'h', 'd'];
 
+type CooldownObject<T = (string|null)|PeriodOfTime> = {
+	global: T,
+	channel: T,
+	user: T
+}
+
 class ButtonCollection extends BaseButtonCollection implements IButtonCollection<ButtonCollection> {}
 class SelectMenuCollection extends BaseSelectMenuCollection implements ISelectMenuCollection<SelectMenuCollection> {}
 class EmbedCollection extends BaseEmbedCollection {
-	public getCooldownInstructionEmbed(cooldownInput: string, message?: string): EmbedBuilder {
-		return new EmbedBuilder({
-			title: `Invalid Cooldown Input: \`${cooldownInput}\``,
-			description: [
-				`**Reason**:`,
-				`The cooldown you have entered is incorrect.${(message !== undefined) ? `\n${message}` : ''}`,
-				``,
-				`**Cooldown Instructions**:`,
-				`The cooldown input should be seperated with spaces for each timeframe entered.`,
-				``,
-				`Each timeframe should end in any of these letters:`,
-				`\`s\` = \`seconds\``,
-				`\`m\` = \`minutes\``,
-				`\`h\` = \`hours\``,
-				`\`d\` = \`days\``,
-				``,
-				`**Examples**:`,
-				`\`8s 69m 28h 1d\` = \`2d 05:09:08\``,
-				`\`600s\` = \`0d 00:10:00\``
-			].join('\n'),
-			color: hexToBit(ColorTheme.embeds.notice)
-		});
+	public getCooldownInstructionEmbed(cooldownInput: string, field: string, message?: string): EmbedBuilder[] {
+		return [
+			new EmbedBuilder({
+				title: `Invalid Cooldown Input: \`${cooldownInput}\``,
+				description: [
+					`The cooldown option (\`${field}\`) you have entered is incorrect.${(message !== undefined) ? `\n${message}` : ''}`,
+				].join('\n'),
+				footer: {text: `Press "Arrow-Up" key to retry`},
+				color: hexToBit(ColorTheme.embeds.notice)
+			}),
+			new EmbedBuilder({
+				title: `Cooldown Instructions`,
+				description: [
+					`The cooldown input should be seperated with spaces for each timeframe entered.`,
+					``,
+					`Each timeframe should end in any of these letters:`,
+					`\`s\` = \`seconds\``,
+					`\`m\` = \`minutes\``,
+					`\`h\` = \`hours\``,
+					`\`d\` = \`days\``,
+					``,
+					`**Examples**:`,
+					`\`8s 69m 28h 1d\` = \`2d 05:09:08\``,
+					`\`600s\` = \`0d 00:10:00\``
+				].join('\n'),
+				color: hexToBit(ColorTheme.embeds.info)
+			})
+		];
 	}
 
 	public registeredNewRole(roleId: string, cooldown: PeriodOfTime) {
@@ -71,13 +83,25 @@ class EmbedCollection extends BaseEmbedCollection {
 			color: hexToBit(ColorTheme.embeds.notice)
 		})
 	}
+
+	public targetRoleNotRegistered(role: Role) {
+		return new EmbedBuilder({
+			description: [
+				`The role you entered (<@&${role.id}>) is not registered as a rolecooldown.`,
+				`Please first register this role for a cooldown with the following command:`,
+				`\`/rolecooldown add role:${role.id}\``
+			].join('\n'),
+			color: hexToBit(ColorTheme.embeds.notice)
+		});
+	}
 }
 class MethodCollection extends BaseMethodCollection {
+	//#region Utility Methods
 	/** Validate the cooldown input that the user has provided
 	 * @param input The cooldown input the user has provided
 	 * @returns If valid, the PeriodOfTime object. If invalid, a message explaining why it is invalid
 	*/
-	public validateCooldownInput(input: string): PeriodOfTime | string {
+	private validateCooldownInput(input: string): PeriodOfTime | string {
 		//? help out the user a bit and prevent the time from being 0 ms if they enter the full word time frame (yes, this happend before)
 		input = input
 		.replaceAll('seconds', 's').replaceAll('second', 's').replaceAll('sec', 's')
@@ -141,7 +165,9 @@ class MethodCollection extends BaseMethodCollection {
 
 		return true
 	}
+	//#endregion
 
+	//#region Add
 	public async addRole(interaction: ChatInputCommandInteraction) {
 		if (!interaction.guild) {
 			throw new Error(`Interaction did not contain guild`)
@@ -153,10 +179,10 @@ class MethodCollection extends BaseMethodCollection {
 		const cooldown = this.validateCooldownInput(cooldownInput)
 		
 		//? if cooldown is a string, the input was invalid and coolodwn contains the message why it is invalid
-		if (typeof cooldown === 'string') { 
+		if (typeof cooldown === 'string') {
 			await interaction.reply({
-				embeds: [command.embeds.getCooldownInstructionEmbed(cooldownInput, cooldown)],
-				ephemeral: true
+				embeds: command.embeds.getCooldownInstructionEmbed(cooldownInput, 'cooldown', cooldown),
+				ephemeral: !GeneralData.development
 			});
 
 			return cooldown; //`Invalid cooldown input`
@@ -178,7 +204,59 @@ class MethodCollection extends BaseMethodCollection {
 
 		return true;
 	}
+	//#endregion
 
+	//#region Edit
+	private async getCooldownObject(interaction: ChatInputCommandInteraction): Promise<CooldownObject<PeriodOfTime | null> | string> {
+		const cooldownInput: CooldownObject<string|null> = {
+			global: interaction.options.getString('global-cooldown'),
+			channel: interaction.options.getString('channel-cooldown'),
+			user: interaction.options.getString('user-cooldown'),
+		}
+
+		const cooldown: CooldownObject<PeriodOfTime | null | string> = {
+			global: (cooldownInput.global !== null) ? this.validateCooldownInput(cooldownInput.global) : null,
+			channel: (cooldownInput.channel !== null) ? this.validateCooldownInput(cooldownInput.channel) : null,
+			user: (cooldownInput.user !== null) ? this.validateCooldownInput(cooldownInput.user) : null,
+		}
+
+		for (const field in cooldown) {
+			if (typeof cooldown[field] === 'string') {
+				await interaction.reply({
+					embeds: command.embeds.getCooldownInstructionEmbed(cooldownInput.global!, `${field}-cooldown`, cooldown[field]),
+					ephemeral: !GeneralData.development
+				});
+				
+				return `${field}-cooldown: ${cooldown[field]}`;
+			}
+		}
+
+		return cooldown as CooldownObject<PeriodOfTime | null>;
+	}
+
+	public async editRole(interaction: ChatInputCommandInteraction) {
+		const role = interaction.options.getRole('role', true) as Role;
+		const mentionable = await Mentionable.get(interaction.guildId!, role.id);
+
+		if (!mentionable) {
+			await interaction.reply({
+				embeds: [command.embeds.targetRoleNotRegistered(role)],
+				ephemeral: !GeneralData.development,
+			});
+
+			return `Target role not registered as mentionable`;
+		}
+
+		const cooldown = await this.getCooldownObject(interaction);
+		if (typeof cooldown === 'string') {
+			return cooldown;
+		}
+		
+		return true;
+	}
+	//#endregion
+
+	//#region Remove
 	public async removeRole(interaction: ChatInputCommandInteraction) {
 		if (!interaction.guild) {
 			throw new Error(`Interaction did not contain guild`)
@@ -217,6 +295,7 @@ class MethodCollection extends BaseMethodCollection {
 
 		return true
 	}
+	//#endregion
 }
 
 const command = new CommandInteractionData<ButtonCollection, SelectMenuCollection, EmbedCollection, MethodCollection>({
@@ -247,6 +326,33 @@ const command = new CommandInteractionData<ButtonCollection, SelectMenuCollectio
 					]
 				},
 				{
+					name: 'edit',
+					description: 'Edit an existing role cooldown (Omit cooldown options to preserve the current cooldown)',
+					options: [
+						{
+							type: ApplicationCommandOptionType.Role,
+							name: 'role',
+							description: 'The role to edit',
+							required: true
+						},
+						{
+							type: ApplicationCommandOptionType.String,
+							name: 'global-cooldown',
+							description: 'The cooldown that applies to everyone (overrides user/channel cooldown if its greater)',
+						},
+						{
+							type: ApplicationCommandOptionType.String,
+							name: 'channel-cooldown',
+							description: 'The cooldown that applies to the channel that the rolemention was used in',
+						},
+						{
+							type: ApplicationCommandOptionType.String,
+							name: 'user-cooldown',
+							description: 'The cooldown that applies to the user that used the rolemention',
+						},
+					]
+				},
+				{
 					name: 'remove',
 					description: 'Remove a role from the list',
 					options: [
@@ -264,6 +370,7 @@ const command = new CommandInteractionData<ButtonCollection, SelectMenuCollectio
 			const subCommand = interaction.options.getSubcommand();
 			switch (subCommand) {
 				case 'add': return await command.methods.addRole(interaction);
+				case 'edit': return await command.methods.editRole(interaction);
 				case 'remove': return await command.methods.removeRole(interaction);
 				default: break;
 			}
