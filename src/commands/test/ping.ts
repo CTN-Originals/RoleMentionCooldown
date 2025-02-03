@@ -23,7 +23,7 @@ const command = new CommandInteractionData<ButtonCollection, SelectMenuCollectio
 		content: {
 			name: 'ping',
 			description: 'Replies with latency stats',
-			contexts: [InteractionContextType.Guild],
+			contexts: [InteractionContextType.Guild, InteractionContextType.BotDM],
 		},
 		execute: async function (interaction: ChatInputCommandInteraction) {
 			const commandPing = Date.now() - interaction.createdTimestamp;

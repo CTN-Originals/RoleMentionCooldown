@@ -147,7 +147,7 @@ const command = new CommandInteractionData<ButtonCollection, SelectMenuCollectio
 		content: {
 			name: 'help',
 			description: 'Displays an embed with all commands and their description',
-			contexts: [InteractionContextType.Guild],
+			contexts: [InteractionContextType.Guild, InteractionContextType.BotDM],
 		},
 		execute: async function (interaction: ChatInputCommandInteraction) {
 			const commandInfo = command.methods.getExecutableCommands();
