@@ -171,3 +171,7 @@ export function getUniqueItems<T>(...arrays: T[][]): T[] {
 export function removeDuplicates<T>(input: T[]): T[] {
     return input.filter((item, index, self) => self.indexOf(item) === index);
 };
+
+export function clamp(num: number, min?: number, max?: number) {
+	return Math.min(Math.max(num, (min ?? num)), (max ?? num));
+};
