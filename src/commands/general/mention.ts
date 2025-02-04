@@ -79,13 +79,13 @@ const command = new CommandInteractionData<ButtonCollection, SelectMenuCollectio
 				allowedMentions: {roles: [role.id]}
 			});
 
-			Mentionable.onUsed(interaction.guild!, role.id);
+			Mentionable.onUsed(interaction.guild!, role.id, interaction.channelId, interaction.user.id);
 
 			cons.log([
 				`[fg=${ColorTheme.colors.yellow.asHex}]${interaction.guild!.name}[/>]:`,
 				`[fg=${ColorTheme.colors.cyan.asHex}]${interaction.user.username}[/>] used mentionable`,
 				`[fg=${(role.hexColor != '#000000') ? role.hexColor : ColorTheme.colors.grey.asHex}]${role.name}[/>] |`,
-				`cooldown started: [fg=${ColorTheme.colors.green.asHex}]${getTimeDisplay(mentionable.cooldown)}[/>]`
+				`cooldown started: [fg=${ColorTheme.colors.green.asHex}]${getTimeDisplay(mentionable.cooldownTime.global)}[/>]`
 			].join(' '))
 
 			return true;

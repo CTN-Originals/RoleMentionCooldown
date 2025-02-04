@@ -8,16 +8,11 @@ import { Mentionable } from "../../data/orm/mentionables";
 import { ConsoleInstance } from "better-console-utilities";
 import { validateEmbed } from "../../utils/embedUtils";
 import { BaseMethodCollection } from "../../handlers/commandBuilder/data";
+import { CooldownDefinition, IMentionableItem } from "../../data/orm/schemas/mentionableData";
 
 const thisConsole = new ConsoleInstance();
 
 const timeframes = ['s', 'm', 'h', 'd'];
-
-type CooldownObject<T = (string|null)|PeriodOfTime> = {
-	global: T,
-	channel: T,
-	user: T
-}
 
 class ButtonCollection extends BaseButtonCollection implements IButtonCollection<ButtonCollection> {}
 class SelectMenuCollection extends BaseSelectMenuCollection implements ISelectMenuCollection<SelectMenuCollection> {}
@@ -188,10 +183,10 @@ class MethodCollection extends BaseMethodCollection {
 			return cooldown; //`Invalid cooldown input`
 		}
 
-		const res = await Mentionable.add(interaction.guild?.id, roleId as string, {
-			cooldown: cooldown.time,
-			lastUsed: -1
-		})
+		const newMentionable: IMentionableItem = Mentionable.make();
+		newMentionable.cooldownTime.global = cooldown.time;
+
+		const res = await Mentionable.add(interaction.guild?.id, roleId as string, newMentionable);
 
 		if (res) {
 			await interaction.reply({
@@ -207,14 +202,14 @@ class MethodCollection extends BaseMethodCollection {
 	//#endregion
 
 	//#region Edit
-	private async getCooldownObject(interaction: ChatInputCommandInteraction): Promise<CooldownObject<PeriodOfTime | null> | string> {
-		const cooldownInput: CooldownObject<string|null> = {
+	private async getCooldownObject(interaction: ChatInputCommandInteraction): Promise<CooldownDefinition<PeriodOfTime | null> | string> {
+		const cooldownInput: CooldownDefinition<string|null> = {
 			global: interaction.options.getString('global-cooldown'),
 			channel: interaction.options.getString('channel-cooldown'),
 			user: interaction.options.getString('user-cooldown'),
 		}
 
-		const cooldown: CooldownObject<PeriodOfTime | null | string> = {
+		const cooldown: CooldownDefinition<PeriodOfTime | null | string> = {
 			global: (cooldownInput.global !== null) ? this.validateCooldownInput(cooldownInput.global) : null,
 			channel: (cooldownInput.channel !== null) ? this.validateCooldownInput(cooldownInput.channel) : null,
 			user: (cooldownInput.user !== null) ? this.validateCooldownInput(cooldownInput.user) : null,
@@ -231,7 +226,7 @@ class MethodCollection extends BaseMethodCollection {
 			}
 		}
 
-		return cooldown as CooldownObject<PeriodOfTime | null>;
+		return cooldown as CooldownDefinition<PeriodOfTime | null>;
 	}
 
 	public async editRole(interaction: ChatInputCommandInteraction) {

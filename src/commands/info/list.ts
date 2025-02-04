@@ -21,10 +21,10 @@ class EmbedCollection extends BaseEmbedCollection {
 	
 		for (const roleId in mentionables) {
 			switch (type) {
-				case 'all': {
+				case 'all': { //TODO get the highest cooldown time compared to each of the cooldown times and put that on up here
 					stats.push([
 						roleId,
-						`\`${getTimeDisplay(mentionables[roleId].cooldown)}\``
+						`\`${getTimeDisplay(mentionables[roleId].cooldownTime.global)}\``
 					])
 				} break;
 				case 'cooldowns': {
@@ -44,8 +44,8 @@ class EmbedCollection extends BaseEmbedCollection {
 		}
 		else {
 			switch (type) {
-				case 'all': 
-					stats.sort((a, b) => mentionables[a[0]].cooldown - mentionables[b[0]].cooldown);
+				case 'all':
+					stats.sort((a, b) => mentionables[a[0]].cooldownTime.global - mentionables[b[0]].cooldownTime.global);
 				break;
 				case 'cooldowns':
 					stats.sort((a, b) => (Date.now() + Mentionable.remainingCooldown(mentionables[a[0]])) - (Date.now() + Mentionable.remainingCooldown(mentionables[b[0]]))); 
