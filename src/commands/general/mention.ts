@@ -32,7 +32,16 @@ class EmbedCollection extends BaseEmbedCollection {
 		});
 	}
 }
-class MethodCollection extends BaseMethodCollection {}
+class MethodCollection extends BaseMethodCollection {
+	public onUsedLog(interaction: ChatInputCommandInteraction, role: Role, response: string) {
+		cons.log([
+			`[fg=${ColorTheme.colors.yellow.asHex}]${interaction.guild!.name}[/>]:`,
+			`[fg=${ColorTheme.colors.cyan.asHex}]${interaction.user.username}[/>] mentioned`,
+			`[fg=${(role.hexColor != '#000000') ? role.hexColor : ColorTheme.colors.grey.asHex}]@${role.name}[/>] |`,
+			`${response}`
+		].join(' '));
+	}
+}
 
 const command = new CommandInteractionData<ButtonCollection, SelectMenuCollection, EmbedCollection, MethodCollection>({
 	command: {
@@ -66,15 +75,27 @@ const command = new CommandInteractionData<ButtonCollection, SelectMenuCollectio
 					embeds: [command.embeds.roleNotRegistered(role.id)],
 					ephemeral: !GeneralData.development,
 				});
+
+				command.methods.onUsedLog(interaction, role, `[fg=${ColorTheme.colors.red.asHex}]Rejected[/>][fg=${ColorTheme.colors.grey.asHex}] - Role is not registered[/>]`);
+
 				return `Role is not registered as mentionable`
 			}
+
+			const activeCooldown = Mentionable.getActiveCooldown(mentionable, interaction.channelId, interaction.user.id);
 
 			if (Mentionable.isOncooldown(mentionable, interaction.channelId, interaction.user.id) === true) {
 				await interaction.reply({
 					embeds: [command.embeds.roleOnCooldown(role.id, mentionable, interaction)],
 					ephemeral: !GeneralData.development,
 				});
-				return `Role is on cooldown`
+
+				command.methods.onUsedLog(interaction, role, [
+					`[fg=${ColorTheme.colors.red.asHex}]Rejected[/>][fg=${ColorTheme.colors.grey.asHex}]`,
+					` - Mentionable on[/>] [fg=${ColorTheme.colors.orange.asHex}]${activeCooldown}-cooldown[/>]: `,
+					`[fg=${ColorTheme.colors.green.asHex}]${getTimeDisplay(Mentionable.remainingCooldown(mentionable, interaction.channelId, interaction.user.id))}[/>]`
+				].join(''));
+
+				return `Role is on cooldown`;
 			}
 
 			await interaction.reply({
@@ -83,13 +104,11 @@ const command = new CommandInteractionData<ButtonCollection, SelectMenuCollectio
 			});
 
 			Mentionable.onUsed(interaction.guild!, role.id, interaction.channelId, interaction.user.id);
-
-			cons.log([
-				`[fg=${ColorTheme.colors.yellow.asHex}]${interaction.guild!.name}[/>]:`,
-				`[fg=${ColorTheme.colors.cyan.asHex}]${interaction.user.username}[/>] used mentionable`,
-				`[fg=${(role.hexColor != '#000000') ? role.hexColor : ColorTheme.colors.grey.asHex}]${role.name}[/>] |`,
-				`cooldown started: [fg=${ColorTheme.colors.green.asHex}]${getTimeDisplay(mentionable.cooldownTime.global)}[/>]`
-			].join(' '))
+			command.methods.onUsedLog(interaction, role, [
+				`[fg=${ColorTheme.colors.green.asHex}]Cooldown Started[/>]: `,
+				`[fg=${ColorTheme.colors.grey.asHex}]${getTimeDisplay(mentionable.cooldownTime[activeCooldown ?? 'global'])}[/>]`,
+				`${(message) ? ` - [fg=${ColorTheme.colors.orange.asHex}]message[/>]: [fg=white]${message}[/>]` : ''}`
+			].join(''));
 
 			return true;
 		},
