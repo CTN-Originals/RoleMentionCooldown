@@ -96,6 +96,16 @@ export default {
 
 		
 		// new FakeInteraction('test').execute();
+		// const mentionTest = new FakeInteraction('mention', {
+		// 	options: [
+		// 		{name: 'role', value: {id: '1309653896788050043', name: '!q', hexColor: '#ff0000'}}
+		// 	]
+		// });
+		// mentionTest.execute();
+		// await new Promise<void>((resolve) => setTimeout(() => {resolve()}, 2000));
+		// mentionTest.execute();
+
+		// new FakeInteraction('test').execute();
 		// new FakeInteraction('rolecooldown', {
 		// 	subCommand: 'add',
 		// 	options: [
@@ -184,6 +194,7 @@ class FakeInteractionOptions {
 		return this._hoistedOptions.find(o => o.name === option)
 	}
 	public getString(option: string) { return this.get(option)?.value }
+	public getRole(option: string) { return this.get(option)?.value }
 	//TODO add typed getters like getString or getRole...
 
 	public getSubcommand(required: boolean) { return this.subCommand }

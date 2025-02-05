@@ -19,11 +19,14 @@ class EmbedCollection extends BaseEmbedCollection {
 		});
 	}
 
-	public roleOnCooldown(roleId: string, mentionable: IMentionableItem): EmbedBuilder {
+	public roleOnCooldown(roleId: string, mentionable: IMentionableItem, interaction: ChatInputCommandInteraction): EmbedBuilder {
+		const remainingTime = Mentionable.remainingCooldown(mentionable, interaction.channelId, interaction.user.id);
+		const activeCooldown = Mentionable.getActiveCooldown(mentionable, interaction.channelId, interaction.user.id);
+
 		return new EmbedBuilder({
 			description: [
 				`The role you entered (<@&${roleId}>) is currently on cooldown.`,
-				`The cooldown expires <t:${getTimestamp(Date.now() + Mentionable.remainingCooldown(mentionable))}:R>.`
+				`The \`${activeCooldown}\` cooldown expires <t:${getTimestamp(Date.now() + remainingTime)}:R>.`
 			].join('\n'),
 			color: hexToBit(ColorTheme.embeds.notice)
 		});
@@ -66,16 +69,16 @@ const command = new CommandInteractionData<ButtonCollection, SelectMenuCollectio
 				return `Role is not registered as mentionable`
 			}
 
-			if (Mentionable.isOncooldown(mentionable) === true) {
+			if (Mentionable.isOncooldown(mentionable, interaction.channelId, interaction.user.id) === true) {
 				await interaction.reply({
-					embeds: [command.embeds.roleOnCooldown(role.id, mentionable)],
+					embeds: [command.embeds.roleOnCooldown(role.id, mentionable, interaction)],
 					ephemeral: !GeneralData.development,
 				});
 				return `Role is on cooldown`
 			}
 
 			await interaction.reply({
-				content: `<@&${role.id}>${(message !== null) ? ` ${message}` : ''}`,
+				content: `<@&${role.id}>${(message) ? ` ${message}` : ''}`,
 				allowedMentions: {roles: [role.id]}
 			});
 

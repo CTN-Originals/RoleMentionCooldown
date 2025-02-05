@@ -137,7 +137,7 @@ class MethodCollection extends BaseMethodCollection {
 		const cooldown = new PeriodOfTime(input);
 
 		//- cooldown returned as 0
-		if (cooldown.time === 0) {
+		if (cooldown.time === 0 && cooldown.input !== '0s') {
 			return 'The cooldown time resulted to be `0` from the input that was given.\nThis usually happens when the input contains unexpected characters.'
 		}
 
@@ -163,6 +163,7 @@ class MethodCollection extends BaseMethodCollection {
 	//#endregion
 
 	//#region Add
+	//TODO Add global, channel and user cooldown command options to the add subcommand as well but require the user to input at least one in any for the command to be valid
 	public async addRole(interaction: ChatInputCommandInteraction) {
 		if (!interaction.guild) {
 			throw new Error(`Interaction did not contain guild`)
@@ -171,7 +172,7 @@ class MethodCollection extends BaseMethodCollection {
 		
 		let cooldownInput = interaction.options.getString('cooldown', true);
 
-		const cooldown = this.validateCooldownInput(cooldownInput)
+		const cooldown = this.validateCooldownInput(cooldownInput);
 		
 		//? if cooldown is a string, the input was invalid and coolodwn contains the message why it is invalid
 		if (typeof cooldown === 'string') {
@@ -218,7 +219,7 @@ class MethodCollection extends BaseMethodCollection {
 		for (const field in cooldown) {
 			if (typeof cooldown[field] === 'string') {
 				await interaction.reply({
-					embeds: command.embeds.getCooldownInstructionEmbed(cooldownInput.global!, `${field}-cooldown`, cooldown[field]),
+					embeds: command.embeds.getCooldownInstructionEmbed(cooldownInput[field], `${field}-cooldown`, cooldown[field]),
 					ephemeral: !GeneralData.development
 				});
 				
@@ -231,7 +232,8 @@ class MethodCollection extends BaseMethodCollection {
 
 	public async editRole(interaction: ChatInputCommandInteraction) {
 		const role = interaction.options.getRole('role', true) as Role;
-		const mentionable = await Mentionable.get(interaction.guildId!, role.id);
+		const mentionableDoc = await Mentionable.getDocument(interaction.guildId!);
+		const mentionable = mentionableDoc.mentionables[role.id];
 
 		if (!mentionable) {
 			await interaction.reply({
@@ -242,11 +244,31 @@ class MethodCollection extends BaseMethodCollection {
 			return `Target role not registered as mentionable`;
 		}
 
-		const cooldown = await this.getCooldownObject(interaction);
-		if (typeof cooldown === 'string') {
-			return cooldown;
+		const cooldownInputs = await this.getCooldownObject(interaction);
+		if (typeof cooldownInputs === 'string') {
+			return cooldownInputs;
 		}
 		
+		if (!Object.values(cooldownInputs).every(cd => cd === null)) {
+			for (const cooldownField in cooldownInputs) {
+				if (cooldownInputs[(cooldownField as keyof CooldownDefinition<PeriodOfTime>)] === null) { continue; }
+				mentionable.cooldownTime[(cooldownField as keyof CooldownDefinition<any>)] = cooldownInputs[(cooldownField as keyof CooldownDefinition<PeriodOfTime>)]!.time;
+			}
+
+			await Mentionable.update(mentionableDoc);
+
+			await interaction.reply({
+				content: `Successfully updated <@&${role.id}>\n-# TODO: Send embed containing the current settings of the rolecooldown`,
+				ephemeral: !GeneralData.development,
+			});
+		}
+		else {
+			await interaction.reply({
+				content: `-# TODO: Send embed containing the current settings of the rolecooldown`,
+				ephemeral: !GeneralData.development,
+			});
+		}
+
 		return true;
 	}
 	//#endregion

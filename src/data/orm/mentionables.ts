@@ -13,7 +13,7 @@ export const ActiveCooldown = {
 	channel: 'channel',
 	user: 'user',
 } as const;
-export type TActiveCooldown = typeof ActiveCooldown[keyof typeof ActiveCooldown];
+export type TActiveCooldown = keyof typeof ActiveCooldown;
 
 export class Mentionable {
 	/** true if the anything has updated sins getAll() was last called */
@@ -74,6 +74,7 @@ export class Mentionable {
 	private static isTimeWithinCooldown(cooldown: number | null, lastUsed: number | null): boolean {
 		return ((cooldown ?? 0) + (lastUsed ?? 0) >= Date.now());
 	}
+
 	/** Get the amount of cooldown time (in milliseconds) remaining
 	 * @param cooldown The cooldown time
 	 * @param lastUsed The time to compare with the cooldown
@@ -81,8 +82,45 @@ export class Mentionable {
 	 * @returns The amount of cooldown time remaining (can be a negative)
 	 * @example (lastUsed + cooldown) - Date.now()
 	*/
-	private static remainingCooldownTime(cooldown: number | null, lastUsed: number | null): number {
-		return ((lastUsed ?? 0) + (cooldown ?? 0)) - Date.now()
+	public static remainingCooldownTime(cooldown: number | null, lastUsed: number | null): number;
+	/** Get the amount of cooldown time (in milliseconds) remaining
+	 * @param mentionable The mentionable to get the data from
+	 * @param field The field of the mentionable to check
+	 * @returns The amount of cooldown time remaining (can be a negative)
+	 * @example (lastUsed + cooldown) - Date.now()
+	*/
+	public static remainingCooldownTime(mentionable: IMentionableItem, field: Extract<TActiveCooldown, 'global'>): number;
+	/** Get the amount of cooldown time (in milliseconds) remaining
+	 * @param mentionable The mentionable to get the data from
+	 * @param field The field of the mentionable to check
+	 * @param id The channel/user ID if field is not "global"
+	 * @returns The amount of cooldown time remaining (can be a negative)
+	 * @example (lastUsed + cooldown) - Date.now()
+	*/
+	public static remainingCooldownTime(mentionable: IMentionableItem, field: Extract<TActiveCooldown, 'channel' | 'user'>, id: string): number;
+	public static remainingCooldownTime(cooldown_mentionable: (number | null) | IMentionableItem, lastUsed_field: (number | null) | TActiveCooldown, id?: string): number {
+		let cooldown = 0;
+		let lastUsed = 0;
+
+		if ((typeof cooldown_mentionable === 'number' || cooldown_mentionable === null) && (typeof lastUsed_field === 'number' || lastUsed_field === null)) {
+			cooldown = (cooldown_mentionable ?? 0);
+			lastUsed = (lastUsed_field ?? 0);
+		}
+		else if (cooldown_mentionable !== null && typeof lastUsed_field === 'string') {
+			const mentionable = cooldown_mentionable as IMentionableItem;
+			const field = lastUsed_field as TActiveCooldown;
+
+			cooldown = mentionable.cooldownTime[field];
+
+			if (field === ActiveCooldown.global) {
+				lastUsed = mentionable.lastUsedData[field];
+			}
+			else if (Object.keys(mentionable.lastUsedData[field]).includes(id!)) {
+				lastUsed = mentionable.lastUsedData[field][id!];
+			}
+		}
+
+		return (lastUsed + cooldown) - Date.now()
 	}
 	
 	/** Check if the mentionable is currently on cooldown
@@ -104,13 +142,13 @@ export class Mentionable {
 		}
 
 		let channelCooldown: boolean = false;
-		if (Object.keys(mentionable.lastUsedData.channels).includes(channelId)) {
-			channelCooldown = this.isTimeWithinCooldown(mentionable.cooldownTime.channel, mentionable.lastUsedData.channels[channelId])
+		if (Object.keys(mentionable.lastUsedData.channel).includes(channelId)) {
+			channelCooldown = this.isTimeWithinCooldown(mentionable.cooldownTime.channel, mentionable.lastUsedData.channel[channelId])
 		}
 
 		let userCooldown: boolean = false;
-		if (Object.keys(mentionable.lastUsedData.users).includes(userId)) {
-			userCooldown = this.isTimeWithinCooldown(mentionable.cooldownTime.user, mentionable.lastUsedData.users[userId])
+		if (Object.keys(mentionable.lastUsedData.user).includes(userId)) {
+			userCooldown = this.isTimeWithinCooldown(mentionable.cooldownTime.user, mentionable.lastUsedData.user[userId])
 		}
 
 
@@ -124,28 +162,37 @@ export class Mentionable {
 	 * @returns The highest active cooldown if any, null otherwise
 	*/
 	public static getActiveCooldown(mentionable: IMentionableItem, channelId: string, userId: string): TActiveCooldown | null {
-		if (this.isOncooldown(mentionable, channelId, userId) === false) {
+		if (Mentionable.isOncooldown(mentionable, channelId, userId) === false) {
 			return null;
 		}
 
 		let highestCooldown: TActiveCooldown | null = null;
 		let highestTime = 0;
-		for (const cooldownType in ActiveCooldown) {
-			if (mentionable.cooldownTime[cooldownType] !== null && Object.keys(mentionable.lastUsedData[cooldownType]).includes(cooldownType)) {
-				const remainingTime = this.remainingCooldownTime(mentionable.cooldownTime[cooldownType], mentionable.lastUsedData[cooldownType][cooldownType + 'Id']);
-				if (remainingTime > highestTime) {
-					highestTime = remainingTime;
-					highestCooldown = cooldownType as TActiveCooldown;
+		
+		for (const cooldownType of Object.keys(ActiveCooldown) as TActiveCooldown[]) {
+			let remainingTime = 0;
+
+			if (cooldownType === ActiveCooldown.global) {
+				remainingTime = Mentionable.remainingCooldownTime(mentionable, cooldownType);
+			} else {
+				const typeId = (cooldownType === ActiveCooldown.channel) ? channelId : userId;
+				if (Object.keys(mentionable.lastUsedData[cooldownType]).includes(typeId)) {
+					remainingTime = Mentionable.remainingCooldownTime(mentionable, cooldownType, typeId);
 				}
+			}
+
+			if (remainingTime > highestTime) {
+				highestTime = remainingTime;
+				highestCooldown = cooldownType as TActiveCooldown;
 			}
 		}
 
 		return highestCooldown
 	}
 
-	/** Get the amount of time remaining on the longest active cooldown, if any
+	/** Get the amount of time remaining on global cooldown
 	 * @param mentionable The mentionable object
-	 * @returns The amount of cooldown time remaining (can be a negative)
+	 * @returns The amount of cooldown time remaining
 	*/
 	public static remainingCooldown(mentionable: IMentionableItem): number;
 	/** Get the amount of time remaining on the longest active cooldown, if any
@@ -156,19 +203,21 @@ export class Mentionable {
 	*/
 	public static remainingCooldown(mentionable: IMentionableItem, channelId: string, userId: string): number;
 	public static remainingCooldown(mentionable: IMentionableItem, channelId?: string, userId?: string): number {
+		const globalTime = clamp(Mentionable.remainingCooldownTime(mentionable.cooldownTime.global, mentionable.lastUsedData.global), 0);
+		
 		if (!channelId || !userId || (!channelId && !userId)) {
-			return clamp(this.remainingCooldownTime(mentionable.cooldownTime.global, mentionable.lastUsedData.global), 0)
+			return globalTime;
 		}
 
-		const activeCooldown = this.getActiveCooldown(mentionable, channelId, userId)
+		const activeCooldown = Mentionable.getActiveCooldown(mentionable, channelId, userId)
 		if (!activeCooldown) {
 			return 0;
 		}
 		else if (activeCooldown === ActiveCooldown.global) {
-			return clamp(this.remainingCooldownTime(mentionable.cooldownTime.global, mentionable.lastUsedData.global), 0)
+			return globalTime;
 		}
 
-		return this.remainingCooldownTime(mentionable.cooldownTime[activeCooldown], mentionable.lastUsedData[activeCooldown][(activeCooldown == 'channel') ? channelId : userId]);
+		return Mentionable.remainingCooldownTime(mentionable.cooldownTime[activeCooldown], mentionable.lastUsedData[activeCooldown][(activeCooldown == 'channel') ? channelId : userId]);
 	}
 	//#endregion
 	
@@ -307,10 +356,10 @@ export class Mentionable {
 			},
 			lastUsedData: {
 				global: 0,
-				channels: {placeholder: 0},
-				users: {placeholder: 0}
+				channel: {placeholder: 0},
+				user: {placeholder: 0}
 			}
-		}
+		} as IMentionableItem;
 	}
 
 	/** Register a new mentionable
@@ -438,8 +487,8 @@ export class Mentionable {
 		const time = new Date().getTime();
 
 		mentionable.lastUsedData.global = time;
-		mentionable.lastUsedData.channels[channelId] = time
-		mentionable.lastUsedData.users[userId] = time
+		mentionable.lastUsedData.channel[channelId] = time
+		mentionable.lastUsedData.user[userId] = time
 		// await Mentionable.startCooldown(guild, id, doc.mentionables[id]);
 		return await Mentionable.update(doc);
 	}

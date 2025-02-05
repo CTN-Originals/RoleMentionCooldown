@@ -23,13 +23,13 @@ export type LastUsedData = {
 	 * @key The channel ID
 	 * @value The Universal Time Code of when this mentionable was last used in this channel
 	*/
-	channels: {[channelId: string]: number},
+	channel: {[channelId: string]: number},
 
 	/** All the channels that it was last used in
 	 * @key The user ID
 	 * @value The Universal Time Code of when this user last used this mentionable
 	*/
-	users: {[userId: string]: number}
+	user: {[userId: string]: number}
 }
 
 export type IMentionableItem = {
