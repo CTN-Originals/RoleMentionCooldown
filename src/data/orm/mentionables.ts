@@ -4,6 +4,7 @@ import { Guild, GuildMember, PermissionsBitField, Role } from "discord.js";
 import { ObjectRelationalMap } from ".";
 import { ColorTheme, GeneralData } from "..";
 import { clamp } from "../../utils";
+import { cons } from "../..";
 
 type MentionableCache<T> = {[id: string]: T};
 
@@ -190,9 +191,40 @@ export class Mentionable {
 		Mentionable.mentionablesCache[guild.id] = {};
 		// Mentionable.activeCooldowns[guild.id] = {};
 		
-		// const mentionableDoc = await Mentionable.getDocument(guild.id, false);
+		const mentionableDoc = await Mentionable.getDocument(guild.id, false);
+		const mentionables = mentionableDoc.mentionables;
 		// const mentionables = await Mentionable.getAll(guild.id);
-		Mentionable.getAll(guild.id);
+		// Mentionable.getAll(guild.id);
+
+		//#region TMP remove block next patch
+		type IOLDMentionableItem = {
+			cooldown: number,
+			lastUsed: number, //? the milisecond time code of when the mentionable was last mentioned
+		}
+
+		let hasChanged = false;
+
+		for (const id in mentionables) {
+			let mentionable: IOLDMentionableItem | IMentionableItem = mentionables[id];
+			if (Object.keys(mentionable).includes('cooldown')) {
+				mentionable = mentionable as unknown as IOLDMentionableItem;
+				
+				const newMentionable = Mentionable.make();
+				newMentionable.cooldownTime.global = mentionable.cooldown;
+				newMentionable.lastUsedData.global = mentionable.lastUsed;
+
+				mentionables[id] = newMentionable;
+
+				eventConsole.log(`[fg=yellow]${guild.name}[/>] [fg=green]REFORMATTING[/>]: ${id} To the new database format`);
+
+				hasChanged = true;
+			}
+		}
+
+		if (hasChanged) {
+			Mentionable.update(mentionableDoc);
+		}
+		//#endregion
 
 		// //#region TMP reset role mentionable setting
 		// //!! after its been pushed to beta and release, remove this the next patch
@@ -247,16 +279,18 @@ export class Mentionable {
 	*/
 	public static async update(doc: Awaited<ReturnType<typeof Mentionable.getDocument>>): ReturnType<typeof ObjectRelationalMap.update>;
 	/**  Update the mentionable document
+	 *!@note This does not update the changes made correctly often times
 	 * @param guildId The GuildID of the server the document is for
 	 * @returns Wether or not the data has been saved successfully
 	*/
 	public static async update(guildId: string): ReturnType<typeof ObjectRelationalMap.update>;
 	public static async update(id_doc: string|Awaited<ReturnType<typeof Mentionable.getDocument>>): ReturnType<typeof ObjectRelationalMap.update> {
-		if (typeof id_doc === 'string')
-			Mentionable.hasChanged[id_doc] = true;
-		else
-			Mentionable.hasChanged[id_doc._id] = true;
-		
+		if (typeof id_doc === 'string') {
+			id_doc = await Mentionable.getDocument(id_doc);
+		}
+
+		Mentionable.hasChanged[id_doc._id] = true;
+
 		return await ObjectRelationalMap.update(DataModel, id_doc, ['mentionables'])
 	}
 
