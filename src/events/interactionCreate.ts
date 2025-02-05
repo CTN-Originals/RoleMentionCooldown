@@ -24,7 +24,9 @@ import { BaseButtonCollection,
 	IButtonCollectionField,
 	ICommandObjectContent,
 	IContextMenuObjectContent,
-	ISelectMenuCollectionField
+	ISelectMenuCollectionField,
+	LOG_CONDITION,
+	TLogCondition
 } from '../handlers/commandBuilder';
 import { EmitError } from '.';
 import { IInteractionTypeData, getHoistedOptions, getInteractionType } from '../utils/interactionUtils';
@@ -32,7 +34,7 @@ import { ColorTheme, GeneralData } from '../data';
 import { errorConsole, ErrorObject } from '../handlers/errorHandler';
 import { client } from '..';
 import { validateEmbed } from '../utils/embedUtils';
-import { getUniqueItems, hexToBit, removeDuplicates } from '../utils';
+import { hexToBit, removeDuplicates } from '../utils';
 
 const thisConsole = new ConsoleInstance();
 
@@ -106,11 +108,11 @@ export default {
 			return null;
 		}
 
-		let doOutputLog = true;
+		let commandErrored = false;
+		let interactionData: ICommandObjectContent | IContextMenuObjectContent | IButtonCollectionField | ISelectMenuCollectionField | undefined;
 
 		try {
 			let interactionObject = getInteractionData();
-			let interactionData: ICommandObjectContent | IContextMenuObjectContent | IButtonCollectionField | ISelectMenuCollectionField;
 
 			if (!interactionObject) {
 				throw new Error(`Unknown interaction: "${interaction[nameKey]}"`);
@@ -142,13 +144,11 @@ export default {
 			if (response === null) {
 				response = await interactionData.execute(interaction as any);
 			}
-
-			doOutputLog = (interactionData.content as BaseCommandObject).outputLogInteraction
-			
 		} catch (err) {
-			const errorObject: ErrorObject = await EmitError(err as Error, interaction);
+			commandErrored = true;
+			const errorObject: ErrorObject = await EmitError((err instanceof Error) ? err : new Error(err as string), interaction);
 
-			let content = `There was an error while executing this interaction`
+			let content = `There was an error while executing this interaction`;
 			if (GeneralData.development) {
 				content += '\n```ts\n' + errorObject.formatError({shortenPaths: true, colorize: false}) + '\n```';
 			}
@@ -168,9 +168,19 @@ export default {
 			response = err;
 		}
 
-		if (doOutputLog !== false && GeneralData.logging.interaction.enabled) {
+		const logLevel = 
+			(interactionData !== undefined && (interactionData.content as BaseCommandObject).logInteraction !== undefined) ? 
+			(interactionData.content as BaseCommandObject).logInteraction : LOG_CONDITION.ALWAYS;
+
+		const commandState: TLogCondition = (commandErrored === true) ? LOG_CONDITION.ERROR : (response === true) ? LOG_CONDITION.SUCCESS : LOG_CONDITION.FAIL;
+
+		if (GeneralData.logging.interaction.enabled &&
+			logLevel !== LOG_CONDITION.NEVER &&
+			logLevel === LOG_CONDITION.ALWAYS ||
+			(logLevel & commandState) === commandState
+		) {
 			this.outputLog(interaction, response);
-		} 
+		}
 	},
 
 	outputLog(interaction: BaseInteraction, response = null) {
@@ -229,7 +239,11 @@ export default {
 
 		if (logFields.response !== '') {
 			logMessage.push(`[fg=${ColorTheme.colors.blue.asHex}]Response[/>]:`);
-			thisConsole.log('\n' + logMessage.join('\n'), response);
+			if (typeof response === 'object') {
+				thisConsole.log('\n' + logMessage.join('\n'), response);
+			} else {
+				thisConsole.log('\n' + logMessage.join('\n') + ' ' + response);
+			}
 		}
 		else {
 			thisConsole.log('\n' + logMessage.join('\n') + '\n');

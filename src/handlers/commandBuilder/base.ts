@@ -1,5 +1,5 @@
 import { LocalizationMap, SlashCommandSubcommandGroupBuilder, ApplicationCommandOption, ApplicationCommandOptionType, PermissionsString, PermissionsBitField } from "discord.js";
-import { AnyDiscordCommandOption, AnySlashCommandBuilder } from ".";
+import { AnyDiscordCommandOption, AnySlashCommandBuilder, LOG_CONDITION, TLogCondition } from ".";
 import { 
 	AttachmentOptionObject,
 	BooleanOptionObject,
@@ -21,7 +21,7 @@ const nameAllowedCharacters = [
 ];
 
 type RequiredBaseFields = 'name' | 'description';
-type OptionalBaseFields = 'name_localizations' | 'description_localizations' | 'outputLogInteraction';
+type OptionalBaseFields = 'name_localizations' | 'description_localizations' | 'logInteraction';
 
 export type CommandObjectInput<
     T extends BaseCommandObject,
@@ -49,8 +49,11 @@ export class BaseCommandObject {
 	/** The description localizations of this command. */
 	public description_localizations?: LocalizationMap;
 
-	/** Wether or not to log the interaction to the console on InteractionCreate */
-	public outputLogInteraction = true;
+	/** Define when to log the interaction
+	 * @requires {@linkcode LOG_CONDITION} from {@linkcode src/handlers/commandBuilder/index.ts}
+	 * @example logInteraction = LOG_CONDITION.ON_FAIL | LOG_CONDITION.ON_ERROR;
+	*/
+	public logInteraction: TLogCondition = LOG_CONDITION.ALWAYS;
 
 	constructor(input: IBaseCommandObject) {
 		this.name = input.name;
