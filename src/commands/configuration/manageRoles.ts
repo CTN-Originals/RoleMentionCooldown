@@ -143,23 +143,6 @@ class MethodCollection extends BaseMethodCollection {
 
 		return cooldown;
 	}
-
-	/** Check of the given role is lower then the bots highest role and is there fore editable 
-	 * @deprecated The bot doesnt edit roles anymore and mentioning the role does not require the role to be below the mentioners highest role.
-	*/
-	public async validateRolePosition(interaction: ChatInputCommandInteraction, role: Role): Promise<boolean> {
-		// const botMember = interaction.guild!.members.me!;
-		// if (!botMember?.roles.highest.position || botMember?.roles.highest.position < role.position) {
-		// 	await interaction.reply({
-		// 		embeds: [validateEmbed(command.embeds.targetRoleTooHigh(botMember, role))],
-		// 		ephemeral: true
-		// 	});
-
-		// 	return false
-		// }
-
-		return true
-	}
 	//#endregion
 
 	//#region Add

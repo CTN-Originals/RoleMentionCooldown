@@ -49,21 +49,6 @@ export default {
 		client.guilds.cache.forEach(async guild => {
 			Mentionable.initialize(guild);
 		})
-
-		// UpdateBotListStats();
-
-		// this.Update(client); //? Start the update cycle
-	},
-
-	/** This function runs every second and calls out to things that need to be checked on the regular 
-	 * @deprecated The current only use case for this function was to call {@link Mentionable.validateGuildCooldowns()}, which has also been depricated
-	*/
-	async Update(client: Client) { //?? Initially this was inside index.ts, but that brought a bunch of errors so next best is here i guess...
-		const interval = setInterval(() => {
-			client.guilds.cache.forEach(guild => {
-				// Mentionable.validateGuildCooldowns(guild);
-			})
-		}, 1000)
 	},
 
 	async runTests(client: Client) {
@@ -231,7 +216,7 @@ class FakeInteraction {
 	) {
 		this.user = {
 			id: process.env.DEV_TEST_USER_ID!,
-			username: 'keybotkiller',
+			username: 'TEST_USER',
 			_equals: (user) => {return true},
 		}
 		this.channel = DevEnvironment.channel;

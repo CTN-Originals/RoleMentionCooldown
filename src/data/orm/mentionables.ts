@@ -23,11 +23,6 @@ export class Mentionable {
 	 * @note This is to save a bit of performance as the getAll function might be called for each message sent in any server.
 	*/
 	public static mentionablesCache: MentionableCache<IMentionableStorage> = {};
-
-	/** Stores an array of mentionables that are currently on cooldown 
-	 * @deprecated Check if mentionable is on cooldown by calling {@link Mentionable.isOncooldown()}
-	*/
-	public static activeCooldowns: MentionableCache<IMentionableStorage> = {};
 	
 	//#region Getters
 	/** Get the whole document of a guild
@@ -398,55 +393,6 @@ export class Mentionable {
 		delete doc.mentionables[id]
 		return await Mentionable.update(doc);
 	}
-
-	/** Start the cooldown for a mentionable
-	 * @param guild The guild that the mentionable is in
-	 * @param  id The ID of the mentionable
-	 * @param mentionable The mentionable object
-	 * @returns true if the cooldown has been started successfully, false otherwise
-	 * @deprecated Doesnt do anything anymore after we stoped using role.setMentionable() and {@link Mentionable.activeCooldowns} was depricated.
-	*/
-	public static async startCooldown(guild: Guild, id: string, mentionable?: IMentionableItem|null): Promise<boolean> {
-		// const role = guild.roles.cache.find(r => r.id == id);
-		// if (!role) {
-		// 	EmitError(new Error(`Unable to find role (${id})`));
-		// 	return false;
-		// }
-
-		// if (mentionable === undefined) {
-		// 	mentionable = await Mentionable.get(guild.id, id);
-		// }
-		// if (!mentionable) { return false; }
-
-		// await role.setMentionable(false, `${process.env.APP_NAME} - Used`);
-		// Mentionable.activeCooldowns[guild.id][id] = mentionable;
-
-		return true;
-	}
-
-	/** Check all the active cooldowns for a guild and end them if they are expired
-	 * @param guild The guild to check the cooldowns for
-	 * @deprecated Roles do not have to be set to mentionable anymore and therefor do not need to be managed after a cooldown expires
-	*/
-	public static async validateGuildCooldowns(guild: Guild) {
-		// for (const roleId in Mentionable.activeCooldowns[guild.id]) {
-		// 	const item = Mentionable.activeCooldowns[guild.id][roleId];
-		// 	if (!Mentionable.isOncooldown(item)) {
-		// 		//? delete now as it doesnt matter if the role exists or not, it should not trigger again
-		// 		delete Mentionable.activeCooldowns[guild.id][roleId]; 
-
-		// 		//?? Do we still need everything after this line after migrating to the /mention command?
-		// 		//?? onCooldownExpired doesnt do anything anymore now that we dont have to set the role to mentionable anymore
-		// 		const role = guild.roles.cache.find(r => r.id == roleId);
-		// 		if (!role) {
-		// 			EmitError(new Error(`Unable to find role (${roleId})`));
-		// 			continue;
-		// 		}
-
-		// 		Mentionable.onCooldownExpired(role);
-		// 	}
-		// }
-	}
 	//#endregion
 
 
@@ -491,20 +437,6 @@ export class Mentionable {
 		mentionable.lastUsedData.user[userId] = time
 		// await Mentionable.startCooldown(guild, id, doc.mentionables[id]);
 		return await Mentionable.update(doc);
-	}
-
-	/** Once a cooldown of a mentionable expires. Update the role to allow everyone to mention this role again.
-	 * @param role The role of the expired mentionable
-	 * @returns Wether or not the role has been updated successfully
-	 * @deprecated Stoped using role.setMentionable while migrating to /mention
-	*/
-	public static async onCooldownExpired(role: Role): Promise<boolean> {
-		// await role.setMentionable(true, `${process.env.APP_NAME} - Cooldown Expired`).catch((e: Error) => {
-		// 	e.message = `Failed to update role to mentionable after expired cooldown\n${e.message}`
-		// 	EmitError(e); //! if this is reached, there is a role stuck on not mentionable
-		// 	return false;
-		// });
-		return true;
 	}
 	//#endregion
 }
