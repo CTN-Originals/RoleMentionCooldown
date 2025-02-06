@@ -216,6 +216,20 @@ export type AnySelectMenuComponentObject = Exclude<AnyComponentObject, ButtonCom
 export type IAnySelectMenuComponentObject = Exclude<IAnyComponentObject, IButtonComponentObject>;
 
 export type AnyContextMenuInteraction = MessageContextMenuCommandInteraction | UserContextMenuCommandInteraction;
+
+export const LOG_CONDITION = {
+	/** Always log */
+	ALWAYS: 0,
+	/** Only log when the command was executed successfully */
+	SUCCESS: 1 << 1,
+	/** Only log when the command was rejected for any reason */
+	FAIL: 1 << 2,
+	/** Only log when the command threw and error */
+	ERROR: 1 << 3,
+	/** Never log */
+	NEVER: -1,
+} as const;
+export type TLogCondition = typeof LOG_CONDITION[keyof typeof LOG_CONDITION];
 //#endregion
 
 export function getInteractionObject(content: IAnyInteractionField | IAnyInteractionObject): AnyInteractionObject | void {

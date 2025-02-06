@@ -10,8 +10,13 @@ A discord bot that allows users to mention a role once, then apply a cooldown to
 ### Admin
 
 - Cooldowns
-  - `/rolecooldown add <role> <cooldown>`: Add a new role to the monitored list, or change the cooldown for an existing one
-    - `cooldown`: The cooldown to apply to the role on use (separate with spaces). Ex: `8s 69m 28h 1d = 2d 05:09:08`, `600s = 0d 00:10:00`
+  - `/rolecooldown add <role> [global-cooldown] [channel-cooldown] [user-cooldown]`: Add a new role cooldown (At least one cooldown is required to be entered)
+	- `role`: The role to add
+	- `global-cooldown`: The cooldown that applies to everyone (overrides user/channel cooldown if its greater)
+	- `channel-cooldown`: The cooldown that applies to the channel that the rolemention was used in
+	- `user-cooldown`: The cooldown that applies to the user that used the rolemention
+  - `/rolecooldown edit <role> [global-cooldown] [channel-cooldown] [user-cooldown]`: Edit an existing role cooldown (Omit cooldown options to preserve the current cooldown)
+	> Same as `/rolecooldown add`
   - `/rolecooldown remove <role>`: Remove a role from having a cooldown
 
 ### User
@@ -27,6 +32,20 @@ A discord bot that allows users to mention a role once, then apply a cooldown to
   - `/help`: Displays an embed with all commands and their description
   - `/ping`: Show latency stats
 
+## Cooldown input option instructions
+
+> The cooldown input should be seperated with spaces for each timeframe entered.
+
+> Each timeframe should end in any of these letters:
+> - `s` = seconds
+> - `m` = minutes
+> - `h` = hours
+> - `d` = days
+
+> **Examples**:
+> - `8s 69m 28h 1d` = 2d 05:09:08
+> - `600s` = 0d 00:10:00
+
 ## Usage
 
 After adding mentionable roles with the `/rolecooldown add` command, anyone can then user the command `/mention` and select the any role that is registered via `/rolecooldown add` in the command options.
@@ -37,7 +56,6 @@ Once someone uses the `/mention` command, the role that they select will be put 
 
 - Bot Invite: https://discord.com/oauth2/authorize?client_id=1308469474768457748
 - BETA bot invite: https://discord.com/oauth2/authorize?client_id=1319723378873077842
-- Discord App Discovery Page: https://discord.com/application-directory/1308469474768457748
 - Official Discord Support Server: https://discord.gg/5eYZQNzMnx
 
 ## Contributions

@@ -49,21 +49,6 @@ export default {
 		client.guilds.cache.forEach(async guild => {
 			Mentionable.initialize(guild);
 		})
-
-		// UpdateBotListStats();
-
-		// this.Update(client); //? Start the update cycle
-	},
-
-	/** This function runs every second and calls out to things that need to be checked on the regular 
-	 * @deprecated The current only use case for this function was to call {@link Mentionable.validateGuildCooldowns()}, which has also been depricated
-	*/
-	async Update(client: Client) { //?? Initially this was inside index.ts, but that brought a bunch of errors so next best is here i guess...
-		const interval = setInterval(() => {
-			client.guilds.cache.forEach(guild => {
-				// Mentionable.validateGuildCooldowns(guild);
-			})
-		}, 1000)
 	},
 
 	async runTests(client: Client) {
@@ -96,6 +81,23 @@ export default {
 
 		
 		// new FakeInteraction('test').execute();
+		// const mentionTest = new FakeInteraction('mention', {
+		// 	options: [
+		// 		{name: 'role', value: {id: '1309653896788050043', name: '!q', hexColor: '#ff0000'}}
+		// 	]
+		// });
+		// mentionTest.execute();
+		// await new Promise<void>((resolve) => setTimeout(() => {resolve()}, 2000));
+		// mentionTest.execute();
+
+		// new FakeInteraction('test').execute();
+		// new FakeInteraction('rolecooldown', {
+		// 	subCommand: 'add',
+		// 	options: [
+		// 		{name: 'role', value: '1309653896788050043'},
+		// 		{name: 'cooldown', value: '1203'}
+		// 	]
+		// }).execute();
 		// new FakeInteraction('rolecooldown', {
 		// 	subCommand: 'add',
 		// 	options: [
@@ -107,7 +109,7 @@ export default {
 		// 	subCommand: 'add',
 		// 	options: [
 		// 		{name: 'role', value: '1309653896788050043'},
-		// 		{name: 'cooldown', value: '12s-1s'}
+		// 		{name: 'cooldown', value: '12s-1m'}
 		// 	]
 		// }).execute();
 		// new FakeInteraction('rolecooldown', {
@@ -121,16 +123,17 @@ export default {
 		// 	subCommand: 'add',
 		// 	options: [
 		// 		{name: 'role', value: '1309653896788050043'},
-		// 		{name: 'cooldown', value: '1203'}
+		// 		{name: 'cooldown', value: '23grm 43rts'}
 		// 	]
 		// }).execute();
 		// new FakeInteraction('rolecooldown', {
 		// 	subCommand: 'add',
 		// 	options: [
 		// 		{name: 'role', value: '1309653896788050043'},
-		// 		{name: 'cooldown', value: '123minutes 456sec'}
+		// 		{name: 'cooldown', value: '123gr 456te'}
 		// 	]
 		// }).execute();
+
 		// const removeRole = new FakeInteraction('rolecooldown', {
 		// 	subCommand: 'remove',
 		// 	options: [
@@ -176,6 +179,7 @@ class FakeInteractionOptions {
 		return this._hoistedOptions.find(o => o.name === option)
 	}
 	public getString(option: string) { return this.get(option)?.value }
+	public getRole(option: string) { return this.get(option)?.value }
 	//TODO add typed getters like getString or getRole...
 
 	public getSubcommand(required: boolean) { return this.subCommand }
@@ -212,7 +216,7 @@ class FakeInteraction {
 	) {
 		this.user = {
 			id: process.env.DEV_TEST_USER_ID!,
-			username: 'keybotkiller',
+			username: 'TEST_USER',
 			_equals: (user) => {return true},
 		}
 		this.channel = DevEnvironment.channel;

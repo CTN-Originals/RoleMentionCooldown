@@ -21,10 +21,10 @@ class EmbedCollection extends BaseEmbedCollection {
 	
 		for (const roleId in mentionables) {
 			switch (type) {
-				case 'all': {
+				case 'all': { //TODO get the highest cooldown time compared to each of the cooldown times and put that on up here
 					stats.push([
 						roleId,
-						`\`${getTimeDisplay(mentionables[roleId].cooldown)}\``
+						`\`${getTimeDisplay(mentionables[roleId].cooldownTime.global)}\``
 					])
 				} break;
 				case 'cooldowns': {
@@ -44,8 +44,8 @@ class EmbedCollection extends BaseEmbedCollection {
 		}
 		else {
 			switch (type) {
-				case 'all': 
-					stats.sort((a, b) => mentionables[a[0]].cooldown - mentionables[b[0]].cooldown);
+				case 'all':
+					stats.sort((a, b) => mentionables[a[0]].cooldownTime.global - mentionables[b[0]].cooldownTime.global);
 				break;
 				case 'cooldowns':
 					stats.sort((a, b) => (Date.now() + Mentionable.remainingCooldown(mentionables[a[0]])) - (Date.now() + Mentionable.remainingCooldown(mentionables[b[0]]))); 
@@ -59,9 +59,9 @@ class EmbedCollection extends BaseEmbedCollection {
 			description: [
 				`**NOTE**: I had a mojor update recently,`,
 				`it updated the way users can use role mentions.`,
-				`Instead of user being able to mention a role via message`,
-				`they now need to use the new \`/mention\` command`,
-				`and enter the role they like to be mention in the command option.`,
+				`Instead of being able to mention a role in the message content`,
+				`you now need to use the new \`/mention\` command`,
+				`and enter the role you would like to be mentioned in the command options.`,
 				``,
 				`If you have any questions about this, please join the [support server](${GeneralData.supportServerInvite}).`
 			].join('\n'),

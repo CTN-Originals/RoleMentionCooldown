@@ -304,16 +304,6 @@ export class CommandInteractionData<
 			methods: this._methods as IOptionalCollection<TMethods, BaseSelectMenuCollection>,
 		}
 	}
-
-	/** @deprecated use {@link CommandInteractionData.collection} instead */
-	public getCollection(type: DataCollectionTypes) {
-		switch (type) {
-			case 'button': return this._buttons as IOptionalCollection<TButtons, BaseButtonCollection>;
-			case 'selectMenu': return this._selectMenus as IOptionalCollection<TSelectMenus, BaseSelectMenuCollection>;
-			case 'embed': return this._embeds as IOptionalCollection<TEmbeds, BaseEmbedCollection>;
-			case 'method': return this._methods as IOptionalCollection<TMethods, BaseMethodCollection>;
-		}
-	}
 	//#endregion
 
 	//#region Setters

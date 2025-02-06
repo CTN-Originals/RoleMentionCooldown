@@ -8,11 +8,15 @@ import {
 	EmbedBuilder,
 	ContextMenuCommandInteraction,
 	PermissionsBitField,
+	BaseInteraction,
+	AnySelectMenuInteraction,
+	APIApplicationCommandGuildInteraction,
 } from 'discord.js';
 
 import { ConsoleInstance } from 'better-console-utilities';
 
 import { BaseButtonCollection,
+	BaseCommandObject,
 	BaseEmbedCollection,
 	BaseMethodCollection,
 	BaseSelectMenuCollection,
@@ -20,7 +24,9 @@ import { BaseButtonCollection,
 	IButtonCollectionField,
 	ICommandObjectContent,
 	IContextMenuObjectContent,
-	ISelectMenuCollectionField
+	ISelectMenuCollectionField,
+	LOG_CONDITION,
+	TLogCondition
 } from '../handlers/commandBuilder';
 import { EmitError } from '.';
 import { IInteractionTypeData, getHoistedOptions, getInteractionType } from '../utils/interactionUtils';
@@ -28,7 +34,7 @@ import { ColorTheme, GeneralData } from '../data';
 import { errorConsole, ErrorObject } from '../handlers/errorHandler';
 import { client } from '..';
 import { validateEmbed } from '../utils/embedUtils';
-import { getUniqueItems, hexToBit, removeDuplicates } from '../utils';
+import { hexToBit, removeDuplicates } from '../utils';
 
 const thisConsole = new ConsoleInstance();
 
@@ -102,9 +108,11 @@ export default {
 			return null;
 		}
 
+		let commandErrored = false;
+		let interactionData: ICommandObjectContent | IContextMenuObjectContent | IButtonCollectionField | ISelectMenuCollectionField | undefined;
+
 		try {
 			let interactionObject = getInteractionData();
-			let interactionData: ICommandObjectContent | IContextMenuObjectContent | IButtonCollectionField | ISelectMenuCollectionField;
 
 			if (!interactionObject) {
 				throw new Error(`Unknown interaction: "${interaction[nameKey]}"`);
@@ -112,7 +120,6 @@ export default {
 
 			if (interaction.isChatInputCommand() || interaction.isContextMenuCommand()) {
 				interactionData = (interactionObject as CommandInteractionData<BaseButtonCollection, BaseSelectMenuCollection, BaseEmbedCollection, BaseMethodCollection>).command;
-				//TODO check required permissions
 				
 				if (interaction.inGuild()) {
 					const data = interactionData.data;
@@ -137,11 +144,11 @@ export default {
 			if (response === null) {
 				response = await interactionData.execute(interaction as any);
 			}
-			
 		} catch (err) {
-			const errorObject: ErrorObject = await EmitError(err as Error, interaction);
+			commandErrored = true;
+			const errorObject: ErrorObject = await EmitError((err instanceof Error) ? err : new Error(err as string), interaction);
 
-			let content = `There was an error while executing this interaction`
+			let content = `There was an error while executing this interaction`;
 			if (GeneralData.development) {
 				content += '\n```ts\n' + errorObject.formatError({shortenPaths: true, colorize: false}) + '\n```';
 			}
@@ -161,67 +168,85 @@ export default {
 			response = err;
 		}
 
-		this.outputLog(interaction, response);
+		const logLevel = 
+			(interactionData !== undefined && (interactionData.content as BaseCommandObject).logInteraction !== undefined) ? 
+			(interactionData.content as BaseCommandObject).logInteraction : LOG_CONDITION.ALWAYS;
+
+		const commandState: TLogCondition = (commandErrored === true) ? LOG_CONDITION.ERROR : (response === true) ? LOG_CONDITION.SUCCESS : LOG_CONDITION.FAIL;
+
+		if (GeneralData.logging.interaction.enabled &&
+			logLevel !== LOG_CONDITION.NEVER &&
+			logLevel === LOG_CONDITION.ALWAYS ||
+			(logLevel & commandState) === commandState
+		) {
+			this.outputLog(interaction, response);
+		}
 	},
 
-	outputLog(interaction, response = null) {
-		if (GeneralData.logging.interaction.enabled) {
-			const interactionType: IInteractionTypeData = getInteractionType(interaction)
-			const logFields = {
-				commandName: '',
-				subCommand: '',
-				subCommandGroup: '',
-				commandOptions: '',
-				commandValues: '',
-				commandType: interactionType.display,
-				channelName: interaction.channel.name,
-				channelId: interaction.channelId,
-				userId: interaction.user.id,
-				userName: interaction.user.username,
-				response: (response) ? response : null,
-			};
+	outputLog(interaction: BaseInteraction, response = null) {
+		const interactionType: IInteractionTypeData = getInteractionType(interaction)
+		const logFields = {
+			commandName: '',
+			subCommand: '',
+			subCommandGroup: '',
+			commandOptions: '',
+			commandValues: '',
+			commandType: interactionType.display,
+			channelName: (interaction as unknown as APIApplicationCommandGuildInteraction).channel?.name,
+			channelId: interaction.channelId,
+			userId: interaction.user.id,
+			userName: interaction.user.username,
+			response: (response) ? response : null,
+		};
 
-			if (interaction[interactionType.commandKey!] !== undefined) {
-				logFields.commandName = interaction[interactionType.commandKey!] as string;
-				
-				if (interaction instanceof ChatInputCommandInteraction) {
-					const subCommandGroup = interaction.options.getSubcommandGroup(false);
-					const subCommand = interaction.options.getSubcommand(false);
-					logFields.subCommandGroup += (subCommandGroup) ? subCommandGroup : '';
-					logFields.subCommand += (subCommand) ? subCommand : '';
-				}
-			}
+		if (interaction[interactionType.commandKey!] !== undefined) {
+			logFields.commandName = interaction[interactionType.commandKey!] as string;
 			
-			if (interaction.options?.data && interaction.options.data.length > 0) {
-				const hoistedOptions = getHoistedOptions((interaction as CommandInteraction).options.data as CommandInteractionOption[]);
-				logFields.commandOptions = hoistedOptions.map(option => `[fg=${ColorTheme.colors.orange.asHex}]${option.name}[/>]:${option.value}`).join(' [st=dim,bold]|[/>] ');
+			if (interaction instanceof ChatInputCommandInteraction) {
+				const subCommandGroup = interaction.options.getSubcommandGroup(false);
+				const subCommand = interaction.options.getSubcommand(false);
+				logFields.subCommandGroup += (subCommandGroup) ? subCommandGroup : '';
+				logFields.subCommand += (subCommand) ? subCommand : '';
 			}
-			if (interaction.values && interaction.values.length > 0) {
-				logFields.commandValues = `[ ${interaction.values.join('[st=dim,bold], [/>]')} ]`
-			}
+		}
+		
+		if ((interaction as ChatInputCommandInteraction).options?.data && (interaction as ChatInputCommandInteraction).options.data.length > 0) {
+			const hoistedOptions = getHoistedOptions((interaction as CommandInteraction).options.data as CommandInteractionOption[]);
+			logFields.commandOptions = hoistedOptions.map(option => `[fg=${ColorTheme.colors.orange.asHex}]${option.name}[/>]:${option.value}`).join(' [st=dim,bold]|[/>] ');
+		}
+		if ((interaction as AnySelectMenuInteraction).values && (interaction as AnySelectMenuInteraction).values.length > 0) {
+			logFields.commandValues = `[ ${(interaction as AnySelectMenuInteraction).values.join('[st=dim,bold], [/>]')} ]`
+		}
 
 
-			const logMessage: string[] = [];
-			logMessage.push([
-				`[fg=${ColorTheme.colors.blue.asHex}]${logFields.commandType}[/>]: [fg=${ColorTheme.colors.green.asHex} st=bold]${logFields.commandName}[/>]`,
-				`${(logFields.subCommandGroup) ? `[st=dim]>[/>] [fg=${ColorTheme.colors.green.asHex}]${logFields.subCommandGroup}[/>]` : ''}`,
-				`${(logFields.subCommand) ? `[st=dim]>[/>] [fg=${ColorTheme.colors.green.asHex}]${logFields.subCommand}[/>]` : ''}`
-			].join(' '));
+		const logMessage: string[] = [];
+		logMessage.push([
+			`[fg=${ColorTheme.colors.blue.asHex}]${logFields.commandType}[/>]: [fg=${ColorTheme.colors.green.asHex} st=bold]${logFields.commandName}[/>]`,
+			`${(logFields.subCommandGroup) ? `[st=dim]>[/>] [fg=${ColorTheme.colors.green.asHex}]${logFields.subCommandGroup}[/>]` : ''}`,
+			`${(logFields.subCommand) ? `[st=dim]>[/>] [fg=${ColorTheme.colors.green.asHex}]${logFields.subCommand}[/>]` : ''}`
+		].join(' '));
 
-			if (logFields.commandOptions) logMessage.push(`[fg=${ColorTheme.colors.blue.asHex}]options[/>]: ${logFields.commandOptions}`);
-			if (logFields.commandValues) logMessage.push(`[fg=${ColorTheme.colors.blue.asHex}]values[/>]: ${logFields.commandValues}`);
+		if (logFields.commandOptions) logMessage.push(`[fg=${ColorTheme.colors.blue.asHex}]options[/>]: ${logFields.commandOptions}`);
+		if (logFields.commandValues) logMessage.push(`[fg=${ColorTheme.colors.blue.asHex}]values[/>]: ${logFields.commandValues}`);
 
+		logMessage.push(`[fg=${ColorTheme.colors.blue.asHex}]user[/>]: [fg=${ColorTheme.colors.cyan.asHex}]${logFields.userName}[/>] (${logFields.userId})`);
+		if (interaction.guild) {
 			logMessage.push(`[fg=${ColorTheme.colors.blue.asHex}]guild[/>]: [fg=${ColorTheme.colors.yellow.asHex}]${interaction.guild.name}[/>] (${interaction.guild.id})`);
-			logMessage.push(`[fg=${ColorTheme.colors.blue.asHex}]user[/>]: [fg=${ColorTheme.colors.cyan.asHex}]${logFields.userName}[/>] (${logFields.userId})`);
 			logMessage.push(`[fg=${ColorTheme.colors.blue.asHex}]channel[/>]: [fg=${ColorTheme.colors.purple.asHex}]${logFields.channelName}[/>] (${logFields.channelId})`);
+		} else {
+			logMessage.push(`[fg=${ColorTheme.colors.blue.asHex}]guild[/>]: [fg=${ColorTheme.colors.yellow.asHex}]USER_DM[/>]`);
+		}
 
-			if (logFields.response !== '') {
-				logMessage.push(`[fg=${ColorTheme.colors.blue.asHex}]Response[/>]:`);
+		if (logFields.response !== '') {
+			logMessage.push(`[fg=${ColorTheme.colors.blue.asHex}]Response[/>]:`);
+			if (typeof response === 'object') {
 				thisConsole.log('\n' + logMessage.join('\n'), response);
+			} else {
+				thisConsole.log('\n' + logMessage.join('\n') + ' ' + response);
 			}
-			else {
-				thisConsole.log('\n' + logMessage.join('\n') + '\n');
-			}
+		}
+		else {
+			thisConsole.log('\n' + logMessage.join('\n') + '\n');
 		}
 	}
 };

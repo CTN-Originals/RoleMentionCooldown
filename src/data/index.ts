@@ -56,6 +56,7 @@ export namespace ColorTheme {
 		yellow: new Color('#dfbc22'),
 		orange: new Color('#dd8000'),
 		purple: new Color('#ad1b70'),
+		red: 	new Color('#ad1b1b'),
 		grey: 	new Color('#aaaaaa'),
 	}
 }
