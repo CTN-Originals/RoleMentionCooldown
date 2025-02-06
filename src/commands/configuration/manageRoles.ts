@@ -4,7 +4,7 @@ import { BaseButtonCollection, BaseEmbedCollection, BaseSelectMenuCollection, Co
 
 import { ColorTheme, GeneralData } from '../../data'
 import { hexToBit, PeriodOfTime, includesAny } from "../../utils";
-import { Mentionable } from "../../data/orm/mentionables";
+import { ActiveCooldown, Mentionable } from "../../data/orm/mentionables";
 import { ConsoleInstance } from "better-console-utilities";
 import { validateEmbed } from "../../utils/embedUtils";
 import { BaseMethodCollection } from "../../handlers/commandBuilder/data";
@@ -84,10 +84,33 @@ class EmbedCollection extends BaseEmbedCollection {
 			description: [
 				`The role you entered (<@&${role.id}>) is not registered as a rolecooldown.`,
 				`Please first register this role for a cooldown with the following command:`,
-				`\`/rolecooldown add role:${role.id}\``
+				`\`\`\`/rolecooldown add role:<@&${role.id}>\`\`\``
 			].join('\n'),
 			color: hexToBit(ColorTheme.embeds.notice)
 		});
+	}
+
+	public mentionableAlreadyRegistered(role: Role) {
+		return [validateEmbed(new EmbedBuilder({
+			description: [
+				`The role you entered (<@&${role.id}>) is already registered.`,
+				`Please use the following command instead:`,
+				`\`\`\`/rolecooldown edit role:<@&${role.id}>\`\`\``
+			].join('\n'),
+			color: hexToBit(ColorTheme.embeds.notice)
+		}))];
+	}
+
+	public requireOneMinimumCooldown() {
+		return [validateEmbed(new EmbedBuilder({
+			description: [
+				`This command requires at least one cooldown input`,
+				`Please fill out at least one of the following options:`,
+				Object.values(ActiveCooldown).map(cd => `- \`${cd}-cooldown\``).join('\n')
+			].join('\n'),
+			footer: {text: `Press "Arrow-Up" key to retry`},
+			color: hexToBit(ColorTheme.embeds.notice)
+		}))];
 	}
 }
 class MethodCollection extends BaseMethodCollection {
@@ -137,55 +160,13 @@ class MethodCollection extends BaseMethodCollection {
 		const cooldown = new PeriodOfTime(input);
 
 		//- cooldown returned as 0
-		if (cooldown.time === 0 && cooldown.input !== '0s') {
-			return 'The cooldown time resulted to be `0` from the input that was given.\nThis usually happens when the input contains unexpected characters.'
+		if ((cooldown.time === 0 && cooldown.input !== '0s') || Number.isNaN(cooldown.time)) {
+			return 'The cooldown time resulted to be `0` from the input that was given.\nThis usually happens when the input contains unexpected characters.';
 		}
 
 		return cooldown;
 	}
-	//#endregion
 
-	//#region Add
-	//TODO Add global, channel and user cooldown command options to the add subcommand as well but require the user to input at least one in any for the command to be valid
-	public async addRole(interaction: ChatInputCommandInteraction) {
-		if (!interaction.guild) {
-			throw new Error(`Interaction did not contain guild`)
-		}
-		const roleId = interaction.options.get('role', true).value;
-		
-		let cooldownInput = interaction.options.getString('cooldown', true);
-
-		const cooldown = this.validateCooldownInput(cooldownInput);
-		
-		//? if cooldown is a string, the input was invalid and coolodwn contains the message why it is invalid
-		if (typeof cooldown === 'string') {
-			await interaction.reply({
-				embeds: command.embeds.getCooldownInstructionEmbed(cooldownInput, 'cooldown', cooldown),
-				ephemeral: !GeneralData.development
-			});
-
-			return cooldown; //`Invalid cooldown input`
-		}
-
-		const newMentionable: IMentionableItem = Mentionable.make();
-		newMentionable.cooldownTime.global = cooldown.time;
-
-		const res = await Mentionable.add(interaction.guild?.id, roleId as string, newMentionable);
-
-		if (res) {
-			await interaction.reply({
-				embeds: [validateEmbed(command.embeds.registeredNewRole(roleId as string, cooldown))],
-				ephemeral: !GeneralData.development
-			});
-		} else {
-			throw new Error(`"${interaction.guild.name}" Attempted to add new mentionable (${roleId}) unsuccessfully`)
-		}
-
-		return true;
-	}
-	//#endregion
-
-	//#region Edit
 	private async getCooldownObject(interaction: ChatInputCommandInteraction): Promise<CooldownDefinition<PeriodOfTime | null> | string> {
 		const cooldownInput: CooldownDefinition<string|null> = {
 			global: interaction.options.getString('global-cooldown'),
@@ -212,7 +193,61 @@ class MethodCollection extends BaseMethodCollection {
 
 		return cooldown as CooldownDefinition<PeriodOfTime | null>;
 	}
+	//#endregion
 
+	//#region Add
+	public async addRole(interaction: ChatInputCommandInteraction) {
+		const role = interaction.options.getRole('role', true) as Role;
+		const existingMentionable = await Mentionable.get(interaction.guildId!, role.id);
+
+		if (existingMentionable !== null && existingMentionable !== undefined) {
+			await interaction.reply({
+				embeds: command.embeds.mentionableAlreadyRegistered(role),
+				ephemeral: !GeneralData.development,
+			});
+
+			return 'Mentionable is already registered';
+		}
+		
+		const cooldownInputs = await this.getCooldownObject(interaction);
+		if (typeof cooldownInputs === 'string') { 
+			//- if cooldown is a string, the input was invalid and coolodwn contains the message why it is invalid
+			return cooldownInputs;
+		}
+
+		if (Object.values(cooldownInputs).every(cd => cd === null)) {
+			await interaction.reply({
+				embeds: command.embeds.requireOneMinimumCooldown(),
+				ephemeral: !GeneralData.development,
+			});
+
+			return 'Require at least one cooldown input';
+		}
+		
+		const newMentionable: IMentionableItem = Mentionable.make();
+
+		for (const cooldownField in cooldownInputs) {
+			if (cooldownInputs[(cooldownField as keyof CooldownDefinition<PeriodOfTime>)] === null) { continue; }
+			newMentionable.cooldownTime[(cooldownField as keyof CooldownDefinition<any>)] = cooldownInputs[(cooldownField as keyof CooldownDefinition<PeriodOfTime>)]!.time;
+		}
+
+		const res = await Mentionable.add(interaction.guildId!, role.id, newMentionable);
+
+		if (res) {
+			//TODO Improve embed to list all types of cooldowns
+			await interaction.reply({
+				embeds: [validateEmbed(command.embeds.registeredNewRole(role.id, (cooldownInputs.global ?? cooldownInputs.channel ?? cooldownInputs.user)!))],
+				ephemeral: !GeneralData.development
+			});
+		} else {
+			throw new Error(`"${interaction.guild!.name}" Attempted to add new mentionable (${role}) unsuccessfully`)
+		}
+
+		return true;
+	}
+	//#endregion
+
+	//#region Edit
 	public async editRole(interaction: ChatInputCommandInteraction) {
 		const role = interaction.options.getRole('role', true) as Role;
 		const mentionableDoc = await Mentionable.getDocument(interaction.guildId!);
@@ -279,15 +314,12 @@ class MethodCollection extends BaseMethodCollection {
 		const res = await Mentionable.remove(interaction.guild?.id, roleId as string)
 
 		if (res) {
-			thisConsole.log(`[fg=green]${interaction.guild.name}[/>] Removed mentionable ${roleId}: ${res}`)
-			
-			// await role.setMentionable(false, 'RoleMentionCooldown - Removed'); //? set the role to mentionable so its able to be used
 			await interaction.reply({
 				embeds: [validateEmbed(new EmbedBuilder({
-					description: `Successfully removed <@&${roleId}> from the list.\nDisabled the ability to mention <@&${roleId}> for everyone.`,
+					description: `Successfully removed <@&${roleId}> from the list.`,
 					color: hexToBit(ColorTheme.embeds.reply)
 				}))],
-				ephemeral: true
+				ephemeral: !GeneralData.development
 			});
 		} else {
 			throw new Error(`"${interaction.guild.name}" Attempted to remove mentionable (${roleId}) and was unsuccessfull`)
@@ -308,7 +340,7 @@ const command = new CommandInteractionData<ButtonCollection, SelectMenuCollectio
 			subcommands: [
 				{
 					name: 'add',
-					description: 'Add a new role to the list, or edit an existing one',
+					description: 'Add a new role cooldown',
 					options: [
 						{
 							type: ApplicationCommandOptionType.Role,
@@ -318,11 +350,19 @@ const command = new CommandInteractionData<ButtonCollection, SelectMenuCollectio
 						},
 						{
 							type: ApplicationCommandOptionType.String,
-							name: 'cooldown',
-							description: 'The cooldown to apply to this once its used (seperate with spaces). 8s 69m 28h 1d = 2d 05:09:08',
-							minLength: 2,
-							required: true,
-						}
+							name: 'global-cooldown',
+							description: 'The cooldown that applies to everyone (overrides user/channel cooldown if its greater)',
+						},
+						{
+							type: ApplicationCommandOptionType.String,
+							name: 'channel-cooldown',
+							description: 'The cooldown that applies to the channel that the rolemention was used in',
+						},
+						{
+							type: ApplicationCommandOptionType.String,
+							name: 'user-cooldown',
+							description: 'The cooldown that applies to the user that used the rolemention',
+						},
 					]
 				},
 				{
