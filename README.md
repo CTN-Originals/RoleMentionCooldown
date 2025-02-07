@@ -31,17 +31,17 @@ A discord bot that allows users to mention a role once, then apply a cooldown to
 
 ## Cooldown input option instructions
 
-> The cooldown input should be seperated with spaces for each timeframe entered.
+The cooldown input should be seperated with spaces for each timeframe entered.
 
-> Each timeframe should end in any of these letters:
-> - `s` = seconds
-> - `m` = minutes
-> - `h` = hours
-> - `d` = days
+Each timeframe should end in any of these letters:
+- `s` = seconds
+- `m` = minutes
+- `h` = hours
+- `d` = days
 
-> **Examples**:
-> - `8s 69m 28h 1d` = 2d 05:09:08
-> - `600s` = 0d 00:10:00
+**Examples**:
+- `8s 69m 28h 1d` = 2d 05:09:08
+- `600s` = 0d 00:10:00
 
 ## Usage
 
