@@ -107,11 +107,22 @@ export function getTimestamp(date: Date|number): number {
 	return parseFloat(time);
 }
 
-export function getTimeDisplay(time: number) {
+export function getTimeDisplay(time: number, colored: boolean = false) {
 	const units = timeUnits(time);
 	const formatTime = (t: number) => {return (t < 10) ? `0${t}` : t}
 
-	return `${units.days}d ${formatTime(units.hours)}:${formatTime(units.minutes)}:${formatTime(units.seconds)}`
+	if (!colored) {
+		return `${units.days}d ${formatTime(units.hours)}:${formatTime(units.minutes)}:${formatTime(units.seconds)}`
+	} else {
+		return [
+			`\`\`\`ansi\n`,
+			`[0;33m${units.days}d[0m `,
+			`[0;34m${formatTime(units.hours)}[0m:`,
+			`[0;36m${formatTime(units.minutes)}[0m:`,
+			`[0;32m${formatTime(units.seconds)}[0m`,
+			`\n\`\`\``
+		].join('');
+	}
 }
 
 export function hexToBit(hex: string): number;
