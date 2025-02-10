@@ -3,7 +3,7 @@ import { ChatInputCommandInteraction, EmbedBuilder, InteractionContextType, Appl
 import { BaseButtonCollection, BaseEmbedCollection, BaseSelectMenuCollection, CommandInteractionData, IButtonCollection, ISelectMenuCollection } from "../../handlers/commandBuilder";
 
 import { ColorTheme, GeneralData } from '../../data'
-import { hexToBit, PeriodOfTime, includesAny } from "../../utils";
+import { hexToBit, PeriodOfTime, includesAny, getTimeDisplay } from "../../utils";
 import { ActiveCooldown, Mentionable } from "../../data/orm/mentionables";
 import { ConsoleInstance } from "better-console-utilities";
 import { validateEmbed } from "../../utils/embedUtils";
@@ -111,6 +111,25 @@ class EmbedCollection extends BaseEmbedCollection {
 			footer: {text: `Press "Arrow-Up" key to retry`},
 			color: hexToBit(ColorTheme.embeds.notice)
 		}))];
+	}
+
+	public mentionableInfo(mentionable: IMentionableItem, role: Role): EmbedBuilder[] {
+		const embed = new EmbedBuilder({
+			title: `Role Cooldown info for \`@${role.name}\``,
+			fields: [],
+			color: hexToBit(ColorTheme.embeds.reply)
+		});
+
+		for (const cooldownType in mentionable.cooldownTime) {
+			const timeValue = mentionable.cooldownTime[cooldownType];
+			embed.addFields({
+				name: `${cooldownType}`,
+				value: `${(timeValue === 0) ? '``` - ```' : getTimeDisplay(timeValue, true)}`,
+				inline: true
+			});
+		}
+
+		return [validateEmbed(embed)];
 	}
 }
 class MethodCollection extends BaseMethodCollection {
@@ -274,18 +293,13 @@ class MethodCollection extends BaseMethodCollection {
 			}
 
 			await Mentionable.update(mentionableDoc);
+		}
 
-			await interaction.reply({
-				content: `Successfully updated <@&${role.id}>\n-# TODO: Send embed containing the current settings of the rolecooldown`,
-				ephemeral: !GeneralData.development,
-			});
-		}
-		else {
-			await interaction.reply({
-				content: `-# TODO: Send embed containing the current settings of the rolecooldown`,
-				ephemeral: !GeneralData.development,
-			});
-		}
+		await interaction.reply({
+			content: `Successfully updated <@&${role.id}>`,
+			embeds: command.embeds.mentionableInfo(mentionable, role),
+			ephemeral: !GeneralData.development,
+		});
 
 		return true;
 	}
