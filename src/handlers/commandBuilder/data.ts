@@ -140,14 +140,14 @@ T extends ComponentType.ChannelSelect ? ChannelSelectMenuInteraction : AnySelect
  * @requires content > customId, type
  * @requires execute
 */
-export type ISelectMenuCollectionField<T extends ComponentType = ComponentType.StringSelect> = CommandInteractionContentInput<IAnySelectMenuComponentObject, AnySelectMenuComponentObject, PickSelectMenuTypeFromComponent<T>>
-export type ISelectMenuCollection<T> = CheckFields<T, ISelectMenuCollectionField>
+export type ISelectMenuCollectionField<T extends ComponentType> = CommandInteractionContentInput<IAnySelectMenuComponentObject, AnySelectMenuComponentObject, PickSelectMenuTypeFromComponent<T>>
+export type ISelectMenuCollection<T> = CheckFields<T, ISelectMenuCollectionField<ComponentType>>
 
 export type IAnyInteractionField =
 | ICommandField
 | IContextMenuField
 | IButtonCollectionField
-| ISelectMenuCollectionField;
+| ISelectMenuCollectionField<ComponentType>;
 
 export class BaseComponentCollection<TContent extends IButtonComponentObject | IAnySelectMenuComponentObject, TData extends CommandObject | AnyComponentObject> {
 	public asArray() {
