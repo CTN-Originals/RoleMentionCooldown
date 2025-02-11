@@ -44,6 +44,7 @@ import {
 	AnyContextMenuInteraction
 } from ".";
 import { IChannelSelectComponentObject, IMentionableSelectComponentObject, IRoleSelectComponentObject, IStringSelectComponentObject, IUserSelectComponentObject } from "./components";
+import { includesAll } from "../../utils";
 
 
 //#region Interaction Content
@@ -179,14 +180,22 @@ export class BaseComponentCollection<TContent extends IButtonComponentObject | I
 	}
 }
 export class BaseButtonCollection extends BaseComponentCollection<IButtonComponentObject, ButtonComponentObject> {
-	public build() {
-		const out: ButtonBuilder[] = [];
-
-		for (const button of this.asArray()) {
-			out.push(new ButtonComponentObject(button.content).build())
+	/** Builds and returns a button with the content provided */
+	public buildOne(content: IButtonComponentObject | IButtonCollectionField): ButtonBuilder {
+		if (includesAll(Object.keys(content), ['content', 'execute'])) {
+			content = (content as IButtonCollectionField).content;
 		}
 
-		return out;
+		return new ButtonBuilder(content as IButtonComponentObject);
+	}
+	
+	/** Builds and returns the buttons with the content provided */
+	public getBuild(...content: (IButtonComponentObject | IButtonCollectionField)[]): ButtonBuilder[] {
+		return content.map(btn => this.buildOne(btn as IButtonComponentObject | IButtonCollectionField));
+	}
+	
+	public build() {
+		return this.getBuild(...this.asArray().map(btn => btn.content));
 	}
 }
 
@@ -200,7 +209,6 @@ export class BaseSelectMenuCollection extends BaseComponentCollection<IAnySelect
 		T extends ChannelSelectMenuBuilder ? IChannelSelectComponentObject :
 		IAnySelectMenuComponentObject
 	): T {
-	// public buildOne<T extends AnySelectMenuComponentBuilder>(content: IAnySelectMenuComponentObject): AnySelectMenuComponentObject {
 		switch (content.type) {
 			case ComponentType.StringSelect: 		{ return new StringSelectComponentObject(content).build() as unknown as ReturnType<typeof this.buildOne<T>>; }
 			case ComponentType.UserSelect: 			{ return new UserSelectComponentObject(content).build() as unknown as ReturnType<typeof this.buildOne<T>>; }
