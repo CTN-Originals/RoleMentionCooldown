@@ -3,18 +3,22 @@ import {
 	ApplicationCommandType,
 	ButtonBuilder,
 	ButtonInteraction,
+	ChannelSelectMenuBuilder,
 	ChannelSelectMenuInteraction,
 	ChatInputCommandInteraction,
 	ComponentType,
 	ContextMenuCommandBuilder,
-	ContextMenuCommandInteraction,
 	Interaction,
+	MentionableSelectMenuBuilder,
 	MentionableSelectMenuInteraction,
 	MessageContextMenuCommandInteraction,
+	RoleSelectMenuBuilder,
 	RoleSelectMenuInteraction,
 	SlashCommandBuilder,
+	StringSelectMenuBuilder,
 	StringSelectMenuInteraction,
 	UserContextMenuCommandInteraction,
+	UserSelectMenuBuilder,
 	UserSelectMenuInteraction
 } from "discord.js";
 import {
@@ -25,7 +29,6 @@ import {
 
 	ButtonComponentObject,
 	ChannelSelectComponentObject,
-	IAnyComponentObject,
 	IAnySelectMenuComponentObject,
 	MentionableSelectComponentObject,
 	RoleSelectComponentObject,
@@ -40,6 +43,7 @@ import {
 	IAnyInteractionObject,
 	AnyContextMenuInteraction
 } from ".";
+import { IChannelSelectComponentObject, IMentionableSelectComponentObject, IRoleSelectComponentObject, IStringSelectComponentObject, IUserSelectComponentObject } from "./components";
 
 
 //#region Interaction Content
@@ -129,18 +133,33 @@ IBaseInteractionType.ContextMenu>;
 export type IButtonCollectionField = CommandInteractionContentInput<IButtonComponentObject, ButtonComponentObject, ButtonInteraction>
 export type IButtonCollection<T> = CheckFields<T, IButtonCollectionField>
 
-export type PickSelectMenuTypeFromComponent<T extends ComponentType = ComponentType.StringSelect> = 
+export type PickSelectMenuInputComponentTypeFromComponent<T extends ComponentType = ComponentType.StringSelect> = 
+T extends ComponentType.StringSelect ? IStringSelectComponentObject :
+T extends ComponentType.UserSelect ? IUserSelectComponentObject :
+T extends ComponentType.RoleSelect ? IRoleSelectComponentObject :
+T extends ComponentType.MentionableSelect ? IMentionableSelectComponentObject :
+T extends ComponentType.ChannelSelect ? IChannelSelectComponentObject : IAnySelectMenuComponentObject;
+
+export type PickSelectMenuComponentTypeFromComponent<T extends ComponentType = ComponentType.StringSelect> = 
+T extends ComponentType.StringSelect ? StringSelectComponentObject :
+T extends ComponentType.UserSelect ? UserSelectComponentObject :
+T extends ComponentType.RoleSelect ? RoleSelectComponentObject :
+T extends ComponentType.MentionableSelect ? MentionableSelectComponentObject :
+T extends ComponentType.ChannelSelect ? ChannelSelectComponentObject : AnyComponentObject;
+
+export type PickSelectMenuInteractionTypeFromComponent<T extends ComponentType = ComponentType.StringSelect> = 
 T extends ComponentType.StringSelect ? StringSelectMenuInteraction :
 T extends ComponentType.UserSelect ? UserSelectMenuInteraction :
 T extends ComponentType.RoleSelect ? RoleSelectMenuInteraction :
 T extends ComponentType.MentionableSelect ? MentionableSelectMenuInteraction :
 T extends ComponentType.ChannelSelect ? ChannelSelectMenuInteraction : AnySelectMenuInteraction;
 
+
 /** 
  * @requires content > customId, type
  * @requires execute
 */
-export type ISelectMenuCollectionField<T extends ComponentType> = CommandInteractionContentInput<IAnySelectMenuComponentObject, AnySelectMenuComponentObject, PickSelectMenuTypeFromComponent<T>>
+export type ISelectMenuCollectionField<T extends ComponentType> = CommandInteractionContentInput<PickSelectMenuInputComponentTypeFromComponent<T>, PickSelectMenuComponentTypeFromComponent<T>, PickSelectMenuInteractionTypeFromComponent<T>>
 export type ISelectMenuCollection<T> = CheckFields<T, ISelectMenuCollectionField<ComponentType>>
 
 export type IAnyInteractionField =
@@ -170,21 +189,32 @@ export class BaseButtonCollection extends BaseComponentCollection<IButtonCompone
 		return out;
 	}
 }
+
 export class BaseSelectMenuCollection extends BaseComponentCollection<IAnySelectMenuComponentObject, AnySelectMenuComponentObject> {
+	/** Creates and builds a select menu with the content provided */
+	public buildOne<T extends AnySelectMenuComponentBuilder>(content: 
+		T extends StringSelectMenuBuilder ? IStringSelectComponentObject : 
+		T extends UserSelectMenuBuilder ? IUserSelectComponentObject :
+		T extends RoleSelectMenuBuilder ? IRoleSelectComponentObject :
+		T extends MentionableSelectMenuBuilder ? IMentionableSelectComponentObject :
+		T extends ChannelSelectMenuBuilder ? IChannelSelectComponentObject :
+		IAnySelectMenuComponentObject
+	): T {
+	// public buildOne<T extends AnySelectMenuComponentBuilder>(content: IAnySelectMenuComponentObject): AnySelectMenuComponentObject {
+		switch (content.type) {
+			case ComponentType.StringSelect: 		{ return new StringSelectComponentObject(content).build() as unknown as ReturnType<typeof this.buildOne<T>>; }
+			case ComponentType.UserSelect: 			{ return new UserSelectComponentObject(content).build() as unknown as ReturnType<typeof this.buildOne<T>>; }
+			case ComponentType.RoleSelect: 			{ return new RoleSelectComponentObject(content).build() as unknown as ReturnType<typeof this.buildOne<T>>; }
+			case ComponentType.MentionableSelect: 	{ return new MentionableSelectComponentObject(content).build() as unknown as ReturnType<typeof this.buildOne<T>>; }
+			case ComponentType.ChannelSelect: 		{ return new ChannelSelectComponentObject(content).build() as unknown as ReturnType<typeof this.buildOne<T>>; }
+		}
+	}
+
 	public build() {
 		const out: AnySelectMenuComponentBuilder[] = [];
 		
 		for (const select of this.asArray()) {
-			let componentBuild: AnySelectMenuComponentBuilder;
-			switch (select.content.type) {
-				case ComponentType.StringSelect: 		{ componentBuild = new StringSelectComponentObject(select.content).build(); } break;
-				case ComponentType.UserSelect: 			{ componentBuild = new UserSelectComponentObject(select.content).build(); } break;
-				case ComponentType.RoleSelect: 			{ componentBuild = new RoleSelectComponentObject(select.content).build(); } break;
-				case ComponentType.MentionableSelect: 	{ componentBuild = new MentionableSelectComponentObject(select.content).build(); } break;
-				case ComponentType.ChannelSelect: 		{ componentBuild = new ChannelSelectComponentObject(select.content).build(); } break;
-			}
-
-			out.push(componentBuild);
+			out.push(this.buildOne(select.content));
 		}
 
 		return out;
