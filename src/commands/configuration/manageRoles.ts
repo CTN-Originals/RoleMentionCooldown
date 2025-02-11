@@ -1,5 +1,5 @@
 
-import { ChatInputCommandInteraction, EmbedBuilder, InteractionContextType, ApplicationCommandOptionType, PermissionFlagsBits, GuildMember, Role } from "discord.js";
+import { ChatInputCommandInteraction, EmbedBuilder, InteractionContextType, ApplicationCommandOptionType, PermissionFlagsBits, GuildMember, Role, ComponentType, StringSelectMenuInteraction, ChannelSelectMenuInteraction, ChannelType, ActionRowBuilder } from "discord.js";
 import { BaseButtonCollection, BaseEmbedCollection, BaseSelectMenuCollection, CommandInteractionData, IButtonCollection, ISelectMenuCollection } from "../../handlers/commandBuilder";
 
 import { ColorTheme, GeneralData } from '../../data'
@@ -7,7 +7,7 @@ import { hexToBit, PeriodOfTime, includesAny, getTimeDisplay } from "../../utils
 import { ActiveCooldown, Mentionable } from "../../data/orm/mentionables";
 import { ConsoleInstance } from "better-console-utilities";
 import { validateEmbed } from "../../utils/embedUtils";
-import { BaseMethodCollection } from "../../handlers/commandBuilder/data";
+import { BaseMethodCollection, ISelectMenuCollectionField } from "../../handlers/commandBuilder/data";
 import { CooldownDefinition, IMentionableItem } from "../../data/orm/schemas/mentionableData";
 
 const thisConsole = new ConsoleInstance();
@@ -15,7 +15,38 @@ const thisConsole = new ConsoleInstance();
 const timeframes = ['s', 'm', 'h', 'd'];
 
 class ButtonCollection extends BaseButtonCollection implements IButtonCollection<ButtonCollection> {}
-class SelectMenuCollection extends BaseSelectMenuCollection implements ISelectMenuCollection<SelectMenuCollection> {}
+class SelectMenuCollection extends BaseSelectMenuCollection implements ISelectMenuCollection<SelectMenuCollection> {
+	public channelSelection: ISelectMenuCollectionField<ComponentType.ChannelSelect> = {
+		content: {
+			type: ComponentType.ChannelSelect,
+			customId: 'rolecooldown_edit_channel-selection',
+			channelTypes: [
+				ChannelType.AnnouncementThread,
+				ChannelType.GuildAnnouncement,
+				ChannelType.GuildCategory,
+				ChannelType.GuildText,
+				ChannelType.PrivateThread,
+				ChannelType.PublicThread,
+				ChannelType.GuildVoice,
+			],
+			maxValues: 25,
+			defaultValues: [],
+		},
+		execute: (interaction: ChannelSelectMenuInteraction) => {
+			return true;
+		}
+	}
+
+	public test: ISelectMenuCollectionField<ComponentType.StringSelect> = {
+		content: {
+			type: ComponentType.StringSelect,
+			customId: 'tmp-test',
+		},
+		execute: (interaction: StringSelectMenuInteraction) => {
+			return true;
+		}
+	}
+}
 class EmbedCollection extends BaseEmbedCollection {
 	public getCooldownInstructionEmbed(cooldownInput: string, field: string, message?: string): EmbedBuilder[] {
 		return [
@@ -295,9 +326,13 @@ class MethodCollection extends BaseMethodCollection {
 			await Mentionable.update(mentionableDoc);
 		}
 
+		const channelSelect = command.selectMenus.channelSelection.content;
+		const row: any = new ActionRowBuilder().addComponents(command.selectMenus.buildOne(channelSelect));
+
 		await interaction.reply({
-			content: `Successfully updated <@&${role.id}>`,
+			// content: `Successfully updated <@&${role.id}>`,
 			embeds: command.embeds.mentionableInfo(mentionable, role),
+			components: [row],
 			ephemeral: !GeneralData.development,
 		});
 
