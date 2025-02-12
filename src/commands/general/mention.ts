@@ -1,5 +1,5 @@
 import { ApplicationCommandOptionType, ChatInputCommandInteraction, EmbedBuilder, InteractionContextType, Role } from "discord.js";
-import { BaseButtonCollection, BaseEmbedCollection, BaseMethodCollection, BaseSelectMenuCollection, CommandInteractionData, IButtonCollection, ISelectMenuCollection, LOG_CONDITION } from "../../handlers/commandBuilder";
+import { BaseButtonCollection, BaseEmbedCollection, BaseMethodCollection, BaseSelectMenuCollection, CommandInteractionData, IButtonCollection, ISelectMenuCollection, LOG_LEVEL } from "../../handlers/commandBuilder";
 import { Mentionable } from "../../data/orm/mentionables";
 import { ColorTheme, GeneralData } from "../../data";
 import { getTimeDisplay, getTimestamp, hexToBit } from "../../utils";
@@ -45,12 +45,12 @@ class MethodCollection extends BaseMethodCollection {
 
 const command = new CommandInteractionData<ButtonCollection, SelectMenuCollection, EmbedCollection, MethodCollection>({
 	command: {
+		logLevel: LOG_LEVEL.ERROR,
 		content: {
 			name: 'mention',
 			description: 'Mention a role in the current channel',
 			contexts: [InteractionContextType.Guild],
 			requiredPermissions: ['MentionEveryone'],
-			logInteraction: LOG_CONDITION.ERROR,
 			options: [
 				{
 					type: ApplicationCommandOptionType.Role,

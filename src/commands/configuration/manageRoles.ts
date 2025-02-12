@@ -1,6 +1,6 @@
 
 import { ChatInputCommandInteraction, EmbedBuilder, InteractionContextType, ApplicationCommandOptionType, PermissionFlagsBits, GuildMember, Role, ComponentType, StringSelectMenuInteraction, ChannelSelectMenuInteraction, ChannelType, ActionRowBuilder, SelectMenuComponentOptionData, ActionRowComponent, ButtonInteraction } from "discord.js";
-import { BaseButtonCollection, BaseEmbedCollection, BaseSelectMenuCollection, CommandInteractionData, IButtonCollection, ISelectMenuCollection } from "../../handlers/commandBuilder";
+import { BaseButtonCollection, BaseEmbedCollection, BaseSelectMenuCollection, CommandInteractionData, IButtonCollection, ISelectMenuCollection, LOG_ENVIRONMENT, LOG_LEVEL } from "../../handlers/commandBuilder";
 
 import { ColorTheme, GeneralData } from '../../data'
 import { hexToBit, PeriodOfTime, includesAny, getTimeDisplay } from "../../utils";
@@ -448,6 +448,8 @@ class MethodCollection extends BaseMethodCollection {
 
 const command = new CommandInteractionData<ButtonCollection, SelectMenuCollection, EmbedCollection, MethodCollection>({
 	command: {
+		logLevel: LOG_LEVEL.FAIL | LOG_LEVEL.ERROR,
+		logEnvironment: LOG_ENVIRONMENT.BETA,
 		content: {
 			name: 'rolecooldown',
 			description: 'Manage role cooldowns',

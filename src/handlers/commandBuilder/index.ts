@@ -217,7 +217,7 @@ export type IAnySelectMenuComponentObject = Exclude<IAnyComponentObject, IButton
 
 export type AnyContextMenuInteraction = MessageContextMenuCommandInteraction | UserContextMenuCommandInteraction;
 
-export const LOG_CONDITION = {
+export const LOG_LEVEL = {
 	/** Always log */
 	ALWAYS: 0,
 	/** Only log when the command was executed successfully */
@@ -229,7 +229,18 @@ export const LOG_CONDITION = {
 	/** Never log */
 	NEVER: -1,
 } as const;
-export type TLogCondition = typeof LOG_CONDITION[keyof typeof LOG_CONDITION];
+export type TLogLevel = typeof LOG_LEVEL[keyof typeof LOG_LEVEL];
+
+/** Define which environment the bot needs to be in to output a log */
+export const LOG_ENVIRONMENT = {
+	/** Always log */
+	ALL: 0,
+	DEVELOPMENT: 1 << 1,
+	BETA: 1 << 2,
+	PRODUCTION: 1 << 3,
+} as const;
+export type TLogEnvironment = typeof LOG_ENVIRONMENT[keyof typeof LOG_ENVIRONMENT];
+
 //#endregion
 
 export function getInteractionObject(content: IAnyInteractionField | IAnyInteractionObject): AnyInteractionObject | void {

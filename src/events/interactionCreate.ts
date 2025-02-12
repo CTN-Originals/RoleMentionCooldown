@@ -25,8 +25,10 @@ import { BaseButtonCollection,
 	ICommandObjectContent,
 	IContextMenuObjectContent,
 	ISelectMenuCollectionField,
-	LOG_CONDITION,
-	TLogCondition
+	LOG_ENVIRONMENT,
+	LOG_LEVEL,
+	TLogEnvironment,
+	TLogLevel
 } from '../handlers/commandBuilder';
 import { EmitError } from '.';
 import { IInteractionTypeData, getHoistedOptions, getInteractionType } from '../utils/interactionUtils';
@@ -110,9 +112,10 @@ export default {
 
 		let commandErrored = false;
 		let interactionData: ICommandObjectContent | IContextMenuObjectContent | IButtonCollectionField | ISelectMenuCollectionField | undefined;
-
+		let interactionObject: CommandInteractionData<BaseButtonCollection, BaseSelectMenuCollection, BaseEmbedCollection, BaseMethodCollection> | IButtonCollectionField | ISelectMenuCollectionField | null | undefined;
+		
 		try {
-			let interactionObject = getInteractionData();
+			interactionObject = getInteractionData();
 
 			if (!interactionObject) {
 				throw new Error(`Unknown interaction: "${interaction[nameKey]}"`);
@@ -169,16 +172,27 @@ export default {
 		}
 
 		const logLevel = 
-			(interactionData !== undefined && (interactionData.content as BaseCommandObject).logInteraction !== undefined) ? 
-			(interactionData.content as BaseCommandObject).logInteraction : LOG_CONDITION.ALWAYS;
+			(interactionObject && interactionObject.logLevel !== undefined) ? 
+			interactionObject.logLevel : LOG_LEVEL.ALWAYS;
 
-		const commandState: TLogCondition = (commandErrored === true) ? LOG_CONDITION.ERROR : (response === true) ? LOG_CONDITION.SUCCESS : LOG_CONDITION.FAIL;
+		const logEnvironment = 
+			(interactionObject && interactionObject.logEnvironment !== undefined) ? 
+			interactionObject.logEnvironment : LOG_ENVIRONMENT.ALL;
 
-		if (GeneralData.logging.interaction.enabled &&
-			logLevel !== LOG_CONDITION.NEVER &&
-			logLevel === LOG_CONDITION.ALWAYS ||
+		const commandState: TLogLevel = (commandErrored === true) ? LOG_LEVEL.ERROR : (response === true) ? LOG_LEVEL.SUCCESS : LOG_LEVEL.FAIL;
+		const commandEnvironment: TLogEnvironment = (GeneralData.production) ? LOG_ENVIRONMENT.PRODUCTION : (GeneralData.beta) ? LOG_ENVIRONMENT.BETA : LOG_ENVIRONMENT.DEVELOPMENT 
+
+		const logLevelState = (
+			logLevel !== LOG_LEVEL.NEVER &&
+			logLevel === LOG_LEVEL.ALWAYS ||
 			(logLevel & commandState) === commandState
-		) {
+		);
+		const logEnvironmentState = (
+			logEnvironment === LOG_ENVIRONMENT.ALL ||
+			(logEnvironment & commandEnvironment) === commandEnvironment
+		);
+
+		if (GeneralData.logging.interaction.enabled && logLevelState && logEnvironmentState) {
 			this.outputLog(interaction, response);
 		}
 	},

@@ -41,10 +41,15 @@ import {
 	getInteractionObject,
 	AnyInteractionObject,
 	IAnyInteractionObject,
-	AnyContextMenuInteraction
+	AnyContextMenuInteraction,
+	LOG_LEVEL,
+	TLogLevel,
+	LOG_ENVIRONMENT,
+	TLogEnvironment
 } from ".";
 import { IChannelSelectComponentObject, IMentionableSelectComponentObject, IRoleSelectComponentObject, IStringSelectComponentObject, IUserSelectComponentObject } from "./components";
 import { includesAll } from "../../utils";
+import { IBaseCommandObject } from "./base";
 
 
 //#region Interaction Content
@@ -82,6 +87,18 @@ export class CommandInteractionContent<
 	public content: TContent;
 	public data: TData;
 	public execute: InteractionExecute<TInteraction>;
+
+	/** Define when to log the interaction
+	 * @requires {@linkcode LOG_LEVEL} from {@linkcode src/handlers/commandBuilder/index.ts}
+	 * @example logInteraction = LOG_CONDITION.ON_FAIL | LOG_CONDITION.ON_ERROR;
+	*/
+	public logLevel?: TLogLevel = LOG_LEVEL.ALWAYS;
+
+	/** Define when to log the interaction
+	 * @requires {@linkcode LOG_ENVIRONMENT} from {@linkcode src/handlers/commandBuilder/index.ts}
+	 * @example logInteraction = LOG_ENV_CONDITION.DEVELOPMENT | LOG_ENV_CONDITION.PRODUCTION;
+	*/
+	public logEnvironment?: TLogLevel = LOG_ENVIRONMENT.ALL;
 
 	public interactionType?: T;
 
@@ -160,7 +177,7 @@ T extends ComponentType.ChannelSelect ? ChannelSelectMenuInteraction : AnySelect
  * @requires content > customId, type
  * @requires execute
 */
-export type ISelectMenuCollectionField<T extends ComponentType> = CommandInteractionContentInput<PickSelectMenuInputComponentTypeFromComponent<T>, PickSelectMenuComponentTypeFromComponent<T>, PickSelectMenuInteractionTypeFromComponent<T>>
+export type ISelectMenuCollectionField<T extends ComponentType = ComponentType.StringSelect> = CommandInteractionContentInput<PickSelectMenuInputComponentTypeFromComponent<T>, PickSelectMenuComponentTypeFromComponent<T>, PickSelectMenuInteractionTypeFromComponent<T>>
 export type ISelectMenuCollection<T> = CheckFields<T, ISelectMenuCollectionField<ComponentType>>
 
 export type IAnyInteractionField =
@@ -288,6 +305,10 @@ export class CommandInteractionData<
 	TMethods extends BaseMethodCollection = never,
 > {
 	public interactionType: IBaseInteractionType = IBaseInteractionType.Command;
+	
+	public logLevel: TLogLevel = LOG_LEVEL.ALWAYS;
+	public logEnvironment: TLogEnvironment = LOG_ENVIRONMENT.ALL;
+
 	private _command: PickCommandOrContextMenuInput<typeof this.interactionType>;
 	private _buttons?: TButtons;
 	private _selectMenus?: TSelectMenus;
@@ -296,6 +317,10 @@ export class CommandInteractionData<
 
 	constructor(input: ICommandInteractionData<TButtons, TSelectMenus, TEmbeds, TMethods>) {
 		this.interactionType = input.command.interactionType ?? IBaseInteractionType.Command as IBaseInteractionType;
+		
+		this.logLevel = input.command.logLevel ?? LOG_LEVEL.ALWAYS;
+		this.logEnvironment = input.command.logEnvironment ?? LOG_ENVIRONMENT.ALL;
+
 		this._command = input.command;
 
 		if (input.buttons) { this._buttons = input.buttons as IOptionalCollection<TButtons, BaseButtonCollection>; }
