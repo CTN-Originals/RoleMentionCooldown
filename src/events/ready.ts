@@ -1,16 +1,15 @@
 import 'dotenv/config';
-import { Client, ComponentType, EmbedBuilder, Events, Guild, Interaction, InteractionType, Message, PermissionFlagsBits, Routes, TextChannel } from 'discord.js';
+import { Client, ComponentType, EmbedBuilder, Events, Guild, Interaction, InteractionType, Message, Routes, TextChannel } from 'discord.js';
 
 import { ConsoleInstance } from 'better-console-utilities';
 
 import { GeneralData } from '../data';
 import { DevEnvironment } from '../data';
 import { Mentionable } from '../data/orm/mentionables';
-import { UpdateBotListStats } from '../handlers/botLists';
-import { getInteractionObject } from '../handlers/commandBuilder';
 
 import PingCommand from '../commands/test/ping';
 import ListCommand from '../commands/info/list';
+import RoleCooldownCommand from '../commands/configuration/manageRoles';
 import { testWebhook } from '..';
 
 // import ErrorHandler from '../handlers/errorHandler';
@@ -35,7 +34,7 @@ export default {
 
 			DevEnvironment.restCommands = await client.rest.get(Routes.applicationGuildCommands(process.env.CLIENT_ID!, process.env.DEV_GUILD_ID!)) as {id: string, name: string, type: number, guild_id: string}[];
 
-			thisConsole.logDefault('Dev Environment:', DevEnvironment);
+			// thisConsole.logDefault('Dev Environment:', DevEnvironment);
 		}
 
 		this.Initialize(client);
@@ -55,6 +54,17 @@ export default {
 		const guild: Guild = client.guilds.cache.get(process.env.DEV_GUILD_ID!)!;
 		const channel: TextChannel = await DevEnvironment.client?.channels.fetch(DevEnvironment.channelId) as TextChannel;
 
+		// const role = await guild.roles.cache.get('1309653896788050043')!;
+		// const mentionable = await Mentionable.get(guild.id, role.id)!;
+
+		// const channelSelect = RoleCooldownCommand.selectMenus.buildOne<ChannelSelectMenuBuilder>(RoleCooldownCommand.selectMenus.channelSelection.content);
+		// const row: any = new ActionRowBuilder().addComponents(channelSelect);
+
+		// const msg = await channel.send({
+		// 	embeds: RoleCooldownCommand.embeds.mentionableInfo(mentionable!, role),
+		// 	components: [row]
+		// });
+
 		// testWebhook.send({
 		// 	embeds: [await ListCommand.embeds.getCurrentCooldownsEmbed(guild, 'all')]
 		// })
@@ -69,27 +79,22 @@ export default {
 		// console.log(await guild.commands.permissions.fetch({}))
 		// console.log(await ping.permissions.fetch({guild: guild}))
 
-		// const collector: MessageCollector = channel!.createMessageCollector({
-		// 	filter: (message) => message.content.includes('test')
-		// })
-
-		// collector.on('collect', (message) => {
-		// 	if (message.channel.isSendable()) {
-		// 		message.channel.send({content: `${message.author.displayName} said the word!!`});
-		// 	}
-		// })
-
 		
-		// new FakeInteraction('test').execute();
-		// const mentionTest = new FakeInteraction('mention', {
-		// 	options: [
-		// 		{name: 'role', value: {id: '1309653896788050043', name: '!q', hexColor: '#ff0000'}}
-		// 	]
-		// });
-		// mentionTest.execute();
+		const mentionTest = new FakeInteraction('rolecooldown', {
+			subCommand: 'edit',
+			options: [
+				{name: 'role', value: {id: '1309653896788050043', name: '!q', hexColor: '#000000'}},
+				{name: 'global-cooldown', value: '0'},
+				{name: 'channel-cooldown', value: '6127s'},
+				{name: 'user-cooldown', value: '24d 23h 5m 32s'},
+			]
+		});
+		mentionTest.execute();
 		// await new Promise<void>((resolve) => setTimeout(() => {resolve()}, 2000));
 		// mentionTest.execute();
 
+		
+		//#region cooldown input validation
 		// new FakeInteraction('test').execute();
 		// new FakeInteraction('rolecooldown', {
 		// 	subCommand: 'add',
@@ -140,18 +145,8 @@ export default {
 		// 		{name: 'role', value: '1309653896788050043'}
 		// 	]
 		// })
+		//#endregion
 
-		// removeRole.execute();
-		// addRole.options[1] = new FakeInteractionOptions([addRole.options[0], {name: 'cooldown', value: '120.9 123'}]);
-		// addRole.execute();
-		// addRole.options[1] = new FakeInteractionOptions([addRole.options[0], {name: 'cooldown', value: '123minutes 456sec'}]);
-		// addRole.execute();
-		// await new Promise(resolve => setTimeout(resolve, 3000));
-		// removeRole.execute();
-
-		// new FakeInteraction('help').execute();
-		
-		// await devEnvironment.channel?.send({content: '<@&811667577985302534>'})
 
 		// try {
 		// 	const message = await DevEnvironment.channel?.messages.fetch().then(list => list.find(m => m.id === '1309304556127260732'))
