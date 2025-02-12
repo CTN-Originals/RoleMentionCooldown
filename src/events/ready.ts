@@ -11,6 +11,8 @@ import PingCommand from '../commands/test/ping';
 import ListCommand from '../commands/info/list';
 import RoleCooldownCommand from '../commands/configuration/manageRoles';
 import { testWebhook } from '..';
+import { NullExpression } from 'mongoose';
+import { EmitError, onError } from '.';
 
 // import ErrorHandler from '../handlers/errorHandler';
 
@@ -222,14 +224,26 @@ class FakeInteraction {
 	public get channelId() { return this.channel.id }
 	public get guildId() { return this.guild.id };
 
+	private message: Message | null = null;
+
 	public isChatInputCommand() {return true}
 	public isRepliable() {return true}
 	public inGuild() { return true; }
 
+	public fetchReply(): Promise<Message<boolean>> {
+		if (!this.message) {
+			EmitError(new Error(`Unable to fetch reply of interaction`));
+		}
+
+		return new Promise((resolve) => {resolve(this.message!)});
+	}
+
 	public async reply(replyContent: string | {content: string, ephemeral: boolean, embeds: EmbedBuilder[], components: any[]}): Promise<Message|boolean> {
 		const channel = this.guild.channels.cache.get(this.channel.id);
 		if (!channel || !(channel instanceof TextChannel)) return false;
-		return channel.send(replyContent);
+
+		this.message = await channel.send(replyContent);
+		return this.message;
 	}
 
 

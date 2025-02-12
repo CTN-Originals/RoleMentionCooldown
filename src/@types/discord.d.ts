@@ -22,6 +22,8 @@ declare module "discord.js" {
 		buttons: Collection<string, string>; 
 		selectMenus: Collection<string, string>;
 	}
+
+	declare type ComponentValue = string | string[] | number;
 }
 
 declare type AnyComponentInteraction = StringSelectMenuInteraction|ChannelSelectMenuInteraction|UserSelectMenuInteraction|MentionableSelectMenuInteraction|RoleSelectMenuInteraction

@@ -1,5 +1,5 @@
 
-import { ChatInputCommandInteraction, EmbedBuilder, InteractionContextType, ApplicationCommandOptionType, PermissionFlagsBits, GuildMember, Role, ComponentType, StringSelectMenuInteraction, ChannelSelectMenuInteraction, ChannelType, ActionRowBuilder, SelectMenuComponentOptionData, ActionRowComponent, ButtonInteraction } from "discord.js";
+import { ChatInputCommandInteraction, EmbedBuilder, InteractionContextType, ApplicationCommandOptionType, PermissionFlagsBits, GuildMember, Role, ComponentType, StringSelectMenuInteraction, ChannelSelectMenuInteraction, ChannelType, ActionRowBuilder, SelectMenuComponentOptionData, ButtonInteraction } from "discord.js";
 import { BaseButtonCollection, BaseEmbedCollection, BaseSelectMenuCollection, CommandInteractionData, IButtonCollection, ISelectMenuCollection, LOG_ENVIRONMENT, LOG_LEVEL } from "../../handlers/commandBuilder";
 
 import { ColorTheme, GeneralData } from '../../data'
@@ -10,15 +10,18 @@ import { validateEmbed } from "../../utils/embedUtils";
 import { BaseMethodCollection, IButtonCollectionField, ISelectMenuCollectionField } from "../../handlers/commandBuilder/data";
 import { CooldownDefinition, IMentionableItem, UsageScopeType } from "../../data/orm/schemas/mentionableData";
 import { ButtonStyle } from "discord.js";
+import { ComponentValueStorage } from "../../handlers/componentValueStorage";
 
 const thisConsole = new ConsoleInstance();
 
 const timeframes = ['s', 'm', 'h', 'd'];
 
-const componentIdPrefix = 'rolecooldown_edit_';
+const componentIdPrefix = 'rolecooldown-edit_';
+const componentValues = new ComponentValueStorage();
 
 class ButtonCollection extends BaseButtonCollection implements IButtonCollection<ButtonCollection> {
 	public channelSettings: IButtonCollectionField = {
+		logEnvironment: LOG_ENVIRONMENT.PRODUCTION | LOG_ENVIRONMENT.BETA,
 		content: {
 			customId: componentIdPrefix + 'channel-settings',
 			label: 'Channel Settings',
@@ -40,37 +43,37 @@ class ButtonCollection extends BaseButtonCollection implements IButtonCollection
 		}
 	}
 	public roleSettings: IButtonCollectionField = {
+		logEnvironment: LOG_ENVIRONMENT.PRODUCTION | LOG_ENVIRONMENT.BETA,
 		content: {
 			customId: componentIdPrefix + 'role-settings',
 			label: 'Role Settings',
 			style: ButtonStyle.Primary,
 		},
 		execute: async (interaction: ButtonInteraction) => {
-			await interaction.fetchReply()
 			return true;
 		}
 	}
 
 	//#region Submit Buttons
 	public submitChannelScope: IButtonCollectionField = {
+		logEnvironment: LOG_ENVIRONMENT.PRODUCTION | LOG_ENVIRONMENT.BETA,
 		content: {
 			customId: componentIdPrefix + 'submit_channel-scope',
 			label: 'Submit',
 			style: ButtonStyle.Success
 		},
 		execute: async (interaction: ButtonInteraction) => {
-			await interaction.fetchReply()
 			return true;
 		}
 	}
 	public submitRoleScope: IButtonCollectionField = {
+		logEnvironment: LOG_ENVIRONMENT.PRODUCTION | LOG_ENVIRONMENT.BETA,
 		content: {
 			customId: componentIdPrefix + 'submit_role-scope',
 			label: 'Submit',
 			style: ButtonStyle.Success
 		},
 		execute: async (interaction: ButtonInteraction) => {
-			await interaction.fetchReply()
 			return true;
 		}
 	}
@@ -78,6 +81,7 @@ class ButtonCollection extends BaseButtonCollection implements IButtonCollection
 }
 class SelectMenuCollection extends BaseSelectMenuCollection implements ISelectMenuCollection<SelectMenuCollection> {
 	public scopeType: ISelectMenuCollectionField<ComponentType.StringSelect> = {
+		logEnvironment: LOG_ENVIRONMENT.PRODUCTION | LOG_ENVIRONMENT.BETA,
 		content: {
 			type: ComponentType.StringSelect,
 			options: Object.values(UsageScopeType).map((scope): SelectMenuComponentOptionData => {return {
@@ -94,6 +98,7 @@ class SelectMenuCollection extends BaseSelectMenuCollection implements ISelectMe
 	}
 	
 	public channelScope: ISelectMenuCollectionField<ComponentType.ChannelSelect> = {
+		logEnvironment: LOG_ENVIRONMENT.PRODUCTION | LOG_ENVIRONMENT.BETA,
 		content: {
 			type: ComponentType.ChannelSelect,
 			customId: componentIdPrefix + 'channel-selection',
@@ -402,6 +407,8 @@ class MethodCollection extends BaseMethodCollection {
 			],
 			ephemeral: !GeneralData.development,
 		});
+
+		componentValues.registerInteraction(interaction);
 
 		return true;
 	}
