@@ -1,5 +1,5 @@
 
-import { ChatInputCommandInteraction, EmbedBuilder, InteractionContextType, ApplicationCommandOptionType, PermissionFlagsBits, GuildMember, Role, ComponentType, StringSelectMenuInteraction, ChannelSelectMenuInteraction, ChannelType, ActionRowBuilder } from "discord.js";
+import { ChatInputCommandInteraction, EmbedBuilder, InteractionContextType, ApplicationCommandOptionType, PermissionFlagsBits, GuildMember, Role, ComponentType, StringSelectMenuInteraction, ChannelSelectMenuInteraction, ChannelType, ActionRowBuilder, SelectMenuComponentOptionData, ActionRowComponent, ButtonInteraction } from "discord.js";
 import { BaseButtonCollection, BaseEmbedCollection, BaseSelectMenuCollection, CommandInteractionData, IButtonCollection, ISelectMenuCollection } from "../../handlers/commandBuilder";
 
 import { ColorTheme, GeneralData } from '../../data'
@@ -7,19 +7,96 @@ import { hexToBit, PeriodOfTime, includesAny, getTimeDisplay } from "../../utils
 import { ActiveCooldown, Mentionable } from "../../data/orm/mentionables";
 import { ConsoleInstance } from "better-console-utilities";
 import { validateEmbed } from "../../utils/embedUtils";
-import { BaseMethodCollection, ISelectMenuCollectionField } from "../../handlers/commandBuilder/data";
-import { CooldownDefinition, IMentionableItem } from "../../data/orm/schemas/mentionableData";
+import { BaseMethodCollection, IButtonCollectionField, ISelectMenuCollectionField } from "../../handlers/commandBuilder/data";
+import { CooldownDefinition, IMentionableItem, UsageScopeType } from "../../data/orm/schemas/mentionableData";
+import { ButtonStyle } from "discord.js";
 
 const thisConsole = new ConsoleInstance();
 
 const timeframes = ['s', 'm', 'h', 'd'];
 
-class ButtonCollection extends BaseButtonCollection implements IButtonCollection<ButtonCollection> {}
+const componentIdPrefix = 'rolecooldown_edit_';
+
+class ButtonCollection extends BaseButtonCollection implements IButtonCollection<ButtonCollection> {
+	public channelSettings: IButtonCollectionField = {
+		content: {
+			customId: componentIdPrefix + 'channel-settings',
+			label: 'Channel Settings',
+			style: ButtonStyle.Primary
+		},
+		execute: async (interaction: ButtonInteraction) => {
+			const scopeTypeSelect = command.selectMenus.scopeType.content;
+			const channelSelect = command.selectMenus.channelScope.content;
+
+			await interaction.update({
+				components: [
+					new ActionRowBuilder().addComponents(command.selectMenus.buildOne(scopeTypeSelect)) as any,
+					new ActionRowBuilder().addComponents(command.selectMenus.buildOne(channelSelect)) as any,
+					new ActionRowBuilder().addComponents(command.buttons.buildOne(command.buttons.submitChannelScope.content)) as any,
+				],
+			});
+			
+			return true;
+		}
+	}
+	public roleSettings: IButtonCollectionField = {
+		content: {
+			customId: componentIdPrefix + 'role-settings',
+			label: 'Role Settings',
+			style: ButtonStyle.Primary,
+		},
+		execute: async (interaction: ButtonInteraction) => {
+			await interaction.fetchReply()
+			return true;
+		}
+	}
+
+	//#region Submit Buttons
+	public submitChannelScope: IButtonCollectionField = {
+		content: {
+			customId: componentIdPrefix + 'submit_channel-scope',
+			label: 'Submit',
+			style: ButtonStyle.Success
+		},
+		execute: async (interaction: ButtonInteraction) => {
+			await interaction.fetchReply()
+			return true;
+		}
+	}
+	public submitRoleScope: IButtonCollectionField = {
+		content: {
+			customId: componentIdPrefix + 'submit_role-scope',
+			label: 'Submit',
+			style: ButtonStyle.Success
+		},
+		execute: async (interaction: ButtonInteraction) => {
+			await interaction.fetchReply()
+			return true;
+		}
+	}
+	//#endregion
+}
 class SelectMenuCollection extends BaseSelectMenuCollection implements ISelectMenuCollection<SelectMenuCollection> {
-	public channelSelection: ISelectMenuCollectionField<ComponentType.ChannelSelect> = {
+	public scopeType: ISelectMenuCollectionField<ComponentType.StringSelect> = {
+		content: {
+			type: ComponentType.StringSelect,
+			options: Object.values(UsageScopeType).map((scope): SelectMenuComponentOptionData => {return {
+				label: scope[0].toUpperCase() + scope.slice(1),
+				value: scope,
+			}}),
+			placeholder: 'Wether to allow or deny usage',
+			customId: componentIdPrefix + 'scope-type',
+		},
+		execute: (interaction: StringSelectMenuInteraction) => {
+			interaction.deferUpdate();
+			return true;
+		}
+	}
+	
+	public channelScope: ISelectMenuCollectionField<ComponentType.ChannelSelect> = {
 		content: {
 			type: ComponentType.ChannelSelect,
-			customId: 'rolecooldown_edit_channel-selection',
+			customId: componentIdPrefix + 'channel-selection',
 			channelTypes: [
 				ChannelType.AnnouncementThread,
 				ChannelType.GuildAnnouncement,
@@ -29,20 +106,12 @@ class SelectMenuCollection extends BaseSelectMenuCollection implements ISelectMe
 				ChannelType.PublicThread,
 				ChannelType.GuildVoice,
 			],
+			minValues: 0,
 			maxValues: 25,
 			defaultValues: [],
 		},
 		execute: (interaction: ChannelSelectMenuInteraction) => {
-			return true;
-		}
-	}
-
-	public test: ISelectMenuCollectionField<ComponentType.StringSelect> = {
-		content: {
-			type: ComponentType.StringSelect,
-			customId: 'tmp-test',
-		},
-		execute: (interaction: StringSelectMenuInteraction) => {
+			interaction.deferUpdate();
 			return true;
 		}
 	}
@@ -326,13 +395,11 @@ class MethodCollection extends BaseMethodCollection {
 			await Mentionable.update(mentionableDoc);
 		}
 
-		const channelSelect = command.selectMenus.channelSelection.content;
-		const row: any = new ActionRowBuilder().addComponents(command.selectMenus.buildOne(channelSelect));
-
 		await interaction.reply({
-			// content: `Successfully updated <@&${role.id}>`,
 			embeds: command.embeds.mentionableInfo(mentionable, role),
-			components: [row],
+			components: [
+				new ActionRowBuilder().addComponents(command.buttons.getBuild(command.buttons.channelSettings, command.buttons.roleSettings)) as any,
+			],
 			ephemeral: !GeneralData.development,
 		});
 
