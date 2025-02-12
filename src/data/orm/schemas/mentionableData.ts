@@ -1,10 +1,5 @@
 import { Document, Schema, SchemaDefinitionProperty, model } from "mongoose";
 
-// export type IMentionableItem = {
-// 	cooldown: number,
-// 	lastUsed: number, //? the milisecond time code of when the mentionable was last mentioned
-// }
-
 //#region Types
 export type CooldownDefinition<T> = {
 	/** Cooldown for the whole server once used */
@@ -14,6 +9,7 @@ export type CooldownDefinition<T> = {
 	/** Cooldown for the user that used it */
 	user: T
 }
+
 
 export type LastUsedData = {
 	/** The Universal Time Code of when the mentionable was last used anywhere in the guild */
@@ -32,9 +28,28 @@ export type LastUsedData = {
 	user: {[userId: string]: number}
 }
 
+//?? Should i include "none" to makr it as not set so that when /mention is used, the validation can skip over it?
+export const UsageScopeType = {
+	ALLOW: 'allow',
+	DENY: 'deny'
+} as const;
+export type TUsageScopeType = typeof UsageScopeType[keyof typeof UsageScopeType];
+
+export type UsageScopeData = {
+	/** Wether the channel scope contains channels that allow or deny usage */
+	channelScopeType: TUsageScopeType,
+	channelScope: string[],
+
+	/** Wether the role scope contains roles that are allowed or denied usage */
+	roleScopeType: TUsageScopeType,
+	roleScope: string[],
+}
+
+
 export type IMentionableItem = {
 	cooldownTime: CooldownDefinition<number>,
 	lastUsedData: LastUsedData,
+	usageScope: UsageScopeData
 }
 export type IMentionableStorage = {
 	[mentionable: string]: IMentionableItem
