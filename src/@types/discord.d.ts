@@ -23,7 +23,7 @@ declare module "discord.js" {
 		selectMenus: Collection<string, string>;
 	}
 
-	declare type ComponentValue = string | string[] | number;
+	declare type ComponentValue = string | string[] | Message | Message[] | Role | Role[] | Channel | Channel[] | User | User[];
 }
 
 declare type AnyComponentInteraction = StringSelectMenuInteraction|ChannelSelectMenuInteraction|UserSelectMenuInteraction|MentionableSelectMenuInteraction|RoleSelectMenuInteraction

@@ -30,6 +30,7 @@ export type LastUsedData = {
 
 //?? Should i include "none" to makr it as not set so that when /mention is used, the validation can skip over it?
 export const UsageScopeType = {
+	NONE: 'none',
 	ALLOW: 'allow',
 	DENY: 'deny'
 } as const;

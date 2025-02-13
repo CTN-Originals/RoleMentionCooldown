@@ -17,7 +17,6 @@ const thisConsole = new ConsoleInstance();
 const timeframes = ['s', 'm', 'h', 'd'];
 
 const componentIdPrefix = 'rolecooldown-edit_';
-const componentValues = new ComponentValueStorage();
 
 class ButtonCollection extends BaseButtonCollection implements IButtonCollection<ButtonCollection> {
 	public channelSettings: IButtonCollectionField = {
@@ -407,8 +406,6 @@ class MethodCollection extends BaseMethodCollection {
 			],
 			ephemeral: !GeneralData.development,
 		});
-
-		componentValues.registerInteraction(interaction);
 
 		return true;
 	}
