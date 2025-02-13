@@ -351,8 +351,14 @@ export class Mentionable {
 			},
 			lastUsedData: {
 				global: 0,
-				channel: {placeholder: 0},
-				user: {placeholder: 0}
+				channel: { placeholder: 0 },
+				user: { placeholder: 0 }
+			},
+			usageScope: {
+				channelScopeType: "none",
+				channelScope: [],
+				roleScopeType: "none",
+				roleScope: []
 			}
 		} as IMentionableItem;
 	}
