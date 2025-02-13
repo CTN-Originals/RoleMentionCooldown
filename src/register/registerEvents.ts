@@ -1,13 +1,12 @@
-import * as fs from 'node:fs'
 
 import type { Client } from 'discord.js'
 
-import { cons } from '../index'
 import { getAllFilesInDir, registeredLogString } from '.'
+import { cons } from '../index'
 
 /** Register the event files to the client */
-function registerEvent(client: Client, dir: string, file: string) {
-	const event = require(`../${dir}/${file}`).default
+async function registerEvent(client: Client, dir: string, file: string): Promise<void> {
+	const event = (await import(`../${dir}/${file}`)).default
 	if (event.once) {
 		client.once(event.name, (...args) => event.execute(...args))
 	}
@@ -20,6 +19,6 @@ function registerEvent(client: Client, dir: string, file: string) {
 
 
 /** Get event files */
-export function registertAllEvents(client: Client, dir: string) {
+export function registertAllEvents(client: Client, dir: string): void {
 	getAllFilesInDir(client, registerEvent, dir, ['index.js', 'index.ts'])
 }

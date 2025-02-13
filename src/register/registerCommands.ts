@@ -1,61 +1,24 @@
-import * as fs from 'node:fs'
 
-import type { Client} from 'discord.js'
-import { Collection } from 'discord.js' 
+import type { Client } from 'discord.js'
 
-import { client, cons } from '..'
-import type { BaseButtonCollection, BaseSelectMenuCollection} from '../handlers/commandBuilder'
-import { AnyInteractionObject, CommandInteractionData, getInteractionObject, IButtonCollectionField } from '../handlers/commandBuilder'
-import { EmitError } from '../events'
-import { ColorTheme } from '../data'
-import type { BaseEmbedCollection, BaseMethodCollection} from '../handlers/commandBuilder/data'
-import { IAnyInteractionField, IBaseInteractionType, ICommandField, IContextMenuField, ISelectMenuCollectionField } from '../handlers/commandBuilder/data'
 import { getAllFilesInDir, registeredLogString } from '.'
+import { client, cons } from '..'
 import type { InteractionDataType } from '../@types/discord'
+import { EmitError } from '../events'
+import type { BaseButtonCollection, BaseSelectMenuCollection } from '../handlers/commandBuilder'
+import { CommandInteractionData } from '../handlers/commandBuilder'
+import type { BaseEmbedCollection, BaseMethodCollection } from '../handlers/commandBuilder/data'
+import { IBaseInteractionType } from '../handlers/commandBuilder/data'
 
-// function registerToClientCollection(client: Client, type: InteractionDataType, cmd: IAnyInteractionField, dir?: string, file?: string) {
-// 	// let name: string;
-// 	// let collection: string = type + 's';
-// 	// console.log(cmd)
-// 	// switch (type) {
-// 	// 	case 'command': {
-// 	// 		cmd = cmd as ICommandField;
-// 	// 		name = cmd.content.name;
-// 	// 	} break;
-// 	// 	case 'contextMenu': {
-// 	// 		cmd = cmd as IContextMenuField;
-// 	// 		name = cmd.content.name;
-// 	// 	} break;
-// 	// 	case 'button': {
-// 	// 		cmd = cmd as IButtonCollectionField;
-// 	// 		name = cmd.content.customId;
-// 	// 	} break;
-// 	// 	case 'selectMenu': {
-// 	// 		cmd = cmd as ISelectMenuCollectionField;
-// 	// 		name = cmd.content.customId;
-// 	// 	} break;
-// 	// }
-
-// 	if ((client.commands as Collection<string, CommandInteractionData>).get(name) !== undefined) {
-// 		EmitError(new Error(`Duplicate Interaction name detected. The name "${name}" already exists in collection "${collection}"`))
-// 		return;
-// 	}
-
-// 	cons.log(registeredLogString(type, name, dir, file));
-
-// 	client[collection].set(name, cmd);
-// 	// client[type + 'Objects'].set(name, getInteractionObject(content));
-// }
-
-function validateName(name: string, type: InteractionDataType) {
+function validateName(name: string, type: InteractionDataType): void {
 	if (client.commands.get(name) !== undefined) {
 		EmitError(new Error(`Duplicate Interaction name detected. The name "${name}" already exists as a "${type}" and will be overwritten`))
 	}
 }
 
 //? Register the command files to the client
-function registerCommand(client: Client, dir: string, file: string) {
-	const commandData = require(`../${dir}/${file}`).default as CommandInteractionData<BaseButtonCollection, BaseSelectMenuCollection, BaseEmbedCollection, BaseMethodCollection>
+async function registerCommand(client: Client, dir: string, file: string): Promise<void> {
+	const commandData = (await import(`../${dir}/${file}`)).default as CommandInteractionData<BaseButtonCollection, BaseSelectMenuCollection, BaseEmbedCollection, BaseMethodCollection>
 	if (!(commandData instanceof CommandInteractionData)) {
 		EmitError(new Error(`Command file "./${dir}/${file}" is not an instance of "CommandInteractionData"`))
 		return
@@ -82,6 +45,6 @@ function registerCommand(client: Client, dir: string, file: string) {
 }
 
 // Get command files
-export function registerAllCommands(client: any, dir: string) {
+export function registerAllCommands(client: Client, dir: string): void {
 	getAllFilesInDir(client, registerCommand, dir)
 }
