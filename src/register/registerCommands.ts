@@ -48,40 +48,40 @@ import type { InteractionDataType } from '../@types/discord'
 // }
 
 function validateName(name: string, type: InteractionDataType) {
-  if (client.commands.get(name) !== undefined) {
-    EmitError(new Error(`Duplicate Interaction name detected. The name "${name}" already exists as a "${type}" and will be overwritten`))
-  }
+	if (client.commands.get(name) !== undefined) {
+		EmitError(new Error(`Duplicate Interaction name detected. The name "${name}" already exists as a "${type}" and will be overwritten`))
+	}
 }
 
 //? Register the command files to the client
 function registerCommand(client: Client, dir: string, file: string) {
-  const commandData = require(`../${dir}/${file}`).default as CommandInteractionData<BaseButtonCollection, BaseSelectMenuCollection, BaseEmbedCollection, BaseMethodCollection>
-  if (!(commandData instanceof CommandInteractionData)) {
-    EmitError(new Error(`Command file "./${dir}/${file}" is not an instance of "CommandInteractionData"`))
-    return
-  }
+	const commandData = require(`../${dir}/${file}`).default as CommandInteractionData<BaseButtonCollection, BaseSelectMenuCollection, BaseEmbedCollection, BaseMethodCollection>
+	if (!(commandData instanceof CommandInteractionData)) {
+		EmitError(new Error(`Command file "./${dir}/${file}" is not an instance of "CommandInteractionData"`))
+		return
+	}
 
-  const commandName = commandData.command.content.name
-  const commandType = (commandData.interactionType !== IBaseInteractionType.ContextMenu) ? 'command' : 'contextMenu'
-  validateName(commandName, commandType)
+	const commandName = commandData.command.content.name
+	const commandType = (commandData.interactionType !== IBaseInteractionType.ContextMenu) ? 'command' : 'contextMenu'
+	validateName(commandName, commandType)
 	
-  client.commands.set(commandName, commandData)
-  cons.log(registeredLogString(commandType, commandName, dir, file))
+	client.commands.set(commandName, commandData)
+	cons.log(registeredLogString(commandType, commandName, dir, file))
 	
-  for (const button of commandData.collection.buttons.asArray()) {
-    validateName(button.content.customId, 'button')
-    client.buttons.set(button.content.customId, commandName)
-    // cons.log(registeredLogString('button', button.content.customId));
-  }
-  for (const select of commandData.collection.selectMenus.asArray()) {
-    validateName(select.content.customId, 'button')
-    client.selectMenus.set(select.content.customId, commandName)
-    // cons.log(registeredLogString('button', select.content.customId));
-  }
+	for (const button of commandData.collection.buttons.asArray()) {
+		validateName(button.content.customId, 'button')
+		client.buttons.set(button.content.customId, commandName)
+		// cons.log(registeredLogString('button', button.content.customId));
+	}
+	for (const select of commandData.collection.selectMenus.asArray()) {
+		validateName(select.content.customId, 'button')
+		client.selectMenus.set(select.content.customId, commandName)
+		// cons.log(registeredLogString('button', select.content.customId));
+	}
 	
 }
 
 // Get command files
 export function registerAllCommands(client: any, dir: string) {
-  getAllFilesInDir(client, registerCommand, dir)
+	getAllFilesInDir(client, registerCommand, dir)
 }

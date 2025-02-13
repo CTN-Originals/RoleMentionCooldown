@@ -14,102 +14,102 @@ export type ListType = 'all'|'cooldowns';
 class ButtonCollection extends BaseButtonCollection implements IButtonCollection<ButtonCollection> {}
 class SelectMenuCollection extends BaseSelectMenuCollection implements ISelectMenuCollection<SelectMenuCollection> {}
 class EmbedCollection extends BaseEmbedCollection {
-  public async getCurrentCooldownsEmbed(guild: Guild, type: ListType): Promise<EmbedBuilder> {
-    const stats: [string, string][] = []
-    const mentionables = await Mentionable.getAll(guild.id)
-    if (!mentionables) {
-      throw new Error(`Could not find the mentionables of guild ${guild.id ?? undefined}`)
-    }
+	public async getCurrentCooldownsEmbed(guild: Guild, type: ListType): Promise<EmbedBuilder> {
+		const stats: [string, string][] = []
+		const mentionables = await Mentionable.getAll(guild.id)
+		if (!mentionables) {
+			throw new Error(`Could not find the mentionables of guild ${guild.id ?? undefined}`)
+		}
 	
-    for (const roleId in mentionables) {
-      switch (type) {
-      case 'all': { //TODO get the highest cooldown time compared to each of the cooldown times and put that on up here
-        stats.push([
-          roleId,
-          `\`${getTimeDisplay(mentionables[roleId].cooldownTime.global)}\``
-        ])
-      } break
-      case 'cooldowns': {
-        if (Mentionable.isOncooldown(mentionables[roleId])) {
-          stats.push([
-            roleId,
-            `<t:${getTimestamp(Date.now() + Mentionable.remainingCooldown(mentionables[roleId]))}:R>`
-          ])
-        }
-      } break
-      default: break
-      }
-    }
+		for (const roleId in mentionables) {
+			switch (type) {
+			case 'all': { //TODO get the highest cooldown time compared to each of the cooldown times and put that on up here
+				stats.push([
+					roleId,
+					`\`${getTimeDisplay(mentionables[roleId].cooldownTime.global)}\``
+				])
+			} break
+			case 'cooldowns': {
+				if (Mentionable.isOncooldown(mentionables[roleId])) {
+					stats.push([
+						roleId,
+						`<t:${getTimestamp(Date.now() + Mentionable.remainingCooldown(mentionables[roleId]))}:R>`
+					])
+				}
+			} break
+			default: break
+			}
+		}
 
-    if (stats.length === 0) {
-      stats.push(['-', '-'])
-    }
-    else {
-      switch (type) {
-      case 'all':
-        stats.sort((a, b) => mentionables[a[0]].cooldownTime.global - mentionables[b[0]].cooldownTime.global)
-        break
-      case 'cooldowns':
-        stats.sort((a, b) => (Date.now() + Mentionable.remainingCooldown(mentionables[a[0]])) - (Date.now() + Mentionable.remainingCooldown(mentionables[b[0]]))) 
-        break
-      default: break
-      }
-    }
+		if (stats.length === 0) {
+			stats.push(['-', '-'])
+		}
+		else {
+			switch (type) {
+			case 'all':
+				stats.sort((a, b) => mentionables[a[0]].cooldownTime.global - mentionables[b[0]].cooldownTime.global)
+				break
+			case 'cooldowns':
+				stats.sort((a, b) => (Date.now() + Mentionable.remainingCooldown(mentionables[a[0]])) - (Date.now() + Mentionable.remainingCooldown(mentionables[b[0]]))) 
+				break
+			default: break
+			}
+		}
 
-    return new EmbedBuilder({
-      title:       'Role Mention Cooldowns',
-      description: [
-        '**NOTE**: I had a mojor update recently,',
-        'it updated the way users can use role mentions.',
-        'Instead of being able to mention a role in the message content',
-        'you now need to use the new `/mention` command',
-        'and enter the role you would like to be mentioned in the command options.',
-        '',
-        `If you have any questions about this, please join the [support server](${GeneralData.supportServerInvite}).`
-      ].join('\n'),
-      fields: [
-        {name: 'Role', value: stats.map(s => (s[0] === '-') ? s[0] : `<@&${s[0]}>`).join('\n'), inline: true},
-        {name: 'Cooldown', value: stats.map(s => s[1]).join('\n'), inline: true},
-      ],
-      color: hexToBit(ColorTheme.embeds.info.asHex),
-    })
-  }
+		return new EmbedBuilder({
+			title:       'Role Mention Cooldowns',
+			description: [
+				'**NOTE**: I had a mojor update recently,',
+				'it updated the way users can use role mentions.',
+				'Instead of being able to mention a role in the message content',
+				'you now need to use the new `/mention` command',
+				'and enter the role you would like to be mentioned in the command options.',
+				'',
+				`If you have any questions about this, please join the [support server](${GeneralData.supportServerInvite}).`
+			].join('\n'),
+			fields: [
+				{name: 'Role', value: stats.map(s => (s[0] === '-') ? s[0] : `<@&${s[0]}>`).join('\n'), inline: true},
+				{name: 'Cooldown', value: stats.map(s => s[1]).join('\n'), inline: true},
+			],
+			color: hexToBit(ColorTheme.embeds.info.asHex),
+		})
+	}
 }
 
 const command = new CommandInteractionData<ButtonCollection, SelectMenuCollection, EmbedCollection>({
-  command: {
-    content: {
-      name:        'list',
-      description: 'Displays a list of mentionables',
-      contexts:    [InteractionContextType.Guild],
-      subcommands: [
-        {
-          name:        'all',
-          description: 'Display a list of all registered mentionable roles along with their cooldown',
-        },
-        {
-          name:        'cooldowns',
-          description: 'Display a list of all roles currently on cooldown along with their remaining cooldown time',
-        }
-      ]
-    },
-    execute: async function (interaction: ChatInputCommandInteraction) {
-      if (!interaction.guild) {
-        throw new Error('Interaction did not contain a guild')
-      }
+	command: {
+		content: {
+			name:        'list',
+			description: 'Displays a list of mentionables',
+			contexts:    [InteractionContextType.Guild],
+			subcommands: [
+				{
+					name:        'all',
+					description: 'Display a list of all registered mentionable roles along with their cooldown',
+				},
+				{
+					name:        'cooldowns',
+					description: 'Display a list of all roles currently on cooldown along with their remaining cooldown time',
+				}
+			]
+		},
+		execute: async function (interaction: ChatInputCommandInteraction) {
+			if (!interaction.guild) {
+				throw new Error('Interaction did not contain a guild')
+			}
 
-      const subCommand = interaction.options.getSubcommand() as ListType
+			const subCommand = interaction.options.getSubcommand() as ListType
 			
-      await interaction.reply({
-        embeds:    [validateEmbed(await command.embeds.getCurrentCooldownsEmbed(interaction.guild, subCommand))],
-        ephemeral: !GeneralData.development
-      })
-      return true
-    },
-  },
-  buttons:     new ButtonCollection(),
-  selectMenus: new SelectMenuCollection(),
-  embeds:      new EmbedCollection()
+			await interaction.reply({
+				embeds:    [validateEmbed(await command.embeds.getCurrentCooldownsEmbed(interaction.guild, subCommand))],
+				ephemeral: !GeneralData.development
+			})
+			return true
+		},
+	},
+	buttons:     new ButtonCollection(),
+	selectMenus: new SelectMenuCollection(),
+	embeds:      new EmbedCollection()
 })
 
 export default command

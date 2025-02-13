@@ -31,9 +31,9 @@ export type LastUsedData = {
 
 //?? Should i include "none" to makr it as not set so that when /mention is used, the validation can skip over it?
 export const UsageScopeType = {
-  NONE:  'none',
-  ALLOW: 'allow',
-  DENY:  'deny'
+	NONE:  'none',
+	ALLOW: 'allow',
+	DENY:  'deny'
 } as const
 export type TUsageScopeType = typeof UsageScopeType[keyof typeof UsageScopeType];
 
@@ -65,8 +65,8 @@ export interface IMentionableData extends Document {
 	mentionables: IMentionableStorage
 }
 const MentionablesData = new Schema<IMentionableData>({
-  _id:          String,
-  mentionables: {type: Object, default: {}} as SchemaDefinitionProperty,
+	_id:          String,
+	mentionables: {type: Object, default: {}} as SchemaDefinitionProperty,
 }, {timestamps: true})
 //#endregion
 

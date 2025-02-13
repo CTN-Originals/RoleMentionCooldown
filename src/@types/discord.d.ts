@@ -1,10 +1,10 @@
 import type {
-  Collection,
-  StringSelectMenuInteraction,
-  ChannelSelectMenuInteraction,
-  UserSelectMenuInteraction,
-  MentionableSelectMenuInteraction,
-  RoleSelectMenuInteraction,
+	Collection,
+	StringSelectMenuInteraction,
+	ChannelSelectMenuInteraction,
+	UserSelectMenuInteraction,
+	MentionableSelectMenuInteraction,
+	RoleSelectMenuInteraction,
 } from 'discord.js'
 import type { CommandInteractionData, BaseButtonCollection, BaseEmbedCollection, BaseMethodCollection, BaseSelectMenuCollection } from '../handlers/commandBuilder'
 import { IButtonCollectionField, ISelectMenuCollectionField, ICommandField, IContextMenuField, CommandObject, ContextMenuCommandObject, ButtonComponentObject, AnySelectMenuComponentObject } from '../handlers/commandBuilder'

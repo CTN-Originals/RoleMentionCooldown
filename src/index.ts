@@ -17,52 +17,52 @@ defaultThemeProfile.overrides.push(...[])
 export const cons = new ConsoleInstance()
 
 export const client: Client = new Client({
-  intents: [
-    'Guilds',
-  ]
+	intents: [
+		'Guilds',
+	]
 })
 export const logWebhook = new WebhookClient({id: process.env.LOG_WEBHOOK_ID!, token: process.env.LOG_WEBHOOK_TOKEN!})
 export const testWebhook = new WebhookClient({id: process.env.TEST_WEBHOOK_ID!, token: process.env.TEST_WEBHOOK_TOKEN!})
 
 async function Awake() {
-  //- Check if more then one flag is true
-  if (
-    GeneralData.production && (GeneralData.beta || GeneralData.development) ||
+	//- Check if more then one flag is true
+	if (
+		GeneralData.production && (GeneralData.beta || GeneralData.development) ||
 		GeneralData.beta && (GeneralData.development || GeneralData.production) ||
 		GeneralData.development && (GeneralData.production || GeneralData.beta)
-  ) {
-    EmitError(new Error([
-      'More then one startup flags are set to true, these flags need to be exclusive',
-      `production (${GeneralData.production}), beta (${GeneralData.beta}), development (${GeneralData.development})`,
-    ].join('\n')))
-    throw 'Start-up flags are non-exclusive'
-  }
+	) {
+		EmitError(new Error([
+			'More then one startup flags are set to true, these flags need to be exclusive',
+			`production (${GeneralData.production}), beta (${GeneralData.beta}), development (${GeneralData.development})`,
+		].join('\n')))
+		throw 'Start-up flags are non-exclusive'
+	}
 
-  client.commands = new Collection()
-  client.buttons = new Collection()
-  client.selectMenus = new Collection()
+	client.commands = new Collection()
+	client.buttons = new Collection()
+	client.selectMenus = new Collection()
 	
-  registertAllEvents(client, 'events')
-  registerAllCommands(client, 'commands')
+	registertAllEvents(client, 'events')
+	registerAllCommands(client, 'commands')
 
-  if (process.argv.includes('--deploy')) {
-    cons.log(process.argv)
-    await deployScript.doDeployCommands(client).then(() => {
-      process.exit(0)
-    })
-  }
-  else {
-    Start()
-  }
+	if (process.argv.includes('--deploy')) {
+		cons.log(process.argv)
+		await deployScript.doDeployCommands(client).then(() => {
+			process.exit(0)
+		})
+	}
+	else {
+		Start()
+	}
 }
 
 async function Start() {
-  const db = new Database()
-  await db.connect()
+	const db = new Database()
+	await db.connect()
 	
-  await client.login(process.env.TOKEN)
+	await client.login(process.env.TOKEN)
 }
 
 if (!process.argv.includes('--test')) {
-  Awake()
+	Awake()
 }

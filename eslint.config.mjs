@@ -45,7 +45,7 @@ const config = [
 				allowExpressions: true
 			}],
 			'import/prefer-default-export': 'off',
-			indent: ['error', 2],
+			indent: ['error', "tab"],
 			'key-spacing': ['error', {
 				multiLine: {
 					beforeColon: false,

@@ -10,22 +10,22 @@ import { UpdateBotListStats } from '../handlers/botLists'
 import { client } from '..'
 
 export default {
-  name: Events.GuildCreate,
-  once: false,
+	name: Events.GuildCreate,
+	once: false,
 
-  async execute(guild: Guild) {
-    eventConsole.log(`\nOn: [fg=green]${this.name}[/>]\nName: ${guild.name}\nID: ${guild.id}\nMembers: ${guild.memberCount}\n`)
+	async execute(guild: Guild) {
+		eventConsole.log(`\nOn: [fg=green]${this.name}[/>]\nName: ${guild.name}\nID: ${guild.id}\nMembers: ${guild.memberCount}\n`)
 
-    if (GeneralData.development) {
-      await doDeployCommands(client, [new DeployInstruction({
-        guildId:   guild.id,
-        deployAll: true
-      })])
-    }
+		if (GeneralData.development) {
+			await doDeployCommands(client, [new DeployInstruction({
+				guildId:   guild.id,
+				deployAll: true
+			})])
+		}
 
-    await Mentionable.onGuildCreate(guild)
-    await GuildConfig.onGuildCreate(guild)
+		await Mentionable.onGuildCreate(guild)
+		await GuildConfig.onGuildCreate(guild)
 
-    UpdateBotListStats()
-  },
+		UpdateBotListStats()
+	},
 }
