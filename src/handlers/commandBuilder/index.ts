@@ -1,159 +1,163 @@
 //#region Imports
+import type {
+  ApplicationCommandAttachmentOption,
+  ApplicationCommandBooleanOption,
+  ApplicationCommandChannelOption,
+  ApplicationCommandMentionableOption,
+  ApplicationCommandNumericOption,
+  ApplicationCommandRoleOption,
+  ApplicationCommandStringOption,
+  ApplicationCommandUserOption,
+  ButtonBuilder,
+  ChannelSelectMenuBuilder,
+  MentionableSelectMenuBuilder,
+  MessageContextMenuCommandInteraction,
+  RoleSelectMenuBuilder,
+  SlashCommandBuilder,
+  SlashCommandSubcommandBuilder,
+  SlashCommandSubcommandGroupBuilder,
+  StringSelectMenuBuilder,
+  UserContextMenuCommandInteraction,
+  UserSelectMenuBuilder
+} from 'discord.js'
 import {
-	ApplicationCommandAttachmentOption,
-	ApplicationCommandBooleanOption,
-	ApplicationCommandChannelOption,
-	ApplicationCommandMentionableOption,
-	ApplicationCommandNumericOption,
-	ApplicationCommandRoleOption,
-	ApplicationCommandStringOption,
-	ApplicationCommandUserOption,
-	ButtonBuilder,
-	ChannelSelectMenuBuilder,
-	ComponentType,
-	LocalizationMap,
-	MentionableSelectMenuBuilder,
-	MessageContextMenuCommandInteraction,
-	RoleSelectMenuBuilder,
-	SlashCommandBuilder,
-	SlashCommandSubcommandBuilder,
-	SlashCommandSubcommandGroupBuilder,
-	StringSelectMenuBuilder,
-	UserContextMenuCommandInteraction,
-	UserSelectMenuBuilder
-} from "discord.js";
+  ComponentType,
+  LocalizationMap
+} from 'discord.js'
 
 import {
-	CommandObjectInput,
-	BaseCommandObject,
-	BaseExecutableCommandObject,
-	ExecutableCommandObjectInput,
-	IBaseExecutableCommandObject,
-} from "./base";
+  CommandObjectInput,
+  BaseCommandObject,
+  BaseExecutableCommandObject,
+  ExecutableCommandObjectInput,
+  IBaseExecutableCommandObject,
+} from './base'
+
+import type {
+  IAnyInteractionField} from './data'
+import {
+  CommandInteractionData,
+  IBaseInteractionType,
+  ICommandField,
+  IContextMenuField,
+  IButtonCollectionField,
+  IButtonCollection,
+  ISelectMenuCollectionField,
+  ISelectMenuCollection,
+  BaseComponentCollection,
+  BaseButtonCollection,
+  BaseSelectMenuCollection,
+  BaseEmbedCollection,
+  BaseMethodCollection,
+  CommandInteractionContent,
+  ICommandObjectContent,
+  IContextMenuObjectContent,
+} from './data'
 
 import {
-	CommandInteractionData,
-	IBaseInteractionType,
-	ICommandField,
-	IContextMenuField,
-	IButtonCollectionField,
-	IButtonCollection,
-	ISelectMenuCollectionField,
-	ISelectMenuCollection,
-	BaseComponentCollection,
-	BaseButtonCollection,
-	BaseSelectMenuCollection,
-	BaseEmbedCollection,
-	BaseMethodCollection,
-	IAnyInteractionField,
-	CommandInteractionContent,
-	ICommandObjectContent,
-	IContextMenuObjectContent,
-} from "./data";
+  CommandObject,
+  ISubCommandGroupObject,
+  SubCommandGroupObject,
+  ISubCommandObject,
+  SubCommandObject,
+  ICommandObject,
+} from './command'
 
 import {
-	CommandObject,
-	ISubCommandGroupObject,
-	SubCommandGroupObject,
-	ISubCommandObject,
-	SubCommandObject,
-	ICommandObject,
-} from "./command";
-
-import {
-	IContextMenuCommandObject,
-	ContextMenuCommandObject,
-} from "./contextMenus";
+  IContextMenuCommandObject,
+  ContextMenuCommandObject,
+} from './contextMenus'
 
 import { 
-	AnySlashCommandOption,
-	AttachmentOptionObject,
-	BooleanOptionObject,
-	ChannelOptionObject,
-	IntegerOptionObject,
-	MentionableOptionObject,
-	NumberOptionObject,
-	RoleOptionObject,
-	StringOptionObject,
-	UserOptionObject,
-	BaseOptionObject,
-} from "./options";
+  AnySlashCommandOption,
+  AttachmentOptionObject,
+  BooleanOptionObject,
+  ChannelOptionObject,
+  IntegerOptionObject,
+  MentionableOptionObject,
+  NumberOptionObject,
+  RoleOptionObject,
+  StringOptionObject,
+  UserOptionObject,
+  BaseOptionObject,
+} from './options'
 
+import type {
+  IChannelSelectComponentObject,
+  IMentionableSelectComponentObject,
+  IRoleSelectComponentObject,
+  IStringSelectComponentObject,
+  IUserSelectComponentObject} from './components'
 import {
-	ButtonComponentObject,
-	IButtonComponentObject,
+  ButtonComponentObject,
+  IButtonComponentObject,
 
-	MentionableSelectComponentObject,
-	RoleSelectComponentObject,
-	StringSelectComponentObject,
-	UserSelectComponentObject,
-	IChannelSelectComponentObject,
-	IMentionableSelectComponentObject,
-	IRoleSelectComponentObject,
-	IStringSelectComponentObject,
-	IUserSelectComponentObject,
-	ChannelSelectComponentObject
-} from "./components";
+  MentionableSelectComponentObject,
+  RoleSelectComponentObject,
+  StringSelectComponentObject,
+  UserSelectComponentObject,
+  ChannelSelectComponentObject
+} from './components'
 
-import { includesAny } from "../../utils";
+import { includesAny } from '../../utils'
 
 //#endregion
 
 //#region Exports
 export {
-	CommandInteractionData,
-	IBaseInteractionType,
-	ICommandField,
-	IContextMenuField,
-	IButtonCollectionField,
-	IButtonCollection,
-	ISelectMenuCollectionField,
-	ISelectMenuCollection,
-	BaseComponentCollection,
-	BaseButtonCollection,
-	BaseSelectMenuCollection,
-	BaseEmbedCollection,
-	BaseMethodCollection,
+  CommandInteractionData,
+  IBaseInteractionType,
+  ICommandField,
+  IContextMenuField,
+  IButtonCollectionField,
+  IButtonCollection,
+  ISelectMenuCollectionField,
+  ISelectMenuCollection,
+  BaseComponentCollection,
+  BaseButtonCollection,
+  BaseSelectMenuCollection,
+  BaseEmbedCollection,
+  BaseMethodCollection,
 
-	CommandObjectInput,
-	BaseCommandObject,
-	BaseExecutableCommandObject,
-	ExecutableCommandObjectInput,
-	IBaseExecutableCommandObject,
+  CommandObjectInput,
+  BaseCommandObject,
+  BaseExecutableCommandObject,
+  ExecutableCommandObjectInput,
+  IBaseExecutableCommandObject,
 	
-	ICommandObject,
-	CommandObject,
+  ICommandObject,
+  CommandObject,
 	
-	ISubCommandObject,
-	SubCommandObject,
+  ISubCommandObject,
+  SubCommandObject,
 	
-	ISubCommandGroupObject,
-	SubCommandGroupObject,
+  ISubCommandGroupObject,
+  SubCommandGroupObject,
 
-	IContextMenuCommandObject,
-	ContextMenuCommandObject,
+  IContextMenuCommandObject,
+  ContextMenuCommandObject,
 	
-	AnySlashCommandOption,
-	AttachmentOptionObject,
-	BooleanOptionObject,
-	ChannelOptionObject,
-	IntegerOptionObject,
-	MentionableOptionObject,
-	NumberOptionObject,
-	RoleOptionObject,
-	StringOptionObject,
-	UserOptionObject,
-	ICommandObjectContent,
-	IContextMenuObjectContent,
+  AnySlashCommandOption,
+  AttachmentOptionObject,
+  BooleanOptionObject,
+  ChannelOptionObject,
+  IntegerOptionObject,
+  MentionableOptionObject,
+  NumberOptionObject,
+  RoleOptionObject,
+  StringOptionObject,
+  UserOptionObject,
+  ICommandObjectContent,
+  IContextMenuObjectContent,
 
-	IButtonComponentObject,
-	ButtonComponentObject,
+  IButtonComponentObject,
+  ButtonComponentObject,
 
-	ChannelSelectComponentObject,
-	MentionableSelectComponentObject,
-	RoleSelectComponentObject,
-	StringSelectComponentObject,
-	UserSelectComponentObject
+  ChannelSelectComponentObject,
+  MentionableSelectComponentObject,
+  RoleSelectComponentObject,
+  StringSelectComponentObject,
+  UserSelectComponentObject
 }
 
 export type AnySlashCommandBuilder =
@@ -218,56 +222,56 @@ export type IAnySelectMenuComponentObject = Exclude<IAnyComponentObject, IButton
 export type AnyContextMenuInteraction = MessageContextMenuCommandInteraction | UserContextMenuCommandInteraction;
 
 export const LOG_LEVEL = {
-	/** Always log */
-	ALWAYS: 0,
-	/** Only log when the command was executed successfully */
-	SUCCESS: 1 << 1,
-	/** Only log when the command was rejected for any reason */
-	FAIL: 1 << 2,
-	/** Only log when the command threw and error */
-	ERROR: 1 << 3,
-	/** Never log */
-	NEVER: -1,
-} as const;
+  /** Always log */
+  ALWAYS:  0,
+  /** Only log when the command was executed successfully */
+  SUCCESS: 1 << 1,
+  /** Only log when the command was rejected for any reason */
+  FAIL:    1 << 2,
+  /** Only log when the command threw and error */
+  ERROR:   1 << 3,
+  /** Never log */
+  NEVER:   -1,
+} as const
 export type TLogLevel = typeof LOG_LEVEL[keyof typeof LOG_LEVEL];
 
 /** Define which environment the bot needs to be in to output a log */
 export const LOG_ENVIRONMENT = {
-	/** Always log */
-	ALL: 0,
-	DEVELOPMENT: 1 << 1,
-	BETA: 1 << 2,
-	PRODUCTION: 1 << 3,
-} as const;
+  /** Always log */
+  ALL:         0,
+  DEVELOPMENT: 1 << 1,
+  BETA:        1 << 2,
+  PRODUCTION:  1 << 3,
+} as const
 export type TLogEnvironment = typeof LOG_ENVIRONMENT[keyof typeof LOG_ENVIRONMENT];
 
 //#endregion
 
 export function getInteractionObject(content: IAnyInteractionField | IAnyInteractionObject): AnyInteractionObject | void {
-	if (Object.keys(content).includes('content')) {
-		content = content as IAnyInteractionField
-		content = content.content;
-	}
+  if (Object.keys(content).includes('content')) {
+    content = content as IAnyInteractionField
+    content = content.content
+  }
 
-	const dataKeys: string[] = Object.keys(content);
-	if (dataKeys.includes('description')) { //- it must be a command
-		return new CommandObject(content as ICommandObject);
-	} else {
-		if (!dataKeys.includes('customId')) { //- must be contextMenu
-			return new ContextMenuCommandObject(content as IContextMenuCommandObject);
-		} else {
-			//? from here, it can only be a component
-			if (includesAny(dataKeys, ['label', 'emoji'])) { //- Must be a button
-				return new ButtonComponentObject(content as IButtonComponentObject);
-			} else {
-				switch (content['type'] as Omit<ComponentType, ComponentType.Button | ComponentType.ActionRow>) {
-					case ComponentType.StringSelect: 		{ return new StringSelectComponentObject(content as any); }
-					case ComponentType.UserSelect: 			{ return new UserSelectComponentObject(content as any); }
-					case ComponentType.RoleSelect: 			{ return new RoleSelectComponentObject(content as any); }
-					case ComponentType.MentionableSelect: 	{ return new MentionableSelectComponentObject(content as any); }
-					case ComponentType.ChannelSelect: 		{ return new ChannelSelectComponentObject(content as any); }
-				}
-			}
-		}
-	}
+  const dataKeys: string[] = Object.keys(content)
+  if (dataKeys.includes('description')) { //- it must be a command
+    return new CommandObject(content as ICommandObject)
+  } else {
+    if (!dataKeys.includes('customId')) { //- must be contextMenu
+      return new ContextMenuCommandObject(content as IContextMenuCommandObject)
+    } else {
+      //? from here, it can only be a component
+      if (includesAny(dataKeys, ['label', 'emoji'])) { //- Must be a button
+        return new ButtonComponentObject(content as IButtonComponentObject)
+      } else {
+        switch (content['type'] as Omit<ComponentType, ComponentType.Button | ComponentType.ActionRow>) {
+        case ComponentType.StringSelect: 		{ return new StringSelectComponentObject(content as any) }
+        case ComponentType.UserSelect: 			{ return new UserSelectComponentObject(content as any) }
+        case ComponentType.RoleSelect: 			{ return new RoleSelectComponentObject(content as any) }
+        case ComponentType.MentionableSelect: 	{ return new MentionableSelectComponentObject(content as any) }
+        case ComponentType.ChannelSelect: 		{ return new ChannelSelectComponentObject(content as any) }
+        }
+      }
+    }
+  }
 }

@@ -1,12 +1,13 @@
-import { Document, Schema, SchemaDefinitionProperty, model } from "mongoose";
+import type { Document} from 'mongoose'
+import { Schema, SchemaDefinitionProperty, model } from 'mongoose'
 
 export interface IGuildConfigData extends Document {
 	_id: string,
 	adminRoles: string[]
 }
 export const GuildConfigData = new Schema({
-	_id: String,
-	// adminRoles: {type: Array, default: []} as SchemaDefinitionProperty,
+  _id: String,
+  // adminRoles: {type: Array, default: []} as SchemaDefinitionProperty,
 }, {timestamps: true})
 
-export default model<IGuildConfigData>('GuildConfig', GuildConfigData);
+export default model<IGuildConfigData>('GuildConfig', GuildConfigData)
