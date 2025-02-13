@@ -1,22 +1,18 @@
 
-import type { ChatInputCommandInteraction, GuildMember, Role, StringSelectMenuInteraction, ChannelSelectMenuInteraction, SelectMenuComponentOptionData, ButtonInteraction } from 'discord.js'
-import { EmbedBuilder, InteractionContextType, ApplicationCommandOptionType, PermissionFlagsBits, ComponentType, ChannelType, ActionRowBuilder } from 'discord.js'
-import type { IButtonCollection, ISelectMenuCollection} from '../../handlers/commandBuilder'
+import type { ButtonInteraction, ChannelSelectMenuInteraction, ChatInputCommandInteraction, GuildMember, Role, SelectMenuComponentOptionData, StringSelectMenuInteraction } from 'discord.js'
+import { ActionRowBuilder, ApplicationCommandOptionType, ChannelType, ComponentType, EmbedBuilder, InteractionContextType, PermissionFlagsBits } from 'discord.js'
+import type { IButtonCollection, ISelectMenuCollection } from '../../handlers/commandBuilder'
 import { BaseButtonCollection, BaseEmbedCollection, BaseSelectMenuCollection, CommandInteractionData, LOG_ENVIRONMENT, LOG_LEVEL } from '../../handlers/commandBuilder'
 
+import { ButtonStyle } from 'discord.js'
 import { ColorTheme, GeneralData } from '../../data'
-import { hexToBit, PeriodOfTime, includesAny, getTimeDisplay } from '../../utils'
 import { ActiveCooldown, Mentionable } from '../../data/orm/mentionables'
-import { ConsoleInstance } from 'better-console-utilities'
-import { validateEmbed } from '../../utils/embedUtils'
+import type { CooldownDefinition, IMentionableItem } from '../../data/orm/schemas/mentionableData'
+import { UsageScopeType } from '../../data/orm/schemas/mentionableData'
 import type { IButtonCollectionField, ISelectMenuCollectionField } from '../../handlers/commandBuilder/data'
 import { BaseMethodCollection } from '../../handlers/commandBuilder/data'
-import type { CooldownDefinition, IMentionableItem} from '../../data/orm/schemas/mentionableData'
-import { UsageScopeType } from '../../data/orm/schemas/mentionableData'
-import { ButtonStyle } from 'discord.js'
-import { ComponentValueStorage } from '../../handlers/componentValueStorage'
-
-const thisConsole = new ConsoleInstance()
+import { getTimeDisplay, hexToBit, includesAny, PeriodOfTime } from '../../utils'
+import { validateEmbed } from '../../utils/embedUtils'
 
 const timeframes = ['s', 'm', 'h', 'd']
 

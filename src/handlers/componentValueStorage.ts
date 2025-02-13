@@ -1,5 +1,4 @@
 import type { ChatInputCommandInteraction, ComponentValue, Message } from 'discord.js'
-import { ComponentType } from 'discord.js'
 import { EmitError } from '../events'
 
 type ComponentValueHolder = {[componentId: string]: ComponentValue | null};
@@ -16,7 +15,7 @@ export class ComponentValueStorage {
 		instead of it being created once the reply is sent (which makes more sense but is harder to do)
 	 * @param messageId The message ID key in the storage object to delete once the timer runs out
 	*/
-	private static async setCleanupTimeout(messageId: string) {
+	private static async setCleanupTimeout(messageId: string): Promise<void> {
 		new Promise<void>((resolve) => {
 			setTimeout(() => {
 				delete ComponentValueStorage.storage[messageId]
