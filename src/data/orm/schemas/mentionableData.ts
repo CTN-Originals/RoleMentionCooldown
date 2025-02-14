@@ -1,5 +1,5 @@
-import type { Document, SchemaDefinitionProperty} from 'mongoose'
-import { Schema, model } from 'mongoose'
+import type { Document, SchemaDefinitionProperty } from 'mongoose';
+import { Schema, model } from 'mongoose';
 
 //#region Types
 export type CooldownDefinition<T> = {
@@ -34,7 +34,7 @@ export const UsageScopeType = {
 	NONE:  'none',
 	ALLOW: 'allow',
 	DENY:  'deny'
-} as const
+} as const;
 export type TUsageScopeType = typeof UsageScopeType[keyof typeof UsageScopeType];
 
 export type UsageScopeData = {
@@ -67,7 +67,7 @@ export interface IMentionableData extends Document {
 const MentionablesData = new Schema<IMentionableData>({
 	_id:          String,
 	mentionables: {type: Object, default: {}} as SchemaDefinitionProperty,
-}, {timestamps: true})
+}, {timestamps: true});
 //#endregion
 
-export default model<IMentionableData>('Mentionables', MentionablesData)
+export default model<IMentionableData>('Mentionables', MentionablesData);

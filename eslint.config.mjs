@@ -40,12 +40,15 @@ const config = [
 			'@typescript-eslint': tsEslintPlugin,
 		},
 		rules: {
+			'no-unused-vars': 'off',
+			'@typescript-eslint/no-unused-vars': 'warn',
+			
 			'@typescript-eslint/consistent-type-imports': 'error',
 			'@typescript-eslint/explicit-function-return-type': ['warn', {
 				allowExpressions: true
 			}],
 			'import/prefer-default-export': 'off',
-			indent: ['error', "tab"],
+			indent: ['error', 'tab'],
 			'key-spacing': ['error', {
 				multiLine: {
 					beforeColon: false,
@@ -58,9 +61,9 @@ const config = [
 					on: 'value'
 				}
 			}],
-			'linebreak-style': ['error', 'unix'],
+			'linebreak-style': 0,
 			quotes: ['error', 'single'],
-			semi: ['error', 'never']
+			semi: ['error', 'always']
 		}
 	}
 ]

@@ -1,22 +1,22 @@
 
-import type { ButtonInteraction, ChannelSelectMenuInteraction, ChatInputCommandInteraction, GuildMember, Role, SelectMenuComponentOptionData, StringSelectMenuInteraction } from 'discord.js'
-import { ActionRowBuilder, ApplicationCommandOptionType, ChannelType, ComponentType, EmbedBuilder, InteractionContextType, PermissionFlagsBits } from 'discord.js'
-import type { IButtonCollection, ISelectMenuCollection } from '../../handlers/commandBuilder'
-import { BaseButtonCollection, BaseEmbedCollection, BaseSelectMenuCollection, CommandInteractionData, LOG_ENVIRONMENT, LOG_LEVEL } from '../../handlers/commandBuilder'
+import type { ButtonInteraction, ChannelSelectMenuInteraction, ChatInputCommandInteraction, GuildMember, Role, SelectMenuComponentOptionData, StringSelectMenuInteraction } from 'discord.js';
+import { ActionRowBuilder, ApplicationCommandOptionType, ChannelType, ComponentType, EmbedBuilder, InteractionContextType, PermissionFlagsBits } from 'discord.js';
+import type { IButtonCollection, ISelectMenuCollection } from '../../handlers/commandBuilder';
+import { BaseButtonCollection, BaseEmbedCollection, BaseSelectMenuCollection, CommandInteractionData, LOG_ENVIRONMENT, LOG_LEVEL } from '../../handlers/commandBuilder';
 
-import { ButtonStyle } from 'discord.js'
-import { ColorTheme, GeneralData } from '../../data'
-import { ActiveCooldown, Mentionable } from '../../data/orm/mentionables'
-import type { CooldownDefinition, IMentionableItem } from '../../data/orm/schemas/mentionableData'
-import { UsageScopeType } from '../../data/orm/schemas/mentionableData'
-import type { IButtonCollectionField, ISelectMenuCollectionField } from '../../handlers/commandBuilder/data'
-import { BaseMethodCollection } from '../../handlers/commandBuilder/data'
-import { getTimeDisplay, hexToBit, includesAny, PeriodOfTime } from '../../utils'
-import { validateEmbed } from '../../utils/embedUtils'
+import { ButtonStyle } from 'discord.js';
+import { ColorTheme, GeneralData } from '../../data';
+import { ActiveCooldown, Mentionable } from '../../data/orm/mentionables';
+import type { CooldownDefinition, IMentionableItem } from '../../data/orm/schemas/mentionableData';
+import { UsageScopeType } from '../../data/orm/schemas/mentionableData';
+import type { IButtonCollectionField, ISelectMenuCollectionField } from '../../handlers/commandBuilder/data';
+import { BaseMethodCollection } from '../../handlers/commandBuilder/data';
+import { getTimeDisplay, hexToBit, includesAny, PeriodOfTime } from '../../utils';
+import { validateEmbed } from '../../utils/embedUtils';
 
-const timeframes = ['s', 'm', 'h', 'd']
+const timeframes = ['s', 'm', 'h', 'd'];
 
-const componentIdPrefix = 'rolecooldown-edit_'
+const componentIdPrefix = 'rolecooldown-edit_';
 
 class ButtonCollection extends BaseButtonCollection implements IButtonCollection<ButtonCollection> {
 	public channelSettings: IButtonCollectionField = {
@@ -27,8 +27,8 @@ class ButtonCollection extends BaseButtonCollection implements IButtonCollection
 			style:    ButtonStyle.Primary
 		},
 		execute: async (interaction: ButtonInteraction) => {
-			const scopeTypeSelect = command.selectMenus.scopeType.content
-			const channelSelect = command.selectMenus.channelScope.content
+			const scopeTypeSelect = command.selectMenus.scopeType.content;
+			const channelSelect = command.selectMenus.channelScope.content;
 
 			await interaction.update({
 				components: [
@@ -36,11 +36,11 @@ class ButtonCollection extends BaseButtonCollection implements IButtonCollection
 					new ActionRowBuilder().addComponents(command.selectMenus.buildOne(channelSelect)) as any,
 					new ActionRowBuilder().addComponents(command.buttons.buildOne(command.buttons.submitChannelScope.content)) as any,
 				],
-			})
+			});
 			
-			return true
+			return true;
 		}
-	}
+	};
 	public roleSettings: IButtonCollectionField = {
 		logEnvironment: LOG_ENVIRONMENT.PRODUCTION | LOG_ENVIRONMENT.BETA,
 		content:        {
@@ -49,9 +49,9 @@ class ButtonCollection extends BaseButtonCollection implements IButtonCollection
 			style:    ButtonStyle.Primary,
 		},
 		execute: async (interaction: ButtonInteraction) => {
-			return true
+			return true;
 		}
-	}
+	};
 
 	//#region Submit Buttons
 	public submitChannelScope: IButtonCollectionField = {
@@ -62,9 +62,9 @@ class ButtonCollection extends BaseButtonCollection implements IButtonCollection
 			style:    ButtonStyle.Success
 		},
 		execute: async (interaction: ButtonInteraction) => {
-			return true
+			return true;
 		}
-	}
+	};
 	public submitRoleScope: IButtonCollectionField = {
 		logEnvironment: LOG_ENVIRONMENT.PRODUCTION | LOG_ENVIRONMENT.BETA,
 		content:        {
@@ -73,9 +73,9 @@ class ButtonCollection extends BaseButtonCollection implements IButtonCollection
 			style:    ButtonStyle.Success
 		},
 		execute: async (interaction: ButtonInteraction) => {
-			return true
+			return true;
 		}
-	}
+	};
 	//#endregion
 }
 class SelectMenuCollection extends BaseSelectMenuCollection implements ISelectMenuCollection<SelectMenuCollection> {
@@ -86,15 +86,15 @@ class SelectMenuCollection extends BaseSelectMenuCollection implements ISelectMe
 			options: Object.values(UsageScopeType).map((scope): SelectMenuComponentOptionData => {return {
 				label: scope[0].toUpperCase() + scope.slice(1),
 				value: scope,
-			}}),
+			};}),
 			placeholder: 'Wether to allow or deny usage',
 			customId:    componentIdPrefix + 'scope-type',
 		},
 		execute: (interaction: StringSelectMenuInteraction) => {
-			interaction.deferUpdate()
-			return true
+			interaction.deferUpdate();
+			return true;
 		}
-	}
+	};
 	
 	public channelScope: ISelectMenuCollectionField<ComponentType.ChannelSelect> = {
 		logEnvironment: LOG_ENVIRONMENT.PRODUCTION | LOG_ENVIRONMENT.BETA,
@@ -115,10 +115,10 @@ class SelectMenuCollection extends BaseSelectMenuCollection implements ISelectMe
 			defaultValues: [],
 		},
 		execute: (interaction: ChannelSelectMenuInteraction) => {
-			interaction.deferUpdate()
-			return true
+			interaction.deferUpdate();
+			return true;
 		}
-	}
+	};
 }
 class EmbedCollection extends BaseEmbedCollection {
 	public getCooldownInstructionEmbed(cooldownInput: string, field: string, message?: string): EmbedBuilder[] {
@@ -148,7 +148,7 @@ class EmbedCollection extends BaseEmbedCollection {
 				].join('\n'),
 				color: hexToBit(ColorTheme.embeds.info)
 			})
-		]
+		];
 	}
 
 	public registeredNewRole(roleId: string, cooldown: PeriodOfTime) {
@@ -165,7 +165,7 @@ class EmbedCollection extends BaseEmbedCollection {
 				{name: '\u200B', value: '\u200B', inline: true},
 			],
 			color: hexToBit(ColorTheme.embeds.reply),
-		})
+		});
 	}
 
 	public targetRoleTooHigh(botMember: GuildMember, role: Role) {
@@ -180,7 +180,7 @@ class EmbedCollection extends BaseEmbedCollection {
 				`above the role you want to add (<@&${role.id}>) or vise versa.`,
 			].join('\n'),
 			color: hexToBit(ColorTheme.embeds.notice)
-		})
+		});
 	}
 
 	public targetRoleNotRegistered(role: Role) {
@@ -191,7 +191,7 @@ class EmbedCollection extends BaseEmbedCollection {
 				`\`\`\`/rolecooldown add role:<@&${role.id}>\`\`\``
 			].join('\n'),
 			color: hexToBit(ColorTheme.embeds.notice)
-		})
+		});
 	}
 
 	public mentionableAlreadyRegistered(role: Role) {
@@ -202,7 +202,7 @@ class EmbedCollection extends BaseEmbedCollection {
 				`\`\`\`/rolecooldown edit role:<@&${role.id}>\`\`\``
 			].join('\n'),
 			color: hexToBit(ColorTheme.embeds.notice)
-		}))]
+		}))];
 	}
 
 	public requireOneMinimumCooldown() {
@@ -214,7 +214,7 @@ class EmbedCollection extends BaseEmbedCollection {
 			].join('\n'),
 			footer: {text: 'Press "Arrow-Up" key to retry'},
 			color:  hexToBit(ColorTheme.embeds.notice)
-		}))]
+		}))];
 	}
 
 	public mentionableInfo(mentionable: IMentionableItem, role: Role): EmbedBuilder[] {
@@ -222,18 +222,18 @@ class EmbedCollection extends BaseEmbedCollection {
 			title:  `Role Cooldown info for \`@${role.name}\``,
 			fields: [],
 			color:  hexToBit(ColorTheme.embeds.reply)
-		})
+		});
 
 		for (const cooldownType in mentionable.cooldownTime) {
-			const timeValue = mentionable.cooldownTime[cooldownType]
+			const timeValue = mentionable.cooldownTime[cooldownType];
 			embed.addFields({
 				name:   `${cooldownType}`,
 				value:  `${(timeValue === 0) ? '``` - ```' : getTimeDisplay(timeValue, true)}`,
 				inline: true
-			})
+			});
 		}
 
-		return [validateEmbed(embed)]
+		return [validateEmbed(embed)];
 	}
 }
 class MethodCollection extends BaseMethodCollection {
@@ -248,46 +248,46 @@ class MethodCollection extends BaseMethodCollection {
 			.replaceAll('seconds', 's').replaceAll('second', 's').replaceAll('sec', 's')
 			.replaceAll('minutes', 'm').replaceAll('minute', 'm').replaceAll('min', 'm')
 			.replaceAll('hours', 'h').replaceAll('hour', 'h')
-			.replaceAll('days', 'd').replaceAll('day', 'd')
+			.replaceAll('days', 'd').replaceAll('day', 'd');
 
 		//- no timeframe letters included but only single value
 		if (!includesAny(input, timeframes) && input.split(' ').length == 1 && input.split('').every((n => '1234567890'.includes(n)))) {
-			input += 's' //? convert it to seconds for ease of use
+			input += 's'; //? convert it to seconds for ease of use
 		}
 
 		//- not seperated by spaces
-		let timeframeCount = 0
+		let timeframeCount = 0;
 		for (const timeframe of timeframes) {
 			if (input.includes(timeframe)) {
-				timeframeCount++
+				timeframeCount++;
 			}
 		}
 
 		if (timeframeCount > 1 && !input.includes(' ')) {
-			return 'The timeframes were not seperated by spaces.'
+			return 'The timeframes were not seperated by spaces.';
 		}
 		
 		//- input includes unknow character(s)
 		for (const timeframe of input.split(' ')) {
-			const suffix = timeframe.replace(parseFloat(timeframe).toString(), '')
+			const suffix = timeframe.replace(parseFloat(timeframe).toString(), '');
 			if (!timeframes.includes(suffix)) {
-				return `\`${timeframe}\` contains unknown timeframe suffix: \`${suffix}\``
+				return `\`${timeframe}\` contains unknown timeframe suffix: \`${suffix}\``;
 			}
 		}
 
 		//- no timeframe letters included
 		if (!includesAny(input, timeframes)) {
-			return 'Some/All timeframes entered did not end in any of the timeframe letters.'
+			return 'Some/All timeframes entered did not end in any of the timeframe letters.';
 		}
 		
-		const cooldown = new PeriodOfTime(input)
+		const cooldown = new PeriodOfTime(input);
 
 		//- cooldown returned as 0
 		if ((cooldown.time === 0 && cooldown.input !== '0s') || Number.isNaN(cooldown.time)) {
-			return 'The cooldown time resulted to be `0` from the input that was given.\nThis usually happens when the input contains unexpected characters.'
+			return 'The cooldown time resulted to be `0` from the input that was given.\nThis usually happens when the input contains unexpected characters.';
 		}
 
-		return cooldown
+		return cooldown;
 	}
 
 	private async getCooldownObject(interaction: ChatInputCommandInteraction): Promise<CooldownDefinition<PeriodOfTime | null> | string> {
@@ -295,108 +295,108 @@ class MethodCollection extends BaseMethodCollection {
 			global:  interaction.options.getString('global-cooldown'),
 			channel: interaction.options.getString('channel-cooldown'),
 			user:    interaction.options.getString('user-cooldown'),
-		}
+		};
 
 		const cooldown: CooldownDefinition<PeriodOfTime | null | string> = {
 			global:  (cooldownInput.global !== null) ? this.validateCooldownInput(cooldownInput.global) : null,
 			channel: (cooldownInput.channel !== null) ? this.validateCooldownInput(cooldownInput.channel) : null,
 			user:    (cooldownInput.user !== null) ? this.validateCooldownInput(cooldownInput.user) : null,
-		}
+		};
 
 		for (const field in cooldown) {
 			if (typeof cooldown[field] === 'string') {
 				await interaction.reply({
 					embeds:    command.embeds.getCooldownInstructionEmbed(cooldownInput[field], `${field}-cooldown`, cooldown[field]),
 					ephemeral: !GeneralData.development
-				})
+				});
 				
-				return `${field}-cooldown: ${cooldown[field]}`
+				return `${field}-cooldown: ${cooldown[field]}`;
 			}
 		}
 
-		return cooldown as CooldownDefinition<PeriodOfTime | null>
+		return cooldown as CooldownDefinition<PeriodOfTime | null>;
 	}
 	//#endregion
 
 	//#region Add
 	public async addRole(interaction: ChatInputCommandInteraction) {
-		const role = interaction.options.getRole('role', true) as Role
-		const existingMentionable = await Mentionable.get(interaction.guildId!, role.id)
+		const role = interaction.options.getRole('role', true) as Role;
+		const existingMentionable = await Mentionable.get(interaction.guildId!, role.id);
 
 		if (existingMentionable !== null && existingMentionable !== undefined) {
 			await interaction.reply({
 				embeds:    command.embeds.mentionableAlreadyRegistered(role),
 				ephemeral: !GeneralData.development,
-			})
+			});
 
-			return 'Mentionable is already registered'
+			return 'Mentionable is already registered';
 		}
 		
-		const cooldownInputs = await this.getCooldownObject(interaction)
+		const cooldownInputs = await this.getCooldownObject(interaction);
 		if (typeof cooldownInputs === 'string') { 
 			//- if cooldown is a string, the input was invalid and coolodwn contains the message why it is invalid
-			return cooldownInputs
+			return cooldownInputs;
 		}
 
 		if (Object.values(cooldownInputs).every(cd => cd === null)) {
 			await interaction.reply({
 				embeds:    command.embeds.requireOneMinimumCooldown(),
 				ephemeral: !GeneralData.development,
-			})
+			});
 
-			return 'Require at least one cooldown input'
+			return 'Require at least one cooldown input';
 		}
 		
-		const newMentionable: IMentionableItem = Mentionable.make()
+		const newMentionable: IMentionableItem = Mentionable.make();
 
 		for (const cooldownField in cooldownInputs) {
-			if (cooldownInputs[(cooldownField as keyof CooldownDefinition<PeriodOfTime>)] === null) { continue }
-			newMentionable.cooldownTime[(cooldownField as keyof CooldownDefinition<any>)] = cooldownInputs[(cooldownField as keyof CooldownDefinition<PeriodOfTime>)]!.time
+			if (cooldownInputs[(cooldownField as keyof CooldownDefinition<PeriodOfTime>)] === null) { continue; }
+			newMentionable.cooldownTime[(cooldownField as keyof CooldownDefinition<any>)] = cooldownInputs[(cooldownField as keyof CooldownDefinition<PeriodOfTime>)]!.time;
 		}
 
-		const res = await Mentionable.add(interaction.guildId!, role.id, newMentionable)
+		const res = await Mentionable.add(interaction.guildId!, role.id, newMentionable);
 
 		if (res) {
 			//TODO Improve embed to list all types of cooldowns
 			await interaction.reply({
 				embeds:    [validateEmbed(command.embeds.registeredNewRole(role.id, (cooldownInputs.global ?? cooldownInputs.channel ?? cooldownInputs.user)!))],
 				ephemeral: !GeneralData.development
-			})
+			});
 		} else {
-			throw new Error(`"${interaction.guild!.name}" Attempted to add new mentionable (${role}) unsuccessfully`)
+			throw new Error(`"${interaction.guild!.name}" Attempted to add new mentionable (${role}) unsuccessfully`);
 		}
 
-		return true
+		return true;
 	}
 	//#endregion
 
 	//#region Edit
 	public async editRole(interaction: ChatInputCommandInteraction) {
-		const role = interaction.options.getRole('role', true) as Role
-		const mentionableDoc = await Mentionable.getDocument(interaction.guildId!)
-		const mentionable = mentionableDoc.mentionables[role.id]
+		const role = interaction.options.getRole('role', true) as Role;
+		const mentionableDoc = await Mentionable.getDocument(interaction.guildId!);
+		const mentionable = mentionableDoc.mentionables[role.id];
 
 		if (!mentionable) {
 			await interaction.reply({
 				embeds:    [command.embeds.targetRoleNotRegistered(role)],
 				ephemeral: !GeneralData.development,
-			})
+			});
 
-			return 'Target role not registered as mentionable'
+			return 'Target role not registered as mentionable';
 		}
 
-		const cooldownInputs = await this.getCooldownObject(interaction)
+		const cooldownInputs = await this.getCooldownObject(interaction);
 		if (typeof cooldownInputs === 'string') {
-			return cooldownInputs
+			return cooldownInputs;
 		}
 		
 		if (!Object.values(cooldownInputs).every(cd => cd === null)) {
 			for (const cooldownField in cooldownInputs) {
-				if (cooldownInputs[(cooldownField as keyof CooldownDefinition<PeriodOfTime>)] === null) { continue }
-				mentionable.cooldownTime[(cooldownField as keyof CooldownDefinition<any>)] = cooldownInputs[(cooldownField as keyof CooldownDefinition<PeriodOfTime>)]!.time
+				if (cooldownInputs[(cooldownField as keyof CooldownDefinition<PeriodOfTime>)] === null) { continue; }
+				mentionable.cooldownTime[(cooldownField as keyof CooldownDefinition<any>)] = cooldownInputs[(cooldownField as keyof CooldownDefinition<PeriodOfTime>)]!.time;
 			}
 
-			await Mentionable.update(mentionableDoc)
+			await Mentionable.update(mentionableDoc);
 		}
 
 		await interaction.reply({
@@ -405,20 +405,20 @@ class MethodCollection extends BaseMethodCollection {
 				new ActionRowBuilder().addComponents(command.buttons.getBuild(command.buttons.channelSettings, command.buttons.roleSettings)) as any,
 			],
 			ephemeral: !GeneralData.development,
-		})
+		});
 
-		return true
+		return true;
 	}
 	//#endregion
 
 	//#region Remove
 	public async removeRole(interaction: ChatInputCommandInteraction) {
 		if (!interaction.guild) {
-			throw new Error('Interaction did not contain guild')
+			throw new Error('Interaction did not contain guild');
 		}
 		
-		const roleId = interaction.options.get('role', true).value
-		const mentionable = await Mentionable.get(interaction.guild.id, roleId as string)
+		const roleId = interaction.options.get('role', true).value;
+		const mentionable = await Mentionable.get(interaction.guild.id, roleId as string);
 		
 		if (mentionable === undefined) {
 			await interaction.reply({
@@ -427,11 +427,11 @@ class MethodCollection extends BaseMethodCollection {
 					color:       hexToBit(ColorTheme.embeds.notice)
 				}))],
 				ephemeral: true
-			})
-			return 'Role not present in list'
+			});
+			return 'Role not present in list';
 		}
 
-		const res = await Mentionable.remove(interaction.guild?.id, roleId as string)
+		const res = await Mentionable.remove(interaction.guild?.id, roleId as string);
 
 		if (res) {
 			await interaction.reply({
@@ -440,12 +440,12 @@ class MethodCollection extends BaseMethodCollection {
 					color:       hexToBit(ColorTheme.embeds.reply)
 				}))],
 				ephemeral: !GeneralData.development
-			})
+			});
 		} else {
-			throw new Error(`"${interaction.guild.name}" Attempted to remove mentionable (${roleId}) and was unsuccessfull`)
+			throw new Error(`"${interaction.guild.name}" Attempted to remove mentionable (${roleId}) and was unsuccessfull`);
 		}
 
-		return true
+		return true;
 	}
 	//#endregion
 }
@@ -529,22 +529,22 @@ const command = new CommandInteractionData<ButtonCollection, SelectMenuCollectio
 			]
 		},
 		execute: async function (interaction: ChatInputCommandInteraction) {
-			const subCommand = interaction.options.getSubcommand()
+			const subCommand = interaction.options.getSubcommand();
 			switch (subCommand) {
-			case 'add': return await command.methods.addRole(interaction)
-			case 'edit': return await command.methods.editRole(interaction)
-			case 'remove': return await command.methods.removeRole(interaction)
-			default: break
+			case 'add': return await command.methods.addRole(interaction);
+			case 'edit': return await command.methods.editRole(interaction);
+			case 'remove': return await command.methods.removeRole(interaction);
+			default: break;
 			}
 
 			//? if code reaches here, that means that all subcommands and groups fell through somehow...
-			throw new Error(`Unknown command command:${interaction.commandName} sub:${subCommand}`)
+			throw new Error(`Unknown command command:${interaction.commandName} sub:${subCommand}`);
 		},
 	},
 	buttons:     new ButtonCollection(),
 	selectMenus: new SelectMenuCollection(),
 	embeds:      new EmbedCollection(),
 	methods:     new MethodCollection()
-})
+});
 
-export default command
+export default command;
