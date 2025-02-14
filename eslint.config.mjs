@@ -41,7 +41,12 @@ const config = [
 		},
 		rules: {
 			'no-unused-vars': 'off',
-			'@typescript-eslint/no-unused-vars': 'warn',
+			'@typescript-eslint/no-unused-vars': ['warn', {
+				argsIgnorePattern: '^_',
+				caughtErrorsIgnorePattern: '^_',
+				destructuredArrayIgnorePattern: '^_',
+				varsIgnorePattern: '^_',
+			}],
 			
 			'@typescript-eslint/consistent-type-imports': 'error',
 			'@typescript-eslint/explicit-function-return-type': ['warn', {
@@ -49,7 +54,7 @@ const config = [
 			}],
 			'import/prefer-default-export': 'off',
 			indent: ['error', 'tab'],
-			'key-spacing': ['error', {
+			'key-spacing': ['warn', {
 				multiLine: {
 					beforeColon: false,
 					afterColon: true
