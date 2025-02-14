@@ -37,6 +37,7 @@ import {
 	LOG_ENVIRONMENT,
 	LOG_LEVEL
 } from '../handlers/commandBuilder';
+import { ComponentValueStorage } from '../handlers/componentValueStorage';
 import type { ErrorObject } from '../handlers/errorHandler';
 import { errorConsole } from '../handlers/errorHandler';
 import { hexToBit, removeDuplicates } from '../utils';
@@ -148,6 +149,14 @@ export default {
 			}
 			else {
 				interactionData = (interactionObject as IButtonCollectionField | ISelectMenuCollectionField);
+
+				if (interaction.isAnySelectMenu()) {
+					if (!ComponentValueStorage.storageIncludesMessage(interaction.message.id)) {
+						ComponentValueStorage.registerMessage(interaction.message.id);
+					}
+
+					ComponentValueStorage.setValue(interaction.message.id, interaction.customId, interaction.values);
+				}
 			}
 
 			if (response === null) {
