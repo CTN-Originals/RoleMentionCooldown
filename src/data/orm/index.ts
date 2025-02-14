@@ -1,9 +1,9 @@
-import type { Document, Model} from 'mongoose'
-import { model, Schema } from 'mongoose'
-import { cons } from '../..'
-import { EmitError, eventConsole } from '../../events'
-import type { Guild } from 'discord.js'
-import { Base } from 'discord.js'
+import type { Document, Model} from 'mongoose';
+import { model, Schema } from 'mongoose';
+import { cons } from '../..';
+import { EmitError, eventConsole } from '../../events';
+import type { Guild } from 'discord.js';
+import { Base } from 'discord.js';
 
 export interface BaseDocument {
 	_id: string
@@ -16,12 +16,12 @@ export class ObjectRelationalMap {
 	 * @returns The document of the guild if it exists
 	*/
 	public static async getDocument<T extends Document & BaseDocument>(model: typeof Model, guildId: string, errorOnNull: boolean = true): Promise<T> {
-		let doc = await model.findOne({_id: guildId})
+		let doc = await model.findOne({_id: guildId});
 		if (!doc && errorOnNull) {
-			await EmitError(new Error(`Document for guild (${guildId}) does not exist, creating new document...`))
-			doc = await ObjectRelationalMap.create(model, guildId)
+			await EmitError(new Error(`Document for guild (${guildId}) does not exist, creating new document...`));
+			doc = await ObjectRelationalMap.create(model, guildId);
 		}
-		return doc
+		return doc;
 	}
 
 
@@ -31,7 +31,7 @@ export class ObjectRelationalMap {
 	 * @returns The Document if created successfully, null otherwise
 	*/
 	public static async create(model: typeof Model, guildId: string) {
-		return await model.create({_id: guildId}).catch(EmitError)
+		return await model.create({_id: guildId}).catch(EmitError);
 	}
 
 	/**  Update a document
@@ -50,25 +50,25 @@ export class ObjectRelationalMap {
 	*/
 	public static async update(model: typeof Model, id_doc: string|Awaited<ReturnType<typeof ObjectRelationalMap.getDocument>>, markModified?: string[]): Promise<true>;
 	public static async update(model: typeof Model, id_doc: string|Awaited<ReturnType<typeof ObjectRelationalMap.getDocument>>, markModified: string[] = []): Promise<true> {
-		let doc: Awaited<ReturnType<typeof ObjectRelationalMap.getDocument>>
+		let doc: Awaited<ReturnType<typeof ObjectRelationalMap.getDocument>>;
 
 		if (typeof id_doc === 'string') {
-			doc = await ObjectRelationalMap.getDocument(model, id_doc)
+			doc = await ObjectRelationalMap.getDocument(model, id_doc);
 		} else {
-			doc = id_doc
+			doc = id_doc;
 		}
 
 		if (!doc) {
-			throw new Error('Unable to find document to update')
+			throw new Error('Unable to find document to update');
 		}
 
 		for (const field of markModified) {
-			doc.markModified(field)
+			doc.markModified(field);
 		}
 
-		await doc.save()
+		await doc.save();
 
-		return true
+		return true;
 	}
 	
 	/** Once the bot enters a new guild, see if we need to create a new document
@@ -76,10 +76,10 @@ export class ObjectRelationalMap {
 	 * @param guildId The GuildID of the server
 	*/
 	public static async onGuildCreate(model: typeof Model, guild: Guild): Promise<void> {
-		const doc = await this.getDocument(model, guild.id, false) //? check if it already/still existed
+		const doc = await this.getDocument(model, guild.id, false); //? check if it already/still existed
 		if (doc == null) {
-			await this.create(model, guild.id)
-			eventConsole.log(`[fg=green]Created[/>] new ${model.modelName} document for ${guild.id}`)
+			await this.create(model, guild.id);
+			eventConsole.log(`[fg=green]Created[/>] new ${model.modelName} document for ${guild.id}`);
 		}
 	}
 
@@ -88,10 +88,10 @@ export class ObjectRelationalMap {
 	 * @param guildId The GuildID of the server
 	*/
 	public static async onGuildDelete(model: typeof Model, guild: Guild): Promise<void> {
-		const doc = await this.getDocument(model, guild.id, false)
+		const doc = await this.getDocument(model, guild.id, false);
 		if (doc != null) {
-			await doc.deleteOne({_id: guild.id})
-			eventConsole.log(`[fg=red]Deleted[/>] ${model.modelName} document for ${guild.id}`)
+			await doc.deleteOne({_id: guild.id});
+			eventConsole.log(`[fg=red]Deleted[/>] ${model.modelName} document for ${guild.id}`);
 		}
 	}
 }

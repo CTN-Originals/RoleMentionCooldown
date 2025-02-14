@@ -19,11 +19,11 @@ import type {
 	StringSelectMenuBuilder,
 	UserContextMenuCommandInteraction,
 	UserSelectMenuBuilder
-} from 'discord.js'
+} from 'discord.js';
 import {
 	ComponentType,
 	LocalizationMap
-} from 'discord.js'
+} from 'discord.js';
 
 import {
 	CommandObjectInput,
@@ -31,10 +31,10 @@ import {
 	BaseExecutableCommandObject,
 	ExecutableCommandObjectInput,
 	IBaseExecutableCommandObject,
-} from './base'
+} from './base';
 
 import type {
-	IAnyInteractionField} from './data'
+	IAnyInteractionField} from './data';
 import {
 	CommandInteractionData,
 	IBaseInteractionType,
@@ -52,7 +52,7 @@ import {
 	CommandInteractionContent,
 	ICommandObjectContent,
 	IContextMenuObjectContent,
-} from './data'
+} from './data';
 
 import {
 	CommandObject,
@@ -61,12 +61,12 @@ import {
 	ISubCommandObject,
 	SubCommandObject,
 	ICommandObject,
-} from './command'
+} from './command';
 
 import {
 	IContextMenuCommandObject,
 	ContextMenuCommandObject,
-} from './contextMenus'
+} from './contextMenus';
 
 import { 
 	AnySlashCommandOption,
@@ -80,14 +80,14 @@ import {
 	StringOptionObject,
 	UserOptionObject,
 	BaseOptionObject,
-} from './options'
+} from './options';
 
 import type {
 	IChannelSelectComponentObject,
 	IMentionableSelectComponentObject,
 	IRoleSelectComponentObject,
 	IStringSelectComponentObject,
-	IUserSelectComponentObject} from './components'
+	IUserSelectComponentObject} from './components';
 import {
 	ButtonComponentObject,
 	IButtonComponentObject,
@@ -97,9 +97,9 @@ import {
 	StringSelectComponentObject,
 	UserSelectComponentObject,
 	ChannelSelectComponentObject
-} from './components'
+} from './components';
 
-import { includesAny } from '../../utils'
+import { includesAny } from '../../utils';
 
 //#endregion
 
@@ -158,7 +158,7 @@ export {
 	RoleSelectComponentObject,
 	StringSelectComponentObject,
 	UserSelectComponentObject
-}
+};
 
 export type AnySlashCommandBuilder =
  | SlashCommandBuilder
@@ -232,7 +232,7 @@ export const LOG_LEVEL = {
 	ERROR:   1 << 3,
 	/** Never log */
 	NEVER:   -1,
-} as const
+} as const;
 export type TLogLevel = typeof LOG_LEVEL[keyof typeof LOG_LEVEL];
 
 /** Define which environment the bot needs to be in to output a log */
@@ -242,34 +242,34 @@ export const LOG_ENVIRONMENT = {
 	DEVELOPMENT: 1 << 1,
 	BETA:        1 << 2,
 	PRODUCTION:  1 << 3,
-} as const
+} as const;
 export type TLogEnvironment = typeof LOG_ENVIRONMENT[keyof typeof LOG_ENVIRONMENT];
 
 //#endregion
 
 export function getInteractionObject(content: IAnyInteractionField | IAnyInteractionObject): AnyInteractionObject | void {
 	if (Object.keys(content).includes('content')) {
-		content = content as IAnyInteractionField
-		content = content.content
+		content = content as IAnyInteractionField;
+		content = content.content;
 	}
 
-	const dataKeys: string[] = Object.keys(content)
+	const dataKeys: string[] = Object.keys(content);
 	if (dataKeys.includes('description')) { //- it must be a command
-		return new CommandObject(content as ICommandObject)
+		return new CommandObject(content as ICommandObject);
 	} else {
 		if (!dataKeys.includes('customId')) { //- must be contextMenu
-			return new ContextMenuCommandObject(content as IContextMenuCommandObject)
+			return new ContextMenuCommandObject(content as IContextMenuCommandObject);
 		} else {
 			//? from here, it can only be a component
 			if (includesAny(dataKeys, ['label', 'emoji'])) { //- Must be a button
-				return new ButtonComponentObject(content as IButtonComponentObject)
+				return new ButtonComponentObject(content as IButtonComponentObject);
 			} else {
 				switch (content['type'] as Omit<ComponentType, ComponentType.Button | ComponentType.ActionRow>) {
-				case ComponentType.StringSelect: 		{ return new StringSelectComponentObject(content as any) }
-				case ComponentType.UserSelect: 			{ return new UserSelectComponentObject(content as any) }
-				case ComponentType.RoleSelect: 			{ return new RoleSelectComponentObject(content as any) }
-				case ComponentType.MentionableSelect: 	{ return new MentionableSelectComponentObject(content as any) }
-				case ComponentType.ChannelSelect: 		{ return new ChannelSelectComponentObject(content as any) }
+				case ComponentType.StringSelect: 		{ return new StringSelectComponentObject(content as any); }
+				case ComponentType.UserSelect: 			{ return new UserSelectComponentObject(content as any); }
+				case ComponentType.RoleSelect: 			{ return new RoleSelectComponentObject(content as any); }
+				case ComponentType.MentionableSelect: 	{ return new MentionableSelectComponentObject(content as any); }
+				case ComponentType.ChannelSelect: 		{ return new ChannelSelectComponentObject(content as any); }
 				}
 			}
 		}

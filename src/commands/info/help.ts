@@ -1,12 +1,12 @@
-import type { ChatInputCommandInteraction, APIEmbedField, StringSelectMenuInteraction, Client } from 'discord.js'
-import { EmbedBuilder, StringSelectMenuBuilder, ActionRowBuilder, InteractionContextType, ComponentType } from 'discord.js'
-import type { AnyDiscordCommandOption, CommandObject, IButtonCollection, ISelectMenuCollection, ISelectMenuCollectionField } from '../../handlers/commandBuilder'
-import { BaseButtonCollection, BaseEmbedCollection, BaseMethodCollection, BaseSelectMenuCollection, CommandInteractionData, IBaseInteractionType } from '../../handlers/commandBuilder'
+import type { ChatInputCommandInteraction, APIEmbedField, StringSelectMenuInteraction, Client } from 'discord.js';
+import { EmbedBuilder, StringSelectMenuBuilder, ActionRowBuilder, InteractionContextType, ComponentType } from 'discord.js';
+import type { AnyDiscordCommandOption, CommandObject, IButtonCollection, ISelectMenuCollection, ISelectMenuCollectionField } from '../../handlers/commandBuilder';
+import { BaseButtonCollection, BaseEmbedCollection, BaseMethodCollection, BaseSelectMenuCollection, CommandInteractionData, IBaseInteractionType } from '../../handlers/commandBuilder';
 
-import { hexToBit } from '../../utils'
-import { ColorTheme, GeneralData } from '../../data'
-import { validateEmbed } from '../../utils/embedUtils'
-import { client } from '../..'
+import { hexToBit } from '../../utils';
+import { ColorTheme, GeneralData } from '../../data';
+import { validateEmbed } from '../../utils/embedUtils';
+import { client } from '../..';
 
 type CommandInfo = {
 	name: string;
@@ -24,41 +24,41 @@ class SelectMenuCollection extends BaseSelectMenuCollection implements ISelectMe
 			customId: 'help_command-select',
 		},
 		execute: async function (interaction: StringSelectMenuInteraction) {
-			await interaction.deferUpdate()
+			await interaction.deferUpdate();
 				
-			const value = interaction.values[0] //? there can only be one
-			const commandInfo = command.methods.getExecutableCommands()
+			const value = interaction.values[0]; //? there can only be one
+			const commandInfo = command.methods.getExecutableCommands();
 
 			if (value === 'all') {
 				await interaction.editReply({
 					embeds: [command.embeds.getHelpEmbed(commandInfo)]
-				})
-				return true
+				});
+				return true;
 			}
 
-			const cmd = commandInfo.find(c => c.name === value.replaceAll('_', ' '))
-			const fields: {name: string, value: string}[] = []
+			const cmd = commandInfo.find(c => c.name === value.replaceAll('_', ' '));
+			const fields: {name: string, value: string}[] = [];
 
 			for (const opt of cmd?.options!) {
 				const value = [
 					`${opt.description}`
-				]
+				];
 				
 				if (opt.required !== undefined) {
-					value.push(`Required: \`${opt.required}\``)
+					value.push(`Required: \`${opt.required}\``);
 				}
 
 				if (Object.keys(opt).includes('minLength')) {
-					value.push(`Minimum Length: \`${opt['minLength']}\``)
+					value.push(`Minimum Length: \`${opt['minLength']}\``);
 				}
 				if (Object.keys(opt).includes('maxLength')) {
-					value.push(`Minimum Length: \`${opt['maxLength']}\``)
+					value.push(`Minimum Length: \`${opt['maxLength']}\``);
 				}
 
 				fields.push({
 					name:  opt.name,
 					value: value.join('\n')
-				})
+				});
 			}
 			
 			await interaction.editReply({
@@ -68,28 +68,28 @@ class SelectMenuCollection extends BaseSelectMenuCollection implements ISelectMe
 					fields:      fields,
 					color:       hexToBit(ColorTheme.embeds.info)
 				}))]
-			})
-			return true
+			});
+			return true;
 		},
-	}
+	};
 }
 class EmbedCollection extends BaseEmbedCollection {
 	public getHelpEmbed(commandInfo?: ReturnType<typeof command.methods.getExecutableCommands>) {
 		if (commandInfo == undefined || commandInfo == null) {
-			commandInfo = command.methods.getExecutableCommands()
+			commandInfo = command.methods.getExecutableCommands();
 		}
 	
-		const fields: APIEmbedField[] = []
+		const fields: APIEmbedField[] = [];
 	
 		for (const cmd of commandInfo) {
-			let options = ''
+			let options = '';
 			for (const opt of cmd.options.sort((a,b) => (a.required ? 1 : 0) - (b.required ? 1 : 0))) {
-				options += `  ${(opt.required) ? `<\`${opt.name}\`>` : `[\`${opt.name}\`]`}`
+				options += `  ${(opt.required) ? `<\`${opt.name}\`>` : `[\`${opt.name}\`]`}`;
 			}
 			fields.push({
 				name:  `/${cmd.name}${(cmd.options.length > 0) ? options : ''}`,
 				value: cmd.description
-			})
+			});
 		}
 	
 		return validateEmbed(new EmbedBuilder({
@@ -99,48 +99,48 @@ class EmbedCollection extends BaseEmbedCollection {
 			color:       hexToBit(ColorTheme.embeds.info),
 			footer:      { text: '< > = required  |  [ ] = optional' },
 			url:         `${GeneralData.supportServerInvite}`
-		}))
+		}));
 	}
 }
 class MethodCollection extends BaseMethodCollection {
 	//? this is not my best function... but it works and i dont wanna do more recursion stuff so f it
 	public getExecutableCommands(commands: Client['commands'] = client.commands) {	
-		const commandList: CommandInfo[] = []
+		const commandList: CommandInfo[] = [];
 
 		function addCommandInfo(data: RequiredFields<Partial<CommandInfo>, 'name' | 'description'>, prefix?: string) {
 			commandList.push({
 				name:        `${(prefix !== undefined) ? prefix + ' ' : ''}${data.name}`,
 				description: data.description,
 				options:     data.options ?? []
-			})
+			});
 		}
 
 		for (const [key, value] of commands.entries()) {
-			if ((value.interactionType as IBaseInteractionType) === IBaseInteractionType.ContextMenu) { continue }
+			if ((value.interactionType as IBaseInteractionType) === IBaseInteractionType.ContextMenu) { continue; }
 
-			value.command.data = value.command.data as CommandObject
+			value.command.data = value.command.data as CommandObject;
 
 			if ((!value.command.data.subcommands || value.command.data.subcommands.length === 0) && (!value.command.data.subcommandGroups || value.command.data.subcommandGroups.length === 0)) {
-				addCommandInfo(value.command.data)
+				addCommandInfo(value.command.data);
 			}
 			else {
 				if (value.command.data.subcommands && value.command.data.subcommands.length > 0) {
 					for (const sub of value.command.data.subcommands) {
-						addCommandInfo(sub, value.command.data.name)
+						addCommandInfo(sub, value.command.data.name);
 					}
 				}
 
 				if (value.command.data.subcommandGroups && value.command.data.subcommandGroups.length > 0) {
 					for (const group of value.command.data.subcommandGroups) {
 						for (const sub of group.subcommands!) {
-							addCommandInfo(sub, `${value.command.data.name} ${group.name}`)
+							addCommandInfo(sub, `${value.command.data.name} ${group.name}`);
 						}
 					}
 				}
 			}
 		}
 
-		return commandList
+		return commandList;
 	}
 }
 
@@ -152,7 +152,7 @@ const command = new CommandInteractionData<ButtonCollection, SelectMenuCollectio
 			contexts:    [InteractionContextType.Guild, InteractionContextType.BotDM],
 		},
 		execute: async function (interaction: ChatInputCommandInteraction) {
-			const commandInfo = command.methods.getExecutableCommands()
+			const commandInfo = command.methods.getExecutableCommands();
 			const commandSelect = new StringSelectMenuBuilder({
 				custom_id:   'help_command-select',
 				max_values:  1,
@@ -169,23 +169,23 @@ const command = new CommandInteractionData<ButtonCollection, SelectMenuCollectio
 						value:       `${c.name.replaceAll(' ', '_')}`,
 					}))
 				]
-			})
+			});
 
-			const row: any = new ActionRowBuilder().addComponents(commandSelect)
+			const row: any = new ActionRowBuilder().addComponents(commandSelect);
 
 			await interaction.reply({
 				embeds:     [command.embeds.getHelpEmbed(commandInfo)],
 				components: [row],
 				ephemeral:  !(GeneralData.development)
-			})
+			});
 			
-			return true
+			return true;
 		},
 	},
 	buttons:     new ButtonCollection(),
 	selectMenus: new SelectMenuCollection(),
 	embeds:      new EmbedCollection(),
 	methods:     new MethodCollection()
-})
+});
 
-export default command
+export default command;

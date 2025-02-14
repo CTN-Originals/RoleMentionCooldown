@@ -32,9 +32,9 @@ class ButtonCollection extends BaseButtonCollection implements IButtonCollection
 
 			await interaction.update({
 				components: [
-					new ActionRowBuilder().addComponents(command.selectMenus.buildOne(scopeTypeSelect)) as any,
-					new ActionRowBuilder().addComponents(command.selectMenus.buildOne(channelSelect)) as any,
-					new ActionRowBuilder().addComponents(command.buttons.buildOne(command.buttons.submitChannelScope.content)) as any,
+					new ActionRowBuilder().addComponents(command.selectMenus.buildOne(scopeTypeSelect)) as never,
+					new ActionRowBuilder().addComponents(command.selectMenus.buildOne(channelSelect)) as never,
+					new ActionRowBuilder().addComponents(command.buttons.buildOne(command.buttons.submitChannelScope.content)) as never,
 				],
 			});
 			
@@ -151,7 +151,7 @@ class EmbedCollection extends BaseEmbedCollection {
 		];
 	}
 
-	public registeredNewRole(roleId: string, cooldown: PeriodOfTime) {
+	public registeredNewRole(roleId: string, cooldown: PeriodOfTime): EmbedBuilder {
 		return new EmbedBuilder({
 			title:       'Registered New Role Cooldown',
 			description: [
@@ -168,7 +168,7 @@ class EmbedCollection extends BaseEmbedCollection {
 		});
 	}
 
-	public targetRoleTooHigh(botMember: GuildMember, role: Role) {
+	public targetRoleTooHigh(botMember: GuildMember, role: Role): EmbedBuilder {
 		return new EmbedBuilder({
 			title:       'Unable to add role',
 			description: [
@@ -183,7 +183,7 @@ class EmbedCollection extends BaseEmbedCollection {
 		});
 	}
 
-	public targetRoleNotRegistered(role: Role) {
+	public targetRoleNotRegistered(role: Role): EmbedBuilder {
 		return new EmbedBuilder({
 			description: [
 				`The role you entered (<@&${role.id}>) is not registered as a rolecooldown.`,
@@ -194,7 +194,7 @@ class EmbedCollection extends BaseEmbedCollection {
 		});
 	}
 
-	public mentionableAlreadyRegistered(role: Role) {
+	public mentionableAlreadyRegistered(role: Role): EmbedBuilder[] {
 		return [validateEmbed(new EmbedBuilder({
 			description: [
 				`The role you entered (<@&${role.id}>) is already registered.`,
@@ -205,7 +205,7 @@ class EmbedCollection extends BaseEmbedCollection {
 		}))];
 	}
 
-	public requireOneMinimumCooldown() {
+	public requireOneMinimumCooldown(): EmbedBuilder[] {
 		return [validateEmbed(new EmbedBuilder({
 			description: [
 				'This command requires at least one cooldown input',
@@ -319,7 +319,7 @@ class MethodCollection extends BaseMethodCollection {
 	//#endregion
 
 	//#region Add
-	public async addRole(interaction: ChatInputCommandInteraction) {
+	public async addRole(interaction: ChatInputCommandInteraction): Promise<string | true> {
 		const role = interaction.options.getRole('role', true) as Role;
 		const existingMentionable = await Mentionable.get(interaction.guildId!, role.id);
 
@@ -351,7 +351,7 @@ class MethodCollection extends BaseMethodCollection {
 
 		for (const cooldownField in cooldownInputs) {
 			if (cooldownInputs[(cooldownField as keyof CooldownDefinition<PeriodOfTime>)] === null) { continue; }
-			newMentionable.cooldownTime[(cooldownField as keyof CooldownDefinition<any>)] = cooldownInputs[(cooldownField as keyof CooldownDefinition<PeriodOfTime>)]!.time;
+			newMentionable.cooldownTime[(cooldownField as keyof CooldownDefinition<unknown>)] = cooldownInputs[(cooldownField as keyof CooldownDefinition<PeriodOfTime>)]!.time;
 		}
 
 		const res = await Mentionable.add(interaction.guildId!, role.id, newMentionable);
@@ -371,7 +371,7 @@ class MethodCollection extends BaseMethodCollection {
 	//#endregion
 
 	//#region Edit
-	public async editRole(interaction: ChatInputCommandInteraction) {
+	public async editRole(interaction: ChatInputCommandInteraction): Promise<string | true> {
 		const role = interaction.options.getRole('role', true) as Role;
 		const mentionableDoc = await Mentionable.getDocument(interaction.guildId!);
 		const mentionable = mentionableDoc.mentionables[role.id];
@@ -393,7 +393,7 @@ class MethodCollection extends BaseMethodCollection {
 		if (!Object.values(cooldownInputs).every(cd => cd === null)) {
 			for (const cooldownField in cooldownInputs) {
 				if (cooldownInputs[(cooldownField as keyof CooldownDefinition<PeriodOfTime>)] === null) { continue; }
-				mentionable.cooldownTime[(cooldownField as keyof CooldownDefinition<any>)] = cooldownInputs[(cooldownField as keyof CooldownDefinition<PeriodOfTime>)]!.time;
+				mentionable.cooldownTime[(cooldownField as keyof CooldownDefinition<unknown>)] = cooldownInputs[(cooldownField as keyof CooldownDefinition<PeriodOfTime>)]!.time;
 			}
 
 			await Mentionable.update(mentionableDoc);
@@ -402,7 +402,7 @@ class MethodCollection extends BaseMethodCollection {
 		await interaction.reply({
 			embeds:     command.embeds.mentionableInfo(mentionable, role),
 			components: [
-				new ActionRowBuilder().addComponents(command.buttons.getBuild(command.buttons.channelSettings, command.buttons.roleSettings)) as any,
+				new ActionRowBuilder().addComponents(command.buttons.getBuild(command.buttons.channelSettings, command.buttons.roleSettings)) as never,
 			],
 			ephemeral: !GeneralData.development,
 		});
@@ -412,7 +412,7 @@ class MethodCollection extends BaseMethodCollection {
 	//#endregion
 
 	//#region Remove
-	public async removeRole(interaction: ChatInputCommandInteraction) {
+	public async removeRole(interaction: ChatInputCommandInteraction): Promise<string | true> {
 		if (!interaction.guild) {
 			throw new Error('Interaction did not contain guild');
 		}

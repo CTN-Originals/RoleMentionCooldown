@@ -1,5 +1,5 @@
-import type { BaseInteraction, CommandInteractionOption, MessageComponentInteraction } from 'discord.js'
-import { ChatInputCommandInteraction, CommandInteractionOptionResolver, ComponentType, InteractionType } from 'discord.js'
+import type { BaseInteraction, CommandInteractionOption, MessageComponentInteraction } from 'discord.js';
+import { ChatInputCommandInteraction, CommandInteractionOptionResolver, ComponentType, InteractionType } from 'discord.js';
 
 //* API Interaction Types: https://discord.com/developers/docs/interactions/receiving-and-responding
 export interface IInteractionTypeData {
@@ -21,43 +21,43 @@ export function getInteractionType(interaction: BaseInteraction): IInteractionTy
 		type:    interaction.type,
 		name:    interaction.type[interaction.type],
 		display: '',
-	}
+	};
 
 	switch(interaction.type) {
-	case InteractionType.ApplicationCommand: { interactionTypeData.display = 'Command' } break
-	case InteractionType.ApplicationCommandAutocomplete: { interactionTypeData.display = 'Autocomplete' } break
-	case InteractionType.ModalSubmit: { interactionTypeData.display = 'Modal Submit' } break
+	case InteractionType.ApplicationCommand: { interactionTypeData.display = 'Command'; } break;
+	case InteractionType.ApplicationCommandAutocomplete: { interactionTypeData.display = 'Autocomplete'; } break;
+	case InteractionType.ModalSubmit: { interactionTypeData.display = 'Modal Submit'; } break;
 	case InteractionType.MessageComponent: {
-		interactionTypeData.componentType = (interaction as MessageComponentInteraction).componentType
-		interactionTypeData.componentName = (interaction as MessageComponentInteraction).componentType[(interaction as MessageComponentInteraction).componentType]
+		interactionTypeData.componentType = (interaction as MessageComponentInteraction).componentType;
+		interactionTypeData.componentName = (interaction as MessageComponentInteraction).componentType[(interaction as MessageComponentInteraction).componentType];
 		switch((interaction as MessageComponentInteraction).componentType as ComponentType) {
-		case ComponentType.ActionRow: { interactionTypeData.display = 'ActionRow' } break
-		case ComponentType.Button: { interactionTypeData.display = 'Button' } break
-		case ComponentType.StringSelect: { interactionTypeData.display = 'Select(String)' } break
-		case ComponentType.ChannelSelect: { interactionTypeData.display = 'Select(Channel)' } break
-		case ComponentType.MentionableSelect: { interactionTypeData.display = 'Select(Mentionable)' } break
-		case ComponentType.RoleSelect: { interactionTypeData.display = 'Select(Role)' } break
-		case ComponentType.TextInput: { interactionTypeData.display = 'TextInput' } break
-		case ComponentType.UserSelect: { interactionTypeData.display = 'Select(User)' } break
-		default: break
+		case ComponentType.ActionRow: { interactionTypeData.display = 'ActionRow'; } break;
+		case ComponentType.Button: { interactionTypeData.display = 'Button'; } break;
+		case ComponentType.StringSelect: { interactionTypeData.display = 'Select(String)'; } break;
+		case ComponentType.ChannelSelect: { interactionTypeData.display = 'Select(Channel)'; } break;
+		case ComponentType.MentionableSelect: { interactionTypeData.display = 'Select(Mentionable)'; } break;
+		case ComponentType.RoleSelect: { interactionTypeData.display = 'Select(Role)'; } break;
+		case ComponentType.TextInput: { interactionTypeData.display = 'TextInput'; } break;
+		case ComponentType.UserSelect: { interactionTypeData.display = 'Select(User)'; } break;
+		default: break;
 		}
-	} break
-	case InteractionType.Ping: { interactionTypeData.display = 'Ping' } break
-	default: { interactionTypeData.display = 'Unknown' } break
+	} break;
+	case InteractionType.Ping: { interactionTypeData.display = 'Ping'; } break;
+	default: { interactionTypeData.display = 'Unknown'; } break;
 	}
 
 	switch(interaction.type) {
 	case InteractionType.ApplicationCommand:
 	case InteractionType.ApplicationCommandAutocomplete: 
-		{ interactionTypeData.commandKey = 'commandName' } break
+		{ interactionTypeData.commandKey = 'commandName'; } break;
 	case InteractionType.MessageComponent:
-		{ interactionTypeData.commandKey = 'customId' } break
-	default: break
+		{ interactionTypeData.commandKey = 'customId'; } break;
+	default: break;
 	}
 
 	
 
-	return interactionTypeData
+	return interactionTypeData;
 }
 
 export interface IInteractionHoistedOption {
@@ -79,20 +79,20 @@ export function getHoistedOptions(optionsData: CommandInteractionOption[]): IInt
 		10: NUMBER
 		11: ATTACHMENT
 	*/
-	const hoistedOptions: IInteractionHoistedOption[] = []
+	const hoistedOptions: IInteractionHoistedOption[] = [];
 
 	for (const option of optionsData) {
 		if (option.type == 1 || option.type == 2) {
-			hoistedOptions.push(...getHoistedOptions(option.options as CommandInteractionOption[]))
+			hoistedOptions.push(...getHoistedOptions(option.options as CommandInteractionOption[]));
 		}
 		else {
 			hoistedOptions.push({
 				name:  option.name,
 				type:  option.type,
 				value: option.value as string,
-			})
+			});
 		}
 	}
 
-	return hoistedOptions
+	return hoistedOptions;
 }

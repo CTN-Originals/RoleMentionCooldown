@@ -1,9 +1,9 @@
-import type { Guild } from 'discord.js'
+import type { Guild } from 'discord.js';
 
-import type { IGuildConfigData } from './schemas/guildConfigData'
-import { default as DataModel, GuildConfigData } from './schemas/guildConfigData'
-import { ObjectRelationalMap } from '.'
-import { Model } from 'mongoose'
+import type { IGuildConfigData } from './schemas/guildConfigData';
+import { default as DataModel, GuildConfigData } from './schemas/guildConfigData';
+import { ObjectRelationalMap } from '.';
+import { Model } from 'mongoose';
 
 export class GuildConfig {
 	/** Get the config object of a guild
@@ -11,7 +11,7 @@ export class GuildConfig {
 	 * @returns The document of the guild if it exists, null otherwise
 	*/
 	public static async getDocument(guildId: string, errorIfNull: boolean = true) {
-		return await ObjectRelationalMap.getDocument(DataModel, guildId, errorIfNull)
+		return await ObjectRelationalMap.getDocument(DataModel, guildId, errorIfNull);
 	}
 	
 	/** Get the config object of a guild
@@ -19,7 +19,7 @@ export class GuildConfig {
 	 * @returns The guild config object
 	*/
 	public static async get(guildId: string): Promise<IGuildConfigData> {
-		return await this.getDocument(guildId) as Extract<typeof DataModel, IGuildConfigData>
+		return await this.getDocument(guildId) as Extract<typeof DataModel, IGuildConfigData>;
 	}
 
 	/**  Update a document
@@ -35,7 +35,7 @@ export class GuildConfig {
 	*/
 	public static async update(guildId: string, markModified?: string[]): ReturnType<typeof ObjectRelationalMap.update>;
 	public static async update(id_doc: string|Awaited<ReturnType<typeof GuildConfig.getDocument>>, markModified: string[] = []): ReturnType<typeof ObjectRelationalMap.update> {
-		return await ObjectRelationalMap.update(DataModel, id_doc, markModified)
+		return await ObjectRelationalMap.update(DataModel, id_doc, markModified);
 	}
 
 	/** Once the bot enters a new guild, see if we need to create a new document
@@ -43,7 +43,7 @@ export class GuildConfig {
 	 * @param guildId The GuildID of the server
 	*/
 	public static async onGuildCreate(guild: Guild): Promise<void> {
-		await ObjectRelationalMap.onGuildCreate(DataModel, guild)
+		await ObjectRelationalMap.onGuildCreate(DataModel, guild);
 	}
 
 	/** Once the bot leaves a guild, see if we need to delete a document
@@ -51,6 +51,6 @@ export class GuildConfig {
 	 * @param guildId The GuildID of the server
 	*/
 	public static async onGuildDelete(guild: Guild): Promise<void> {
-		await ObjectRelationalMap.onGuildDelete(DataModel, guild)
+		await ObjectRelationalMap.onGuildDelete(DataModel, guild);
 	}
 }

@@ -18,11 +18,11 @@ import type {
 	UserContextMenuCommandInteraction,
 	UserSelectMenuBuilder,
 	UserSelectMenuInteraction
-} from 'discord.js'
+} from 'discord.js';
 import {
 	ButtonBuilder,
 	ComponentType
-} from 'discord.js'
+} from 'discord.js';
 import type {
 	ICommandObject,
 	IButtonComponentObject,
@@ -38,7 +38,7 @@ import type {
 	AnyContextMenuInteraction,
 	TLogLevel,
 	TLogEnvironment
-} from '.'
+} from '.';
 import {
 	CommandObject,
 	ChannelSelectComponentObject,
@@ -50,10 +50,10 @@ import {
 	getInteractionObject,
 	LOG_LEVEL,
 	LOG_ENVIRONMENT
-} from '.'
-import type { IChannelSelectComponentObject, IMentionableSelectComponentObject, IRoleSelectComponentObject, IStringSelectComponentObject, IUserSelectComponentObject } from './components'
-import { includesAll } from '../../utils'
-import { IBaseCommandObject } from './base'
+} from '.';
+import type { IChannelSelectComponentObject, IMentionableSelectComponentObject, IRoleSelectComponentObject, IStringSelectComponentObject, IUserSelectComponentObject } from './components';
+import { includesAll } from '../../utils';
+import { IBaseCommandObject } from './base';
 
 
 //#region Interaction Content
@@ -88,29 +88,29 @@ export class CommandInteractionContent<
 	TInteraction extends Interaction = Interaction,
 	T extends IBaseInteractionType = IBaseInteractionType.Command,
 > implements IBaseInteractionField<T>  {
-	public content: TContent
-	public data: TData
-	public execute: InteractionExecute<TInteraction>
+	public content: TContent;
+	public data: TData;
+	public execute: InteractionExecute<TInteraction>;
 
 	/** Define when to log the interaction
 	 * @requires {@linkcode LOG_LEVEL} from {@linkcode src/handlers/commandBuilder/index.ts}
 	 * @example logInteraction = LOG_CONDITION.ON_FAIL | LOG_CONDITION.ON_ERROR;
 	*/
-	public logLevel?: TLogLevel = LOG_LEVEL.ALWAYS
+	public logLevel?: TLogLevel = LOG_LEVEL.ALWAYS;
 
 	/** Define when to log the interaction
 	 * @requires {@linkcode LOG_ENVIRONMENT} from {@linkcode src/handlers/commandBuilder/index.ts}
 	 * @example logInteraction = LOG_ENV_CONDITION.DEVELOPMENT | LOG_ENV_CONDITION.PRODUCTION;
 	*/
-	public logEnvironment?: TLogLevel = LOG_ENVIRONMENT.ALL
+	public logEnvironment?: TLogLevel = LOG_ENVIRONMENT.ALL;
 
-	public interactionType?: T
+	public interactionType?: T;
 
 	constructor(input: CommandInteractionContentInput<TContent, TData, TInteraction, T>) {
-		this.content = input.content
-		this.execute = input.execute
+		this.content = input.content;
+		this.execute = input.execute;
 
-		this.data = getInteractionObject(this.content) as TData
+		this.data = getInteractionObject(this.content) as TData;
 	}
 }
 
@@ -120,7 +120,7 @@ const obj: CommandInteractionContentInput<ICommandObject, CommandObject, ChatInp
 		description: 'awd'
 	},
 	execute: () => {}
-}
+};
 //#endregion
 
 //#region Base Classes
@@ -192,31 +192,31 @@ export type IAnyInteractionField =
 
 export class BaseComponentCollection<TContent extends IButtonComponentObject | IAnySelectMenuComponentObject, TData extends CommandObject | AnyComponentObject> {
 	public asArray() {
-		const out: CommandInteractionContentInput<TContent, TData>[] = []
+		const out: CommandInteractionContentInput<TContent, TData>[] = [];
 		for (const field in this) {
-			out.push(this[field] as CommandInteractionContentInput<TContent, TData>)
+			out.push(this[field] as CommandInteractionContentInput<TContent, TData>);
 		}
 
-		return out
+		return out;
 	}
 }
 export class BaseButtonCollection extends BaseComponentCollection<IButtonComponentObject, ButtonComponentObject> {
 	/** Builds and returns a button with the content provided */
 	public buildOne(content: IButtonComponentObject | IButtonCollectionField): ButtonBuilder {
 		if (includesAll(Object.keys(content), ['content', 'execute'])) {
-			content = (content as IButtonCollectionField).content
+			content = (content as IButtonCollectionField).content;
 		}
 
-		return new ButtonBuilder(content as IButtonComponentObject)
+		return new ButtonBuilder(content as IButtonComponentObject);
 	}
 	
 	/** Builds and returns the buttons with the content provided */
 	public getBuild(...content: (IButtonComponentObject | IButtonCollectionField)[]): ButtonBuilder[] {
-		return content.map(btn => this.buildOne(btn as IButtonComponentObject | IButtonCollectionField))
+		return content.map(btn => this.buildOne(btn as IButtonComponentObject | IButtonCollectionField));
 	}
 	
 	public build() {
-		return this.getBuild(...this.asArray().map(btn => btn.content))
+		return this.getBuild(...this.asArray().map(btn => btn.content));
 	}
 }
 
@@ -231,22 +231,22 @@ export class BaseSelectMenuCollection extends BaseComponentCollection<IAnySelect
 		IAnySelectMenuComponentObject
 	): T {
 		switch (content.type) {
-		case ComponentType.StringSelect: 		{ return new StringSelectComponentObject(content).build() as unknown as ReturnType<typeof this.buildOne<T>> }
-		case ComponentType.UserSelect: 			{ return new UserSelectComponentObject(content).build() as unknown as ReturnType<typeof this.buildOne<T>> }
-		case ComponentType.RoleSelect: 			{ return new RoleSelectComponentObject(content).build() as unknown as ReturnType<typeof this.buildOne<T>> }
-		case ComponentType.MentionableSelect: 	{ return new MentionableSelectComponentObject(content).build() as unknown as ReturnType<typeof this.buildOne<T>> }
-		case ComponentType.ChannelSelect: 		{ return new ChannelSelectComponentObject(content).build() as unknown as ReturnType<typeof this.buildOne<T>> }
+		case ComponentType.StringSelect: 		{ return new StringSelectComponentObject(content).build() as unknown as ReturnType<typeof this.buildOne<T>>; }
+		case ComponentType.UserSelect: 			{ return new UserSelectComponentObject(content).build() as unknown as ReturnType<typeof this.buildOne<T>>; }
+		case ComponentType.RoleSelect: 			{ return new RoleSelectComponentObject(content).build() as unknown as ReturnType<typeof this.buildOne<T>>; }
+		case ComponentType.MentionableSelect: 	{ return new MentionableSelectComponentObject(content).build() as unknown as ReturnType<typeof this.buildOne<T>>; }
+		case ComponentType.ChannelSelect: 		{ return new ChannelSelectComponentObject(content).build() as unknown as ReturnType<typeof this.buildOne<T>>; }
 		}
 	}
 
 	public build() {
-		const out: AnySelectMenuComponentBuilder[] = []
+		const out: AnySelectMenuComponentBuilder[] = [];
 		
 		for (const select of this.asArray()) {
-			out.push(this.buildOne(select.content))
+			out.push(this.buildOne(select.content));
 		}
 
-		return out
+		return out;
 	}
 }
 export class BaseEmbedCollection {}
@@ -294,12 +294,12 @@ abstract class ICommandInteractionDataInput<
 	TEmbeds extends BaseEmbedCollection = never,
 	TMethods extends BaseMethodCollection = never,
 > {
-	public interactionType: IBaseInteractionType = IBaseInteractionType.Command
-	public command!: PickCommandOrContextMenuInput<typeof this.interactionType>
-	public buttons?: TButtons
-	public selectMenus?: TSelectMenus
-	public embeds?: TEmbeds
-	public methods?: TMethods
+	public interactionType: IBaseInteractionType = IBaseInteractionType.Command;
+	public command!: PickCommandOrContextMenuInput<typeof this.interactionType>;
+	public buttons?: TButtons;
+	public selectMenus?: TSelectMenus;
+	public embeds?: TEmbeds;
+	public methods?: TMethods;
 }
 
 export class CommandInteractionData<
@@ -308,33 +308,33 @@ export class CommandInteractionData<
 	TEmbeds extends BaseEmbedCollection = never,
 	TMethods extends BaseMethodCollection = never,
 > {
-	public interactionType: IBaseInteractionType = IBaseInteractionType.Command
+	public interactionType: IBaseInteractionType = IBaseInteractionType.Command;
 	
-	public logLevel: TLogLevel = LOG_LEVEL.ALWAYS
-	public logEnvironment: TLogEnvironment = LOG_ENVIRONMENT.ALL
+	public logLevel: TLogLevel = LOG_LEVEL.ALWAYS;
+	public logEnvironment: TLogEnvironment = LOG_ENVIRONMENT.ALL;
 
-	private _command: PickCommandOrContextMenuInput<typeof this.interactionType>
-	private _buttons?: TButtons
-	private _selectMenus?: TSelectMenus
-	private _embeds?: TEmbeds
-	private _methods?: TMethods
+	private _command: PickCommandOrContextMenuInput<typeof this.interactionType>;
+	private _buttons?: TButtons;
+	private _selectMenus?: TSelectMenus;
+	private _embeds?: TEmbeds;
+	private _methods?: TMethods;
 
 	constructor(input: ICommandInteractionData<TButtons, TSelectMenus, TEmbeds, TMethods>) {
-		this.interactionType = input.command.interactionType ?? IBaseInteractionType.Command as IBaseInteractionType
+		this.interactionType = input.command.interactionType ?? IBaseInteractionType.Command as IBaseInteractionType;
 		
-		this.logLevel = input.command.logLevel ?? LOG_LEVEL.ALWAYS
-		this.logEnvironment = input.command.logEnvironment ?? LOG_ENVIRONMENT.ALL
+		this.logLevel = input.command.logLevel ?? LOG_LEVEL.ALWAYS;
+		this.logEnvironment = input.command.logEnvironment ?? LOG_ENVIRONMENT.ALL;
 
-		this._command = input.command
+		this._command = input.command;
 
-		if (input.buttons) { this._buttons = input.buttons as IOptionalCollection<TButtons, BaseButtonCollection> }
-		if (input.selectMenus) { this._selectMenus = input.selectMenus as IOptionalCollection<TSelectMenus, BaseSelectMenuCollection> }
-		if (input.embeds) { this._embeds = input.embeds as IOptionalCollection<TEmbeds, BaseEmbedCollection> }
-		if (input.methods) { this._methods = input.methods as IOptionalCollection<TMethods, BaseMethodCollection> }
+		if (input.buttons) { this._buttons = input.buttons as IOptionalCollection<TButtons, BaseButtonCollection>; }
+		if (input.selectMenus) { this._selectMenus = input.selectMenus as IOptionalCollection<TSelectMenus, BaseSelectMenuCollection>; }
+		if (input.embeds) { this._embeds = input.embeds as IOptionalCollection<TEmbeds, BaseEmbedCollection>; }
+		if (input.methods) { this._methods = input.methods as IOptionalCollection<TMethods, BaseMethodCollection>; }
  
 		for (const field in input) {
-			if (['command', 'interactionType', 'buttons', 'selectMenus', 'embeds', 'methods'].includes(field)) { continue } //? dont set fields that are already set above here
-			this[field] = input[field]
+			if (['command', 'interactionType', 'buttons', 'selectMenus', 'embeds', 'methods'].includes(field)) { continue; } //? dont set fields that are already set above here
+			this[field] = input[field];
 		}
 	}
 
@@ -342,25 +342,25 @@ export class CommandInteractionData<
 	public get command(): PickCommandOrContextMenuContent<typeof this.interactionType> {
 		switch (this.interactionType) {
 		case IBaseInteractionType.Command: {
-			return new CommandInteractionContent<ICommandObject, CommandObject, ChatInputCommandInteraction>(this._command as ICommandField)
+			return new CommandInteractionContent<ICommandObject, CommandObject, ChatInputCommandInteraction>(this._command as ICommandField);
 		}
 		case IBaseInteractionType.ContextMenu: { 
-			return new CommandInteractionContent<IContextMenuCommandObject, ContextMenuCommandObject, AnyContextMenuInteraction, IBaseInteractionType.ContextMenu>(this._command as IContextMenuField)
+			return new CommandInteractionContent<IContextMenuCommandObject, ContextMenuCommandObject, AnyContextMenuInteraction, IBaseInteractionType.ContextMenu>(this._command as IContextMenuField);
 		}
 		}
 	}
 
 	public get buttons(): IOptionalCollectionObject<TButtons, BaseButtonCollection> {
-		return this._buttons as IOptionalCollectionObject<TButtons, BaseButtonCollection>
+		return this._buttons as IOptionalCollectionObject<TButtons, BaseButtonCollection>;
 	}
 	public get selectMenus(): IOptionalCollectionObject<TSelectMenus, BaseSelectMenuCollection> {
-		return this._selectMenus as IOptionalCollectionObject<TSelectMenus, BaseSelectMenuCollection>
+		return this._selectMenus as IOptionalCollectionObject<TSelectMenus, BaseSelectMenuCollection>;
 	}
 	public get embeds(): IOptionalCollectionObject<TEmbeds, BaseEmbedCollection> {
-		return this._embeds as IOptionalCollectionObject<TEmbeds, BaseEmbedCollection>
+		return this._embeds as IOptionalCollectionObject<TEmbeds, BaseEmbedCollection>;
 	}
 	public get methods(): IOptionalCollectionObject<TMethods, BaseMethodCollection> {
-		return this._methods as IOptionalCollectionObject<TMethods, BaseMethodCollection>
+		return this._methods as IOptionalCollectionObject<TMethods, BaseMethodCollection>;
 	}
 
 	public get collection() {
@@ -369,43 +369,43 @@ export class CommandInteractionData<
 			selectMenus: this._selectMenus as IOptionalCollection<TSelectMenus, BaseSelectMenuCollection>,
 			embeds:      this._embeds as IOptionalCollection<TEmbeds, BaseSelectMenuCollection>,
 			methods:     this._methods as IOptionalCollection<TMethods, BaseSelectMenuCollection>,
-		}
+		};
 	}
 	//#endregion
 
 	//#region Setters
 	public set command(value: PickCommandOrContextMenuInput<typeof this.interactionType>) {
-		this._command = value
+		this._command = value;
 	}
 
 	public set buttons(value: TButtons) {
-		this._buttons = value
+		this._buttons = value;
 	}
 	public set selectMenus(value: TSelectMenus) {
-		this._selectMenus = value
+		this._selectMenus = value;
 	}
 	public set embeds(value: TEmbeds) {
-		this._embeds = value
+		this._embeds = value;
 	}
 	public set methods(value: TMethods) {
-		this._methods = value
+		this._methods = value;
 	}
 	//#endregion
 
 	//#region Build
 	public buildCommand(): ICommandInteractionDataBuild['command'] {
 		if (this.interactionType === IBaseInteractionType.Command) {
-			return new CommandObject((this._command as unknown as ICommandField).content).build()
+			return new CommandObject((this._command as unknown as ICommandField).content).build();
 		}
 		else {
-			return new ContextMenuCommandObject((this._command as unknown as IContextMenuField).content).build()
+			return new ContextMenuCommandObject((this._command as unknown as IContextMenuField).content).build();
 		}
 	}
 	public buildButtons(): ICommandInteractionDataBuild['buttons'] {
-		return this._buttons?.build() ?? []
+		return this._buttons?.build() ?? [];
 	}
 	public buildSelectMenus(): ICommandInteractionDataBuild['selectMenus'] {
-		return this._selectMenus?.build() ?? []
+		return this._selectMenus?.build() ?? [];
 	}
 
 	public build(): ICommandInteractionDataBuild {
@@ -413,7 +413,7 @@ export class CommandInteractionData<
 			command:     this.buildCommand(),
 			buttons:     this.buildButtons() ,
 			selectMenus: this.buildSelectMenus(),
-		}
+		};
 	}
 	//#endregion
 }
