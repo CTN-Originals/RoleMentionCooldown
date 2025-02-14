@@ -1,22 +1,27 @@
-import type { 
+import type {
+	AnySelectMenuInteraction,
+	APIApplicationCommandGuildInteraction,
+	BaseInteraction,
 	CommandInteraction,
 	CommandInteractionOption,
-	Interaction,
 	ContextMenuCommandInteraction,
-	PermissionsBitField,
-	BaseInteraction,
-	AnySelectMenuInteraction,
-	APIApplicationCommandGuildInteraction} from 'discord.js';
+	Interaction,
+	PermissionsBitField
+} from 'discord.js';
 import {
-	InteractionType,
-	Events,
 	ChatInputCommandInteraction,
-	EmbedBuilder
+	EmbedBuilder,
+	Events,
+	InteractionType
 } from 'discord.js';
 
 import { ConsoleInstance } from 'better-console-utilities';
 
-import type { BaseButtonCollection,
+import { EmitError } from '.';
+import { client } from '..';
+import { ColorTheme, GeneralData } from '../data';
+import type {
+	BaseButtonCollection,
 	BaseEmbedCollection,
 	BaseMethodCollection,
 	BaseSelectMenuCollection,
@@ -29,23 +34,19 @@ import type { BaseButtonCollection,
 	TLogLevel
 } from '../handlers/commandBuilder';
 import {
-	BaseCommandObject,
 	LOG_ENVIRONMENT,
 	LOG_LEVEL
 } from '../handlers/commandBuilder';
-import { EmitError } from '.';
-import type { IInteractionTypeData} from '../utils/interactionUtils';
-import { getHoistedOptions, getInteractionType } from '../utils/interactionUtils';
-import { ColorTheme, GeneralData } from '../data';
 import type { ErrorObject } from '../handlers/errorHandler';
 import { errorConsole } from '../handlers/errorHandler';
-import { client } from '..';
-import { validateEmbed } from '../utils/embedUtils';
 import { hexToBit, removeDuplicates } from '../utils';
+import { validateEmbed } from '../utils/embedUtils';
+import type { IInteractionTypeData } from '../utils/interactionUtils';
+import { getHoistedOptions, getInteractionType } from '../utils/interactionUtils';
 
 const thisConsole = new ConsoleInstance();
 
-function lackingPermissionEmbed(interaction: ChatInputCommandInteraction | ContextMenuCommandInteraction, neededPerms: PermissionsBitField) {
+function lackingPermissionEmbed(interaction: ChatInputCommandInteraction | ContextMenuCommandInteraction, neededPerms: PermissionsBitField): EmbedBuilder {
 	const selfMember = interaction.guild!.members.me!;
 	const missingRole: string[] = selfMember.permissions.missing(neededPerms);
 	const missingChannel: string[] = [];
@@ -84,9 +85,9 @@ export default {
 	},
 
 	async executeInteraction(interaction: Interaction, nameKey: string) {
-		let response: any = null;
+		let response: null | string | boolean = null;
 
-		const getInteractionData = () => {
+		const getInteractionData = (): CommandInteractionData<BaseButtonCollection, BaseSelectMenuCollection, BaseEmbedCollection, BaseMethodCollection> | IButtonCollectionField | ISelectMenuCollectionField | null | undefined => {
 			if (interaction.isChatInputCommand() || interaction.isContextMenuCommand()) {
 				return interaction.client.commands.get(interaction[nameKey]);
 			}
@@ -150,7 +151,7 @@ export default {
 			}
 
 			if (response === null) {
-				response = await interactionData.execute(interaction as any);
+				response = await interactionData.execute(interaction as never);
 			}
 		} catch (err) {
 			commandErrored = true;
@@ -173,7 +174,7 @@ export default {
 				else await interaction.followUp(replyContent).catch(EmitError);
 			}
 
-			response = err;
+			response = err as string;
 		}
 
 		const logLevel = 
@@ -198,11 +199,11 @@ export default {
 		);
 
 		if (GeneralData.logging.interaction.enabled && logLevelState && logEnvironmentState) {
-			this.outputLog(interaction, response);
+			this.outputLog(interaction, response as string);
 		}
 	},
 
-	outputLog(interaction: BaseInteraction, response = null) {
+	outputLog(interaction: BaseInteraction, response: string | null = null) {
 		const interactionType: IInteractionTypeData = getInteractionType(interaction);
 		const logFields = {
 			commandName:     '',
