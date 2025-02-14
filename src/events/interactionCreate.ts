@@ -152,7 +152,7 @@ export default {
 
 				if (interaction.isAnySelectMenu()) {
 					if (!ComponentValueStorage.storageIncludesMessage(interaction.message.id)) {
-						ComponentValueStorage.registerMessage(interaction.message.id);
+						ComponentValueStorage.registerMessage(interaction.message.id, interaction);
 					}
 
 					ComponentValueStorage.setValue(interaction.message.id, interaction.customId, interaction.values);
