@@ -1,8 +1,9 @@
-import { Guild } from "discord.js";
+import type { Guild } from 'discord.js'
 
-import { default as DataModel, GuildConfigData, IGuildConfigData } from './schemas/guildConfigData'
-import { ObjectRelationalMap } from ".";
-import { Model } from "mongoose";
+import type { IGuildConfigData } from './schemas/guildConfigData'
+import { default as DataModel, GuildConfigData } from './schemas/guildConfigData'
+import { ObjectRelationalMap } from '.'
+import { Model } from 'mongoose'
 
 export class GuildConfig {
 	/** Get the config object of a guild
@@ -10,7 +11,7 @@ export class GuildConfig {
 	 * @returns The document of the guild if it exists, null otherwise
 	*/
 	public static async getDocument(guildId: string, errorIfNull: boolean = true) {
-		return await ObjectRelationalMap.getDocument(DataModel, guildId, errorIfNull);
+		return await ObjectRelationalMap.getDocument(DataModel, guildId, errorIfNull)
 	}
 	
 	/** Get the config object of a guild
@@ -34,7 +35,7 @@ export class GuildConfig {
 	*/
 	public static async update(guildId: string, markModified?: string[]): ReturnType<typeof ObjectRelationalMap.update>;
 	public static async update(id_doc: string|Awaited<ReturnType<typeof GuildConfig.getDocument>>, markModified: string[] = []): ReturnType<typeof ObjectRelationalMap.update> {
-		return await ObjectRelationalMap.update(DataModel, id_doc, markModified);
+		return await ObjectRelationalMap.update(DataModel, id_doc, markModified)
 	}
 
 	/** Once the bot enters a new guild, see if we need to create a new document

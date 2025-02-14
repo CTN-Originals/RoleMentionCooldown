@@ -1,60 +1,61 @@
-import 'dotenv/config';
-import { Client, ComponentType, EmbedBuilder, Events, Guild, Interaction, InteractionType, Message, Routes, TextChannel } from 'discord.js';
+import 'dotenv/config'
+import type { Client, ComponentType, EmbedBuilder, Guild, Interaction, Message} from 'discord.js'
+import { Events, InteractionType, Routes, TextChannel } from 'discord.js'
 
-import { ConsoleInstance } from 'better-console-utilities';
+import { ConsoleInstance } from 'better-console-utilities'
 
-import { GeneralData } from '../data';
-import { DevEnvironment } from '../data';
-import { Mentionable } from '../data/orm/mentionables';
+import { GeneralData } from '../data'
+import { DevEnvironment } from '../data'
+import { Mentionable } from '../data/orm/mentionables'
 
-import PingCommand from '../commands/test/ping';
-import ListCommand from '../commands/info/list';
-import RoleCooldownCommand from '../commands/configuration/manageRoles';
-import { testWebhook } from '..';
-import { NullExpression } from 'mongoose';
-import { EmitError, onError } from '.';
+import PingCommand from '../commands/test/ping'
+import ListCommand from '../commands/info/list'
+import RoleCooldownCommand from '../commands/configuration/manageRoles'
+import { testWebhook } from '..'
+import { NullExpression } from 'mongoose'
+import { EmitError, onError } from '.'
 
 // import ErrorHandler from '../handlers/errorHandler';
 
-const thisConsole = new ConsoleInstance();
+const thisConsole = new ConsoleInstance()
 
 export default {
 	name: Events.ClientReady,
 	once: true,
 
 	async execute(client: Client, ...args: any[]) {
-		thisConsole.log(`Logged in as ${client.user?.tag}!\n`);
+		thisConsole.log(`Logged in as ${client.user?.tag}!\n`)
 
 		if (GeneralData.development) {
-			DevEnvironment.client = client;
+			DevEnvironment.client = client
 			// devEnvironment.memberList = devGuildMembers as Collection<string, GuildMember>;
 
-			DevEnvironment.guild = client.guilds.cache.get(process.env.DEV_GUILD_ID!);
-			DevEnvironment.user = await client.users.fetch(process.env.DEV_TEST_USER_ID!);
-			DevEnvironment.member = DevEnvironment.memberList.get(process.env.DEV_TEST_USER_ID!);
-			DevEnvironment.channel = DevEnvironment.guild?.channels.cache.get(process.env.DEV_TEST_CHANNEL_ID!) as TextChannel;
+			DevEnvironment.guild = client.guilds.cache.get(process.env.DEV_GUILD_ID!)
+			DevEnvironment.user = await client.users.fetch(process.env.DEV_TEST_USER_ID!)
+			DevEnvironment.member = DevEnvironment.memberList.get(process.env.DEV_TEST_USER_ID!)
+			DevEnvironment.channel = DevEnvironment.guild?.channels.cache.get(process.env.DEV_TEST_CHANNEL_ID!) as TextChannel
 
-			DevEnvironment.restCommands = await client.rest.get(Routes.applicationGuildCommands(process.env.CLIENT_ID!, process.env.DEV_GUILD_ID!)) as {id: string, name: string, type: number, guild_id: string}[];
+			DevEnvironment.restCommands = await client.rest.get(Routes.applicationGuildCommands(process.env.CLIENT_ID!, process.env.DEV_GUILD_ID!)) as {id: string, name: string, type: number, guild_id: string}[]
 
 			// thisConsole.logDefault('Dev Environment:', DevEnvironment);
 		}
 
-		this.Initialize(client);
+		this.Initialize(client)
 
 		if (GeneralData.development) {
-			this.runTests(client);
+			this.runTests(client)
 		}
 	},
 
 	async Initialize(client: Client) {
 		client.guilds.cache.forEach(async guild => {
-			Mentionable.initialize(guild);
+			Mentionable.initialize(guild)
 		})
 	},
 
 	async runTests(client: Client) {
-		const guild: Guild = client.guilds.cache.get(process.env.DEV_GUILD_ID!)!;
-		const channel: TextChannel = await DevEnvironment.client?.channels.fetch(DevEnvironment.channelId) as TextChannel;
+		const guild: Guild = client.guilds.cache.get(process.env.DEV_GUILD_ID!)!
+		const channel: TextChannel = await DevEnvironment.client?.channels.fetch(DevEnvironment.channelId) as TextChannel
 
 		// const role = await guild.roles.cache.get('1309653896788050043')!;
 		// const mentionable = await Mentionable.get(guild.id, role.id)!;
@@ -84,14 +85,14 @@ export default {
 		
 		const mentionTest = new FakeInteraction('rolecooldown', {
 			subCommand: 'edit',
-			options: [
+			options:    [
 				{name: 'role', value: {id: '1309653896788050043', name: '!q', hexColor: '#000000'}},
 				{name: 'global-cooldown', value: '0'},
 				{name: 'channel-cooldown', value: '6127s'},
 				{name: 'user-cooldown', value: '24d 23h 5m 32s'},
 			]
-		});
-		mentionTest.execute();
+		})
+		mentionTest.execute()
 		// await new Promise<void>((resolve) => setTimeout(() => {resolve()}, 2000));
 		// mentionTest.execute();
 
@@ -157,7 +158,7 @@ export default {
 		// 	EmitError(e as Error)
 		// }
 	}
-};
+}
 
 type InteractionOptionEntry = {name: string, value: any}
 type FakeInteractionInput = {
@@ -188,62 +189,62 @@ class FakeInteractionOptions {
 		if (!this.subCommand) { return this._hoistedOptions }
 		else {
 			return [{
-				name: this.subCommand,
+				name:    this.subCommand,
 				options: this._hoistedOptions,
-				type: 1
+				type:    1
 			}]
 		}
 	}
 }
 
 class FakeInteraction {
-	public client: Client<boolean> = DevEnvironment.client!;
-	public guild: Guild = DevEnvironment.guild!;
-	public type: InteractionType = InteractionType.ApplicationCommand;
-	public componentType: ComponentType = 1;
+	public client: Client<boolean> = DevEnvironment.client!
+	public guild: Guild = DevEnvironment.guild!
+	public type: InteractionType = InteractionType.ApplicationCommand
+	public componentType: ComponentType = 1
 
-	public user: TODO;
+	public user: TODO
 	public channel: TODO
 
-	public options: FakeInteractionOptions;
+	public options: FakeInteractionOptions
 
 	constructor(
 		public commandName: string,
 		options?: FakeInteractionInput
 	) {
 		this.user = {
-			id: process.env.DEV_TEST_USER_ID!,
+			id:       process.env.DEV_TEST_USER_ID!,
 			username: 'TEST_USER',
-			_equals: (user) => {return true},
+			_equals:  (user) => {return true},
 		}
-		this.channel = DevEnvironment.channel;
+		this.channel = DevEnvironment.channel
 
-		this.options = new FakeInteractionOptions(options?.options, options?.subCommand);
+		this.options = new FakeInteractionOptions(options?.options, options?.subCommand)
 	}
 
 	public get channelId() { return this.channel.id }
 	public get guildId() { return this.guild.id };
 
-	private message: Message | null = null;
+	private message: Message | null = null
 
 	public isChatInputCommand() {return true}
 	public isRepliable() {return true}
-	public inGuild() { return true; }
+	public inGuild() { return true }
 
 	public fetchReply(): Promise<Message<boolean>> {
 		if (!this.message) {
-			EmitError(new Error(`Unable to fetch reply of interaction`));
+			EmitError(new Error('Unable to fetch reply of interaction'))
 		}
 
-		return new Promise((resolve) => {resolve(this.message!)});
+		return new Promise((resolve) => {resolve(this.message!)})
 	}
 
 	public async reply(replyContent: string | {content: string, ephemeral: boolean, embeds: EmbedBuilder[], components: any[]}): Promise<Message|boolean> {
-		const channel = this.guild.channels.cache.get(this.channel.id);
-		if (!channel || !(channel instanceof TextChannel)) return false;
+		const channel = this.guild.channels.cache.get(this.channel.id)
+		if (!channel || !(channel instanceof TextChannel)) return false
 
-		this.message = await channel.send(replyContent);
-		return this.message;
+		this.message = await channel.send(replyContent)
+		return this.message
 	}
 
 

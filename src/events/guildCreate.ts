@@ -1,12 +1,13 @@
-import { Events, Guild } from "discord.js";
+import type { Guild } from 'discord.js'
+import { Events } from 'discord.js'
 
-import { Mentionable } from "../data/orm/mentionables";
-import { DeployInstruction, doDeployCommands } from "../deployCommands";
-import { eventConsole } from ".";
-import { GuildConfig } from "../data/orm/guildConfig";
-import { GeneralData } from "../data";
-import { UpdateBotListStats } from "../handlers/botLists";
-import { client } from "..";
+import { Mentionable } from '../data/orm/mentionables'
+import { DeployInstruction, doDeployCommands } from '../deployCommands'
+import { eventConsole } from '.'
+import { GuildConfig } from '../data/orm/guildConfig'
+import { GeneralData } from '../data'
+import { UpdateBotListStats } from '../handlers/botLists'
+import { client } from '..'
 
 export default {
 	name: Events.GuildCreate,
@@ -17,14 +18,14 @@ export default {
 
 		if (GeneralData.development) {
 			await doDeployCommands(client, [new DeployInstruction({
-				guildId: guild.id,
+				guildId:   guild.id,
 				deployAll: true
 			})])
 		}
 
-		await Mentionable.onGuildCreate(guild);
-		await GuildConfig.onGuildCreate(guild);
+		await Mentionable.onGuildCreate(guild)
+		await GuildConfig.onGuildCreate(guild)
 
-		UpdateBotListStats();
+		UpdateBotListStats()
 	},
 }

@@ -1,7 +1,7 @@
-import { EmbedBuilder } from "discord.js";
+import { EmbedBuilder } from 'discord.js'
 
-import { testWebhook } from "..";
-import { EmitError } from "../events";
+import { testWebhook } from '..'
+import { EmitError } from '../events'
 
 
 
@@ -25,9 +25,9 @@ Violating any of these constraints will result in a Bad Request response.
 */
 
 export const testEmbed = new EmbedBuilder({
-	title: 'embed title: Lorem ipsum dolor sit amet consectetur adipisicing elit. Maxime mollitia, molestiae quas vel sint commodi repudiandae consequuntur voluptatum laborum numquam blanditiis harum quisquam eius sed odit fugiat iusto fuga praesentium optio, eaque rerum!',
+	title:       'embed title: Lorem ipsum dolor sit amet consectetur adipisicing elit. Maxime mollitia, molestiae quas vel sint commodi repudiandae consequuntur voluptatum laborum numquam blanditiis harum quisquam eius sed odit fugiat iusto fuga praesentium optio, eaque rerum!',
 	description: '456',
-	fields: [
+	fields:      [
 		{name: '1', value: '1', inline: true},
 		{name: '2', value: '2', inline: true},
 		{name: '3', value: '3', inline: true},
@@ -64,16 +64,16 @@ Vivamus ac dapibus turpis. Sed non dui vel velit ultrices lacinia id vitae liber
 	},
 })
 
-const overflowIndicator: string = '…';
+const overflowIndicator: string = '…'
 const overflowLimits = {
-	authorName: 256,
-	title: 256,
+	authorName:  256,
+	title:       256,
 	description: 4096,
-	fields: 25,
-	fieldName: 256,
-	fieldValue: 1024,
-	footerText: 2048,
-	total: 6000,
+	fields:      25,
+	fieldName:   256,
+	fieldValue:  1024,
+	footerText:  2048,
+	total:       6000,
 }
 
 /** Checks if an embed is valid to be sent to Discord 
@@ -90,95 +90,95 @@ const overflowLimits = {
 - author.name 	256 characters
 */
 export function validateEmbed(embed: EmbedBuilder): EmbedBuilder {
-	const errorList: string[] = [];
+	const errorList: string[] = []
 	const overflowData: {[key: string]: number} = {
-		authorName: 0,
-		title: 0,
+		authorName:  0,
+		title:       0,
 		description: 0,
-		fields: 0,
-		fieldName: 0,
-		fieldValue: 0,
-		footerText: 0,
-		total: 0,
+		fields:      0,
+		fieldName:   0,
+		fieldValue:  0,
+		footerText:  0,
+		total:       0,
 	}
 	// const overflowSum = () => Object.values(overflowData).reduce((a: number, b: number|number[]) => a + (Array.isArray(b) ? b[0] : b), 0);
 
 	if (!embed.data) {
-		errorList.push('Embed.data is missing');
+		errorList.push('Embed.data is missing')
 	}
 	else {
 		if (embed.data.author?.name && embed.data.author.name.length > overflowLimits.authorName) {
-			overflowData.authorName = embed.data.author.name.length - overflowLimits.authorName;
-			embed.setAuthor({name: embed.data.author.name.slice(0, (overflowLimits.authorName - overflowIndicator.length)) + overflowIndicator});
+			overflowData.authorName = embed.data.author.name.length - overflowLimits.authorName
+			embed.setAuthor({name: embed.data.author.name.slice(0, (overflowLimits.authorName - overflowIndicator.length)) + overflowIndicator})
 		}
 		if (embed.data.title && embed.data.title.length > overflowLimits.title) {
-			overflowData.title = embed.data.title.length - overflowLimits.title;
-			embed.setTitle(embed.data.title.slice(0, (overflowLimits.title - overflowIndicator.length)) + overflowIndicator);
+			overflowData.title = embed.data.title.length - overflowLimits.title
+			embed.setTitle(embed.data.title.slice(0, (overflowLimits.title - overflowIndicator.length)) + overflowIndicator)
 		}
 		if (embed.data.description && embed.data.description.length > overflowLimits.description) {
-			overflowData.description = embed.data.description.length - overflowLimits.description;
-			embed.setDescription(embed.data.description.slice(0, (overflowLimits.description - overflowIndicator.length)) + overflowIndicator);
+			overflowData.description = embed.data.description.length - overflowLimits.description
+			embed.setDescription(embed.data.description.slice(0, (overflowLimits.description - overflowIndicator.length)) + overflowIndicator)
 		}
 		if (embed.data.fields && embed.data.fields.length > overflowLimits.fields) {
-			overflowData.fields = embed.data.fields.length - overflowLimits.fields;
-			embed.setFields(embed.data.fields.slice(0, overflowLimits.fields));
+			overflowData.fields = embed.data.fields.length - overflowLimits.fields
+			embed.setFields(embed.data.fields.slice(0, overflowLimits.fields))
 		}
 		if (embed.data.footer?.text && embed.data.footer.text.length > overflowLimits.footerText) {
-			overflowData.footerText = embed.data.footer.text.length - overflowLimits.footerText;
-			embed.setFooter({text: embed.data.footer.text.slice(0, (overflowLimits.footerText - overflowIndicator.length)) + overflowIndicator});
+			overflowData.footerText = embed.data.footer.text.length - overflowLimits.footerText
+			embed.setFooter({text: embed.data.footer.text.slice(0, (overflowLimits.footerText - overflowIndicator.length)) + overflowIndicator})
 		}
 
 		for (const field of embed.data.fields ?? []) {
 			if (field.name && field.name.length > overflowLimits.fieldName) {
-				overflowData.fieldName += field.name.length - overflowLimits.fieldName;
-				field.name = field.name.slice(0, (overflowLimits.fieldName - overflowIndicator.length)) + overflowIndicator;
+				overflowData.fieldName += field.name.length - overflowLimits.fieldName
+				field.name = field.name.slice(0, (overflowLimits.fieldName - overflowIndicator.length)) + overflowIndicator
 			}
 			if (field.value && field.value.length > overflowLimits.fieldValue) {
-				overflowData.fieldValue += field.value.length - overflowLimits.fieldValue;
-				field.value = field.value.slice(0, (overflowLimits.fieldValue - overflowIndicator.length)) + overflowIndicator;
+				overflowData.fieldValue += field.value.length - overflowLimits.fieldValue
+				field.value = field.value.slice(0, (overflowLimits.fieldValue - overflowIndicator.length)) + overflowIndicator
 			}
 		}
 	}
 	
-	const totalOverflow = Object.values(overflowData).reduce((a: number, b: number|number[]) => a + (Array.isArray(b) ? b[0] : b), 0);
+	const totalOverflow = Object.values(overflowData).reduce((a: number, b: number|number[]) => a + (Array.isArray(b) ? b[0] : b), 0)
 	if (totalOverflow > 0) {
-		let overflownFields: {[key: string]: number} = {};
+		const overflownFields: {[key: string]: number} = {}
 		for (const [key, value] of Object.entries(overflowData)) {
 			if (value > 0) {
-				errorList.push(`[fg=orange]${key}[/>] exceeded limit by ${value} characters (${overflowLimits[key as keyof typeof overflowLimits]})`);
-				overflownFields[key] = value;
+				errorList.push(`[fg=orange]${key}[/>] exceeded limit by ${value} characters (${overflowLimits[key as keyof typeof overflowLimits]})`)
+				overflownFields[key] = value
 			}
 		}
 
-		let footerAlertText = `${overflowIndicator}\n${overflowIndicator}  The following fields exceeded the character limit:\n`;
+		let footerAlertText = `${overflowIndicator}\n${overflowIndicator}  The following fields exceeded the character limit:\n`
 		for (const [key, value] of Object.entries(overflownFields)) {
-			footerAlertText += `${key}: ${value}, `;
+			footerAlertText += `${key}: ${value}, `
 		}
-		footerAlertText = footerAlertText.slice(0, -2);
+		footerAlertText = footerAlertText.slice(0, -2)
 		if (embed.data.footer?.text) {
 			console.log(
 				`${embed.data.footer!.text.length} >= (${overflowLimits.footerText} + ${footerAlertText.length}) [${(overflowLimits.footerText + footerAlertText.length)}]`, 
 				embed.data.footer!.text.length >= (overflowLimits.footerText + footerAlertText.length)
 			)
 			if (embed.data.footer.text.length >= (overflowLimits.footerText + footerAlertText.length)) {
-				embed.data.footer.text = embed.data.footer.text + footerAlertText;
+				embed.data.footer.text = embed.data.footer.text + footerAlertText
 			}
 			else {
-				embed.data.footer.text = embed.data.footer?.text.slice(0, (overflowLimits.footerText - footerAlertText.length)) + footerAlertText;
+				embed.data.footer.text = embed.data.footer?.text.slice(0, (overflowLimits.footerText - footerAlertText.length)) + footerAlertText
 			}
 		}
 		else {
-			if (embed.data.footer?.text) embed.data.footer.text = footerAlertText;
+			if (embed.data.footer?.text) embed.data.footer.text = footerAlertText
 		}
 	}
 
 	if (errorList.length > 0) {
-		const error = new Error('\n - ' + errorList.join('\n - '));
-		error.name = 'Embed Validation Error';
-		EmitError(error);
+		const error = new Error('\n - ' + errorList.join('\n - '))
+		error.name = 'Embed Validation Error'
+		EmitError(error)
 	}
 
-	return embed;
+	return embed
 }
 
 /*

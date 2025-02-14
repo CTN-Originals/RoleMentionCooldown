@@ -1,6 +1,7 @@
-import { APIMessageComponentEmoji, ButtonBuilder, ButtonStyle, ChannelSelectMenuBuilder, ChannelType, ComponentType, MentionableSelectMenuBuilder, RoleSelectMenuBuilder, SelectMenuComponentOptionData, StringSelectMenuBuilder, UserSelectMenuBuilder } from "discord.js";
-import { AnyComponentBuilder, AnySelectMenuComponentBuilder } from ".";
-import { EmitError } from "../../events";
+import type { APIMessageComponentEmoji, ChannelType, ComponentType, SelectMenuComponentOptionData} from 'discord.js'
+import { ButtonBuilder, ButtonStyle, ChannelSelectMenuBuilder, MentionableSelectMenuBuilder, RoleSelectMenuBuilder, StringSelectMenuBuilder, UserSelectMenuBuilder } from 'discord.js'
+import type { AnyComponentBuilder, AnySelectMenuComponentBuilder } from '.'
+import { EmitError } from '../../events'
 
 type RequiredBaseFields = 'customId';
 type OptionalBaseFields = 'disabled';
@@ -18,34 +19,34 @@ type ComponentObjectInput<
 type IBaseComponentObject = ComponentObjectInput<BaseComponentObject>
 export class BaseComponentObject {
 	// public type?: ComponentType;
-	public customId!: string;
-	public disabled: boolean = false;
+	public customId!: string
+	public disabled: boolean = false
 
 	constructor(input: IBaseComponentObject) {
 		// this.type = input.type;
-		this.customId = input.customId;
+		this.customId = input.customId
 
-		if (input.disabled !== undefined) { this.disabled = input.disabled; }
+		if (input.disabled !== undefined) { this.disabled = input.disabled }
 	}
 
 	protected assignFields(input: ComponentObjectInput<BaseComponentObject, any>) {
 		for (const field in input) {
-			this[field] = input[field];
+			this[field] = input[field]
 		}
 	}
 
 	protected buildBase<T extends AnyComponentBuilder>(builder: T): T {
-		const component = builder.setCustomId(this.customId) as T;
+		const component = builder.setCustomId(this.customId) as T
 
-		if (this.disabled) { component.setDisabled(this.disabled); }
+		if (this.disabled) { component.setDisabled(this.disabled) }
 
-		return component;
+		return component
 	}
 
 	protected onError(message: string): string {
 		const err = new Error(message)
-		EmitError(err);
-		return err.message;
+		EmitError(err)
+		return err.message
 	}
 }
 
@@ -61,24 +62,24 @@ interface IBaseSelectComponentObject extends ComponentObjectInput<BaseSelectComp
 	type: ComponentType;
 }
 class BaseSelectComponentObject extends BaseComponentObject {
-	public type!: ComponentType;
-	public minValues: number = 1;
-	public maxValues: number = 1;
-	public placeholder?: string;
+	public type!: ComponentType
+	public minValues: number = 1
+	public maxValues: number = 1
+	public placeholder?: string
 
 	constructor(input: IBaseSelectComponentObject) {
-		super(input);
-		this.assignFields(input);
+		super(input)
+		this.assignFields(input)
 	}
 
 	protected buildSelectMenuBase<T extends AnySelectMenuComponentBuilder>(builder: T): T {
-		const component = this.buildBase(builder) as T;
+		const component = this.buildBase(builder) as T
 
-		if (this.minValues) { component.setMinValues(this.minValues); }
-		if (this.maxValues) { component.setMaxValues(this.maxValues); }
-		if (this.placeholder) { component.setPlaceholder(this.placeholder); }
+		if (this.minValues) { component.setMinValues(this.minValues) }
+		if (this.maxValues) { component.setMaxValues(this.maxValues) }
+		if (this.placeholder) { component.setPlaceholder(this.placeholder) }
 
-		return component;
+		return component
 	}
 }
 //#endregion
@@ -90,23 +91,23 @@ interface IButtonComponentObjectInput extends ComponentObjectInput<ButtonCompone
 }
 export type IButtonComponentObject = IButtonComponentObjectInput & Either<{label: string}, {emoji: APIMessageComponentEmoji}> //? Require either label, or emoji to be present
 export class ButtonComponentObject extends BaseComponentObject {
-	public label?: string;
-	public style: ButtonStyle = ButtonStyle.Primary;
-	public emoji?: APIMessageComponentEmoji;
+	public label?: string
+	public style: ButtonStyle = ButtonStyle.Primary
+	public emoji?: APIMessageComponentEmoji
 
 	constructor(input: IButtonComponentObject) {
-		super(input);
-		this.assignFields(input);
+		super(input)
+		this.assignFields(input)
 	}
 
 	public build() {
-		const component = this.buildBase(new ButtonBuilder());
+		const component = this.buildBase(new ButtonBuilder())
 
-		if (this.label) { component.setLabel(this.label); }
-		if (this.style) { component.setStyle(this.style); }
-		if (this.emoji) { component.setEmoji(this.emoji); }
+		if (this.label) { component.setLabel(this.label) }
+		if (this.style) { component.setStyle(this.style) }
+		if (this.emoji) { component.setEmoji(this.emoji) }
 
-		return component;
+		return component
 	}
 }
 //#endregion
@@ -117,19 +118,19 @@ export interface IStringSelectComponentObject extends SelectComponentObjectInput
 	type: ComponentType.StringSelect;
 }
 export class StringSelectComponentObject extends BaseSelectComponentObject {
-	public options?: SelectMenuComponentOptionData[];
+	public options?: SelectMenuComponentOptionData[]
 
 	constructor(input: IStringSelectComponentObject) {
-		super(input);
-		this.assignFields(input);
+		super(input)
+		this.assignFields(input)
 	}
 
 	public build() {
-		const component = this.buildSelectMenuBase(new StringSelectMenuBuilder());
+		const component = this.buildSelectMenuBase(new StringSelectMenuBuilder())
 
-		if (this.options) { component.setOptions(this.options); }
+		if (this.options) { component.setOptions(this.options) }
 
-		return component;
+		return component
 	}
 }
 
@@ -140,16 +141,16 @@ export class UserSelectComponentObject extends BaseSelectComponentObject {
 	public defaultValues?: string[]
 
 	constructor(input: IUserSelectComponentObject) {
-		super(input);
-		this.assignFields(input);
+		super(input)
+		this.assignFields(input)
 	}
 
 	public build() {
-		const component = this.buildSelectMenuBase(new UserSelectMenuBuilder());
+		const component = this.buildSelectMenuBase(new UserSelectMenuBuilder())
 		
-		if (this.defaultValues) { component.setDefaultUsers(this.defaultValues); }
+		if (this.defaultValues) { component.setDefaultUsers(this.defaultValues) }
 
-		return component;
+		return component
 	}
 }
 
@@ -160,16 +161,16 @@ export class RoleSelectComponentObject extends BaseSelectComponentObject {
 	public defaultValues?: string[]
 
 	constructor(input: IRoleSelectComponentObject) {
-		super(input);
-		this.assignFields(input);
+		super(input)
+		this.assignFields(input)
 	}
 
 	public build() {
-		const component = this.buildSelectMenuBase(new RoleSelectMenuBuilder());
+		const component = this.buildSelectMenuBase(new RoleSelectMenuBuilder())
 		
-		if (this.defaultValues) { component.setDefaultRoles(this.defaultValues); }
+		if (this.defaultValues) { component.setDefaultRoles(this.defaultValues) }
 
-		return component;
+		return component
 	}
 }
 
@@ -181,17 +182,17 @@ export class MentionableSelectComponentObject extends BaseSelectComponentObject 
 	public defaultUsers?: string[]
 
 	constructor(input: IMentionableSelectComponentObject) {
-		super(input);
-		this.assignFields(input);
+		super(input)
+		this.assignFields(input)
 	}
 
 	public build() {
-		const component = this.buildSelectMenuBase(new MentionableSelectMenuBuilder());
+		const component = this.buildSelectMenuBase(new MentionableSelectMenuBuilder())
 		
-		if (this.defaultRoles) { component.addDefaultRoles(this.defaultRoles); }
-		if (this.defaultUsers) { component.addDefaultUsers(this.defaultUsers); }
+		if (this.defaultRoles) { component.addDefaultRoles(this.defaultRoles) }
+		if (this.defaultUsers) { component.addDefaultUsers(this.defaultUsers) }
 
-		return component;
+		return component
 	}
 }
 
@@ -200,20 +201,20 @@ export interface IChannelSelectComponentObject extends SelectComponentObjectInpu
 }
 export class ChannelSelectComponentObject extends BaseSelectComponentObject {
 	public defaultValues?: string[]
-	public channelTypes?: ChannelType[];
+	public channelTypes?: ChannelType[]
 
 	constructor(input: IChannelSelectComponentObject) {
-		super(input);
-		this.assignFields(input);
+		super(input)
+		this.assignFields(input)
 	}
 
 	public build() {
-		const component = this.buildSelectMenuBase(new ChannelSelectMenuBuilder());
+		const component = this.buildSelectMenuBase(new ChannelSelectMenuBuilder())
 		
-		if (this.defaultValues) { component.setDefaultChannels(this.defaultValues); }
-		if (this.channelTypes) { component.setChannelTypes(this.channelTypes); }
+		if (this.defaultValues) { component.setDefaultChannels(this.defaultValues) }
+		if (this.channelTypes) { component.setChannelTypes(this.channelTypes) }
 
-		return component;
+		return component
 	}
 }
 //#endregion
