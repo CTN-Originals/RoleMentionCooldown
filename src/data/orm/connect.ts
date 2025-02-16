@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import { cons } from '../..';
-import { GeneralData } from '../index';
 import { errorConsole } from '../../handlers/errorHandler';
+import { GeneralData } from '../index';
 
 //? something like: mongodb+srv://<username>:<password>@<hostname>/<dbname>
 const dbURITemplate: string = process.env.DATABASE_URI_TEMPLATE!;
@@ -26,7 +26,9 @@ export class Database {
 	}
 
 	async connect() {
-		cons.log('Connecting to [fg=blue st=bold]Database[/>]...');
+		if (GeneralData.logging.startup.enabled && GeneralData.logging.startup.database) {
+			cons.log('Connecting to [fg=blue st=bold]Database[/>]...');
+		}
 
 		try {
 			const conn = await mongoose.connect(dbURI);
@@ -36,6 +38,8 @@ export class Database {
 			errorConsole.log(error);
 		}
 
-		cons.log('[fg=green st=bold]Connected[/>] to the [fg=blue st=bold]Database[/>]!');
+		if (GeneralData.logging.startup.enabled && GeneralData.logging.startup.database) {
+			cons.log('[fg=green st=bold]Connected[/>] to the [fg=blue st=bold]Database[/>]!');
+		}
 	}
 }

@@ -27,11 +27,17 @@ export class GeneralData {
 	public static supportServerInvite: string = process.env.SUPPORT_SERVER_INVITE!;
 	
 	public static logging = {
-	  // streamSafe: false, //? If true, the custom console will filter out any dangerouse info like tokens
-	  interaction: {
-	    enabled: true,
-	    verbose: true,
-	  }
+		// streamSafe: false, //? If true, the custom console will filter out any dangerouse info like tokens
+		startup: { //? Logs the registering of commands/events and connection to the database
+			enabled:  !this.development,
+			commands: true,
+			events:   true,
+			database: true
+		},
+		interaction: {
+			enabled: true,
+			verbose: true,
+		},
 	};
 }
 

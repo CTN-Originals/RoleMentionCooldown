@@ -4,6 +4,7 @@ import type { Client } from 'discord.js';
 import { getAllFilesInDir, registeredLogString } from '.';
 import { client, cons } from '..';
 import type { InteractionDataType } from '../@types/discord';
+import { GeneralData } from '../data';
 import { EmitError } from '../events';
 import type { BaseButtonCollection, BaseSelectMenuCollection } from '../handlers/commandBuilder';
 import { CommandInteractionData } from '../handlers/commandBuilder';
@@ -29,7 +30,9 @@ async function registerCommand(client: Client, dir: string, file: string): Promi
 	validateName(commandName, commandType);
 	
 	client.commands.set(commandName, commandData);
-	cons.log(registeredLogString(commandType, commandName, dir, file));
+	if (GeneralData.logging.startup.enabled && GeneralData.logging.startup.commands) {
+		cons.log(registeredLogString(commandType, commandName, dir, file));
+	}
 	
 	for (const button of commandData.collection.buttons.asArray()) {
 		validateName(button.content.customId, 'button');
