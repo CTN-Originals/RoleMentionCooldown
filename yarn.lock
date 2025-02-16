@@ -917,7 +917,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"better-console-utilities@npm:^1.1.0":
+"better-console-utilities@npm:^1.1.1":
   version: 1.1.1
   resolution: "better-console-utilities@npm:1.1.1"
   checksum: 10c0/2008799dda1245b3d97b029b607a772bc573b54964f8d21153e4d417563eaff179ad57e189118250cf7676a005bd43885885333e7c01409885e628146dfd8bc5
@@ -3201,7 +3201,7 @@ __metadata:
     "@typescript-eslint/eslint-plugin": "npm:^8.24.0"
     "@typescript-eslint/parser": "npm:^8.24.0"
     axios: "npm:^1.7.9"
-    better-console-utilities: "npm:^1.1.0"
+    better-console-utilities: "npm:^1.1.1"
     discord.js: "npm:^14.14.1"
     dotenv: "npm:^16.3.1"
     eslint: "npm:^9.20.1"

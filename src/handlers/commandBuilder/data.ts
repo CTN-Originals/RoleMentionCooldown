@@ -24,36 +24,34 @@ import {
 	ComponentType
 } from 'discord.js';
 import type {
-	ICommandObject,
-	IButtonComponentObject,
-	AnySelectMenuComponentBuilder,
-
-	ButtonComponentObject,
-	IAnySelectMenuComponentObject,
-	IContextMenuCommandObject,
 	AnyComponentObject,
-	AnySelectMenuComponentObject,
-	AnyInteractionObject,
-	IAnyInteractionObject,
 	AnyContextMenuInteraction,
-	TLogLevel,
-	TLogEnvironment
+	AnyInteractionObject,
+	AnySelectMenuComponentBuilder,
+	AnySelectMenuComponentObject,
+	ButtonComponentObject,
+	IAnyInteractionObject,
+	IAnySelectMenuComponentObject,
+	IButtonComponentObject,
+	ICommandObject,
+	IContextMenuCommandObject,
+	TLogEnvironment,
+	TLogLevel
 } from '.';
 import {
-	CommandObject,
 	ChannelSelectComponentObject,
+	CommandObject,
+	ContextMenuCommandObject,
+	getInteractionObject,
+	LOG_ENVIRONMENT,
+	LOG_LEVEL,
 	MentionableSelectComponentObject,
 	RoleSelectComponentObject,
 	StringSelectComponentObject,
-	UserSelectComponentObject,
-	ContextMenuCommandObject,
-	getInteractionObject,
-	LOG_LEVEL,
-	LOG_ENVIRONMENT
+	UserSelectComponentObject
 } from '.';
-import type { IChannelSelectComponentObject, IMentionableSelectComponentObject, IRoleSelectComponentObject, IStringSelectComponentObject, IUserSelectComponentObject } from './components';
 import { includesAll } from '../../utils';
-import { IBaseCommandObject } from './base';
+import type { IChannelSelectComponentObject, IMentionableSelectComponentObject, IRoleSelectComponentObject, IStringSelectComponentObject, IUserSelectComponentObject } from './components';
 
 
 //#region Interaction Content
@@ -231,11 +229,11 @@ export class BaseSelectMenuCollection extends BaseComponentCollection<IAnySelect
 		IAnySelectMenuComponentObject
 	): T {
 		switch (content.type) {
-		case ComponentType.StringSelect: 		{ return new StringSelectComponentObject(content).build() as unknown as ReturnType<typeof this.buildOne<T>>; }
-		case ComponentType.UserSelect: 			{ return new UserSelectComponentObject(content).build() as unknown as ReturnType<typeof this.buildOne<T>>; }
-		case ComponentType.RoleSelect: 			{ return new RoleSelectComponentObject(content).build() as unknown as ReturnType<typeof this.buildOne<T>>; }
-		case ComponentType.MentionableSelect: 	{ return new MentionableSelectComponentObject(content).build() as unknown as ReturnType<typeof this.buildOne<T>>; }
-		case ComponentType.ChannelSelect: 		{ return new ChannelSelectComponentObject(content).build() as unknown as ReturnType<typeof this.buildOne<T>>; }
+			case ComponentType.StringSelect: 		{ return new StringSelectComponentObject(content).build() as ReturnType<typeof this.buildOne<T>>; }
+			case ComponentType.UserSelect: 			{ return new UserSelectComponentObject(content).build() as ReturnType<typeof this.buildOne<T>>; }
+			case ComponentType.RoleSelect: 			{ return new RoleSelectComponentObject(content).build() as ReturnType<typeof this.buildOne<T>>; }
+			case ComponentType.MentionableSelect: 	{ return new MentionableSelectComponentObject(content).build() as ReturnType<typeof this.buildOne<T>>; }
+			case ComponentType.ChannelSelect: 		{ return new ChannelSelectComponentObject(content).build() as ReturnType<typeof this.buildOne<T>>; }
 		}
 	}
 
@@ -341,12 +339,12 @@ export class CommandInteractionData<
 	//#region Getters
 	public get command(): PickCommandOrContextMenuContent<typeof this.interactionType> {
 		switch (this.interactionType) {
-		case IBaseInteractionType.Command: {
-			return new CommandInteractionContent<ICommandObject, CommandObject, ChatInputCommandInteraction>(this._command as ICommandField);
-		}
-		case IBaseInteractionType.ContextMenu: { 
-			return new CommandInteractionContent<IContextMenuCommandObject, ContextMenuCommandObject, AnyContextMenuInteraction, IBaseInteractionType.ContextMenu>(this._command as IContextMenuField);
-		}
+			case IBaseInteractionType.Command: {
+				return new CommandInteractionContent<ICommandObject, CommandObject, ChatInputCommandInteraction>(this._command as ICommandField);
+			}
+			case IBaseInteractionType.ContextMenu: { 
+				return new CommandInteractionContent<IContextMenuCommandObject, ContextMenuCommandObject, AnyContextMenuInteraction, IBaseInteractionType.ContextMenu>(this._command as IContextMenuField);
+			}
 		}
 	}
 

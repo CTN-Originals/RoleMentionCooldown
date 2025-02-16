@@ -53,7 +53,9 @@ const config = [
 				allowExpressions: true
 			}],
 			'import/prefer-default-export': 'off',
-			indent: ['error', 'tab'],
+			indent: ['warn', 'tab', {
+				SwitchCase: 1
+			}],
 			'key-spacing': ['warn', {
 				multiLine: {
 					beforeColon: false,
