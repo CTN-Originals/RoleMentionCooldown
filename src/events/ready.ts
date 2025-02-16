@@ -1,19 +1,13 @@
-import 'dotenv/config'
-import type { Client, ComponentType, EmbedBuilder, Guild, Interaction, Message} from 'discord.js'
+import type { Client, ComponentType, EmbedBuilder, Guild, Interaction, Message } from 'discord.js'
 import { Events, InteractionType, Routes, TextChannel } from 'discord.js'
+import 'dotenv/config'
 
 import { ConsoleInstance } from 'better-console-utilities'
 
-import { GeneralData } from '../data'
-import { DevEnvironment } from '../data'
+import { DevEnvironment, GeneralData } from '../data'
 import { Mentionable } from '../data/orm/mentionables'
 
-import PingCommand from '../commands/test/ping'
-import ListCommand from '../commands/info/list'
-import RoleCooldownCommand from '../commands/configuration/manageRoles'
-import { testWebhook } from '..'
-import { NullExpression } from 'mongoose'
-import { EmitError, onError } from '.'
+import { EmitError } from '.'
 
 // import ErrorHandler from '../handlers/errorHandler';
 
@@ -83,16 +77,16 @@ export default {
 		// console.log(await ping.permissions.fetch({guild: guild}))
 
 		
-		const mentionTest = new FakeInteraction('rolecooldown', {
-			subCommand: 'edit',
-			options:    [
-				{name: 'role', value: {id: '1309653896788050043', name: '!q', hexColor: '#000000'}},
-				{name: 'global-cooldown', value: '0'},
-				{name: 'channel-cooldown', value: '6127s'},
-				{name: 'user-cooldown', value: '24d 23h 5m 32s'},
-			]
-		})
-		mentionTest.execute()
+		// const mentionTest = new FakeInteraction('rolecooldown', {
+		// 	subCommand: 'edit',
+		// 	options:    [
+		// 		{name: 'role', value: {id: '1309653896788050043', name: '!q', hexColor: '#000000'}},
+		// 		{name: 'global-cooldown', value: '0'},
+		// 		{name: 'channel-cooldown', value: '6127s'},
+		// 		{name: 'user-cooldown', value: '24d 23h 5m 32s'},
+		// 	]
+		// })
+		// mentionTest.execute()
 		// await new Promise<void>((resolve) => setTimeout(() => {resolve()}, 2000));
 		// mentionTest.execute();
 

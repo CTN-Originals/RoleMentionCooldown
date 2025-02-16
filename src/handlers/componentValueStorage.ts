@@ -1,7 +1,8 @@
-import type { AnySelectMenuInteraction, ChatInputCommandInteraction, ComponentValue, Message } from 'discord.js';
+import type { AnySelectMenuInteraction, ButtonInteraction, ChatInputCommandInteraction, ComponentValue, Message } from 'discord.js';
 import { EmitError } from '../events';
 
 type ComponentValueHolder = {[componentId: string]: ComponentValue | null};
+type InteractionWithMessage = ChatInputCommandInteraction | AnySelectMenuInteraction | ButtonInteraction;
 
 export class ComponentValueStorage {
 	private static storage: {[messageId: string]: ComponentValueHolder} = {};
@@ -19,7 +20,7 @@ export class ComponentValueStorage {
 	 * @param messageId The ID of the message you want to register
 	 * @returns `true` if the message ID was added to the storage object, `false` if the ID was already present in the storage object
 	*/
-	public static registerMessage(messageId: string, interaction: ChatInputCommandInteraction | AnySelectMenuInteraction): boolean {
+	public static registerMessage(messageId: string, interaction: InteractionWithMessage): boolean {
 		if (ComponentValueStorage.storageIncludesMessage(messageId)) {
 			EmitError(new Error(`Message ID was already present in storage (${messageId})`));
 			return false;
@@ -49,11 +50,21 @@ export class ComponentValueStorage {
 		return ComponentValueStorage.registerMessage(message.id, interaction);
 	}
 
-	public static setValue(messageId: string, componentId: string, value: ComponentValue): boolean {
-		const storageItem = ComponentValueStorage.getItemByMessageId(messageId);
-		if (!storageItem) { return false; }
-
-		//?? Do i need to specify the whole path here instead of using an alias/shortcut (ComponentValueStorage.storage[messageId][componentId = value])
+	public static setValue(interaction: Exclude<InteractionWithMessage, ChatInputCommandInteraction>, componentId: string, value: ComponentValue): true;
+	public static setValue(messageId: string, componentId: string, value: ComponentValue): boolean;
+	public static setValue(interaction_id: Exclude<InteractionWithMessage, ChatInputCommandInteraction> | string, componentId: string, value: ComponentValue): boolean {
+		let storageItem = ComponentValueStorage.getItemByMessageId((typeof interaction_id === 'string') ? interaction_id : interaction_id.message.id);
+		if (typeof interaction_id === 'string') {
+			if (!storageItem) { 
+				return false;
+			}
+		} else {
+			if (!storageItem) { 
+				ComponentValueStorage.registerMessage(interaction_id.message.id, interaction_id);
+				storageItem = ComponentValueStorage.getItemByMessageId(interaction_id.message.id) as ComponentValueHolder;
+			}
+		}
+		
 		storageItem[componentId] = value;
 
 		return true;
@@ -73,7 +84,7 @@ export class ComponentValueStorage {
 		instead of it being created once the reply is sent (which makes more sense but is harder to do)
 	 * @param messageId The message ID key in the storage object to delete once the timer runs out
 	*/
-	private static async setCleanupTimeout(messageId: string, interaction: ChatInputCommandInteraction | AnySelectMenuInteraction): Promise<void> {
+	private static async setCleanupTimeout(messageId: string, interaction: InteractionWithMessage): Promise<void> {
 		setTimeout(async () => {
 			try {
 				const message = await interaction.fetchReply();

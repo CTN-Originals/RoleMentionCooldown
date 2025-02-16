@@ -1,18 +1,17 @@
-import type {
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
+import {
 	AnySelectMenuInteraction,
 	APIApplicationCommandGuildInteraction,
 	BaseInteraction,
+	ChatInputCommandInteraction,
 	CommandInteraction,
 	CommandInteractionOption,
 	ContextMenuCommandInteraction,
-	Interaction,
-	PermissionsBitField
-} from 'discord.js';
-import {
-	ChatInputCommandInteraction,
 	EmbedBuilder,
 	Events,
-	InteractionType
+	Interaction,
+	InteractionType,
+	PermissionsBitField
 } from 'discord.js';
 
 import { ConsoleInstance } from 'better-console-utilities';
@@ -150,12 +149,13 @@ export default {
 			else {
 				interactionData = (interactionObject as IButtonCollectionField | ISelectMenuCollectionField);
 
-				if (interaction.isAnySelectMenu()) {
+				if (!interaction.isAutocomplete() && !interaction.isModalSubmit()) {
 					if (!ComponentValueStorage.storageIncludesMessage(interaction.message.id)) {
 						ComponentValueStorage.registerMessage(interaction.message.id, interaction);
 					}
-
-					ComponentValueStorage.setValue(interaction.message.id, interaction.customId, interaction.values);
+					if (interaction.isAnySelectMenu()) {
+						ComponentValueStorage.setValue(interaction.message.id, interaction.customId, interaction.values);
+					}
 				}
 			}
 

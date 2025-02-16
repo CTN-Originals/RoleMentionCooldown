@@ -229,7 +229,7 @@ export class Mentionable {
 	/** When the bot starts up, run this function for each guild
 	 *  @param guild The Guild to initialize
 	*/
-	public static async initialize(guild: Guild) {
+	public static async initialize(guild: Guild): Promise<void> {
 		Mentionable.hasChanged[guild.id] = true;
 		Mentionable.mentionablesCache[guild.id] = {};
 		// Mentionable.activeCooldowns[guild.id] = {};
@@ -248,24 +248,34 @@ export class Mentionable {
 		let hasChanged = false;
 
 		for (const id in mentionables) {
-		  let mentionable: IOLDMentionableItem | IMentionableItem = mentionables[id];
-		  if (Object.keys(mentionable).includes('cooldown')) {
-		    mentionable = mentionable as unknown as IOLDMentionableItem;
+			let mentionable: IOLDMentionableItem | IMentionableItem = mentionables[id];
+			const newMentionable = Mentionable.make();
+
+			if (Object.keys(mentionable).includes('cooldown')) {
+				mentionable = mentionable as unknown as IOLDMentionableItem;
 				
-		    const newMentionable = Mentionable.make();
-		    newMentionable.cooldownTime.global = mentionable.cooldown;
-		    newMentionable.lastUsedData.global = mentionable.lastUsed;
+				newMentionable.cooldownTime.global = mentionable.cooldown;
+				newMentionable.lastUsedData.global = mentionable.lastUsed;
+				
+				mentionables[id] = newMentionable;
+				mentionable = newMentionable; //? to make sure the next if statement doesnt trip up over the old_data (inscription ref?)
+				
+				eventConsole.log(`[fg=yellow]${guild.name}[/>] [fg=green]Reformatted from old format[/>]: ${id} To the new database format`);
+				
+				hasChanged = true;
+			}
 
-		    mentionables[id] = newMentionable;
+			if (!Object.keys(mentionable).includes('usageScope')) {
+				mentionable['usageScope'] = newMentionable.usageScope;
+				mentionables[id] = mentionable as IMentionableItem;
 
-		    eventConsole.log(`[fg=yellow]${guild.name}[/>] [fg=green]REFORMATTING[/>]: ${id} To the new database format`);
-
-		    hasChanged = true;
-		  }
+				eventConsole.log(`[fg=yellow]${guild.name}[/>] [fg=green]Added usage scope[/>]: ${id} To the new database format`);
+				hasChanged = true;
+			}
 		}
 
 		if (hasChanged) {
-		  Mentionable.update(mentionableDoc);
+			Mentionable.update(mentionableDoc);
 		}
 		//#endregion
 
@@ -322,14 +332,14 @@ export class Mentionable {
 	*/
 	public static async update(doc: Awaited<ReturnType<typeof Mentionable.getDocument>>): ReturnType<typeof ObjectRelationalMap.update>;
 	/**  Update the mentionable document
-	 *!@note This does not update the changes made correctly often times
 	 * @param guildId The GuildID of the server the document is for
 	 * @returns Wether or not the data has been saved successfully
 	*/
-	public static async update(guildId: string): ReturnType<typeof ObjectRelationalMap.update>;
-	public static async update(id_doc: string|Awaited<ReturnType<typeof Mentionable.getDocument>>): ReturnType<typeof ObjectRelationalMap.update> {
+	public static async update(guildId: string, mentionableId: string, mentionable: IMentionableItem): ReturnType<typeof ObjectRelationalMap.update>;
+	public static async update(id_doc: string|Awaited<ReturnType<typeof Mentionable.getDocument>>, mentionableId?: string, mentionable?: IMentionableItem): ReturnType<typeof ObjectRelationalMap.update> {
 		if (typeof id_doc === 'string') {
 			id_doc = await Mentionable.getDocument(id_doc);
+			id_doc.mentionables[mentionableId!] = mentionable!;
 		}
 
 		Mentionable.hasChanged[id_doc._id] = true;

@@ -1,16 +1,17 @@
 
-import type { ButtonInteraction, ChannelSelectMenuInteraction, ChatInputCommandInteraction, GuildMember, Role, SelectMenuComponentOptionData, StringSelectMenuInteraction } from 'discord.js';
-import { ActionRowBuilder, ApplicationCommandOptionType, ChannelType, ComponentType, EmbedBuilder, InteractionContextType, PermissionFlagsBits } from 'discord.js';
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
+import { ActionRowBuilder, AnySelectMenuInteraction, ApplicationCommandOptionType, ButtonInteraction, ChannelSelectMenuBuilder, ChannelSelectMenuInteraction, ChannelType, ChatInputCommandInteraction, ComponentType, EmbedBuilder, GuildMember, InteractionContextType, InteractionReplyOptions, MessageFlags, PermissionFlagsBits, Role, RoleSelectMenuBuilder, RoleSelectMenuInteraction, SelectMenuComponentOptionData, StringSelectMenuInteraction } from 'discord.js';
 import type { IButtonCollection, ISelectMenuCollection } from '../../handlers/commandBuilder';
 import { BaseButtonCollection, BaseEmbedCollection, BaseSelectMenuCollection, CommandInteractionData, LOG_ENVIRONMENT, LOG_LEVEL } from '../../handlers/commandBuilder';
 
 import { ButtonStyle } from 'discord.js';
 import { ColorTheme, GeneralData } from '../../data';
 import { ActiveCooldown, Mentionable } from '../../data/orm/mentionables';
-import type { CooldownDefinition, IMentionableItem } from '../../data/orm/schemas/mentionableData';
+import type { CooldownDefinition, IMentionableItem, TUsageScopeType } from '../../data/orm/schemas/mentionableData';
 import { UsageScopeType } from '../../data/orm/schemas/mentionableData';
 import type { IButtonCollectionField, ISelectMenuCollectionField } from '../../handlers/commandBuilder/data';
 import { BaseMethodCollection } from '../../handlers/commandBuilder/data';
+import { ComponentValueStorage } from '../../handlers/componentValueStorage';
 import { getTimeDisplay, hexToBit, includesAny, PeriodOfTime } from '../../utils';
 import { validateEmbed } from '../../utils/embedUtils';
 
@@ -18,7 +19,10 @@ const timeframes = ['s', 'm', 'h', 'd'];
 
 const componentIdPrefix = 'rolecooldown-edit_';
 
+const messageToInteractionLink: { [messageId: string]: ChatInputCommandInteraction } = {};
+
 class ButtonCollection extends BaseButtonCollection implements IButtonCollection<ButtonCollection> {
+	//#region Settings Buttons
 	public channelSettings: IButtonCollectionField = {
 		logEnvironment: LOG_ENVIRONMENT.PRODUCTION | LOG_ENVIRONMENT.BETA,
 		content:        {
@@ -27,15 +31,13 @@ class ButtonCollection extends BaseButtonCollection implements IButtonCollection
 			style:    ButtonStyle.Primary
 		},
 		execute: async (interaction: ButtonInteraction) => {
-			const scopeTypeSelect = command.selectMenus.scopeType.content;
-			const channelSelect = command.selectMenus.channelScope.content;
-
 			await interaction.update({
-				components: [
-					new ActionRowBuilder().addComponents(command.selectMenus.buildOne(scopeTypeSelect)) as never,
-					new ActionRowBuilder().addComponents(command.selectMenus.buildOne(channelSelect)) as never,
-					new ActionRowBuilder().addComponents(command.buttons.buildOne(command.buttons.submitChannelScope.content)) as never,
-				],
+				embeds: [...interaction.message.embeds, new EmbedBuilder({
+					title:       'Channel Settings',
+					description: 'TODO: Add instructions',
+					color:       hexToBit(ColorTheme.embeds.info)
+				})],
+				components: await command.methods.getSettingsActionRows(interaction, 'channel'),
 			});
 			
 			return true;
@@ -49,11 +51,60 @@ class ButtonCollection extends BaseButtonCollection implements IButtonCollection
 			style:    ButtonStyle.Primary,
 		},
 		execute: async (interaction: ButtonInteraction) => {
+			await interaction.update({
+				embeds: [...interaction.message.embeds, new EmbedBuilder({
+					title:       'Role Settings',
+					description: 'TODO: Add instructions',
+					color:       hexToBit(ColorTheme.embeds.info)
+				})],
+				components: await command.methods.getSettingsActionRows(interaction, 'role'),
+			});
+
 			return true;
 		}
 	};
+	//#endregion
 
 	//#region Submit Buttons
+	private async submitScopeSettings(interaction: ButtonInteraction, _type: 'channel' | 'role'): Promise<string | true> {
+		// let scopeTypeValue: TUsageScopeType = ComponentValueStorage.getValue(interaction.message.id, command.selectMenus.scopeType.content.customId) as TUsageScopeType;
+
+		// if (!scopeTypeValue) {
+		// 	await interaction.reply({
+		// 		content:   'Please select a scope type (the first select menu)',
+		// 		ephemeral: true,
+		// 	});
+
+		// 	return 'Scope type is empty';
+		// }
+
+		// const scopeComponentId = (type === 'channel') ? command.selectMenus.channelScope.content.customId : command.selectMenus.roleScope.content.customId;
+		// const scopeSelection: string[] = ComponentValueStorage.getValue(interaction.message.id, scopeComponentId) as string[] ?? [];
+
+		// if (scopeSelection.length === 0) {
+		// 	scopeTypeValue = 'none';
+		// }
+
+		const mentionableData = await command.methods.getMentionableFromInteraction(interaction);
+		// if (type === 'channel') {
+		// 	mentionableData.mentionable.usageScope.channelScopeType = scopeTypeValue;
+		// 	mentionableData.mentionable.usageScope.channelScope = scopeSelection;
+		// } else {
+		// 	mentionableData.mentionable.usageScope.roleScopeType = scopeTypeValue;
+		// 	mentionableData.mentionable.usageScope.roleScope = scopeSelection;
+		// }
+
+		// await Mentionable.update(interaction.guildId!, mentionableData.role.id, mentionableData.mentionable);
+
+		const response = command.methods.getMentionableInfoResponse(mentionableData.mentionable, mentionableData.role);
+		await interaction.update({
+			embeds:     response.embeds,
+			components: response.components
+		});
+
+		return true;
+	}
+
 	public submitChannelScope: IButtonCollectionField = {
 		logEnvironment: LOG_ENVIRONMENT.PRODUCTION | LOG_ENVIRONMENT.BETA,
 		content:        {
@@ -62,7 +113,7 @@ class ButtonCollection extends BaseButtonCollection implements IButtonCollection
 			style:    ButtonStyle.Success
 		},
 		execute: async (interaction: ButtonInteraction) => {
-			return true;
+			return await this.submitScopeSettings(interaction, 'channel');
 		}
 	};
 	public submitRoleScope: IButtonCollectionField = {
@@ -73,7 +124,7 @@ class ButtonCollection extends BaseButtonCollection implements IButtonCollection
 			style:    ButtonStyle.Success
 		},
 		execute: async (interaction: ButtonInteraction) => {
-			return true;
+			return await this.submitScopeSettings(interaction, 'role');
 		}
 	};
 	//#endregion
@@ -82,16 +133,42 @@ class SelectMenuCollection extends BaseSelectMenuCollection implements ISelectMe
 	public scopeType: ISelectMenuCollectionField<ComponentType.StringSelect> = {
 		logEnvironment: LOG_ENVIRONMENT.PRODUCTION | LOG_ENVIRONMENT.BETA,
 		content:        {
-			type:    ComponentType.StringSelect,
-			options: Object.values(UsageScopeType).map((scope): SelectMenuComponentOptionData => {return {
+			type:     ComponentType.StringSelect,
+			customId: componentIdPrefix + 'scope-type',
+			options:  Object.values(UsageScopeType).map((scope): SelectMenuComponentOptionData => {return {
 				label: scope[0].toUpperCase() + scope.slice(1),
 				value: scope,
 			};}),
 			placeholder: 'Wether to allow or deny usage',
-			customId:    componentIdPrefix + 'scope-type',
 		},
-		execute: (interaction: StringSelectMenuInteraction) => {
+		execute: async (interaction: StringSelectMenuInteraction) => {
+			const mentionableData = await command.methods.getMentionableFromInteraction(interaction);
+
+			for (const row of interaction.message.components) {
+				for (const comp of row.components) {
+					if (comp.customId === command.selectMenus.channelScope.content.customId) {
+						mentionableData.mentionable.usageScope.channelScopeType = interaction.values[0] as TUsageScopeType;
+						await Mentionable.update(interaction.guildId!, mentionableData.role.id, mentionableData.mentionable);
+
+						await interaction.update({
+							components: await command.methods.getSettingsActionRows(interaction, 'channel')
+						});
+						return true;
+					}
+					else if (comp.customId === command.selectMenus.roleScope.content.customId) {
+						mentionableData.mentionable.usageScope.roleScopeType = interaction.values[0] as TUsageScopeType;
+						await Mentionable.update(interaction.guildId!, mentionableData.role.id, mentionableData.mentionable);
+
+						await interaction.update({
+							components: await command.methods.getSettingsActionRows(interaction, 'role')
+						});
+						return true;
+					}
+				}
+			}
+
 			interaction.deferUpdate();
+
 			return true;
 		}
 	};
@@ -110,14 +187,35 @@ class SelectMenuCollection extends BaseSelectMenuCollection implements ISelectMe
 				ChannelType.PublicThread,
 				ChannelType.GuildVoice,
 			],
-			minValues:     0,
-			maxValues:     25,
-			defaultValues: [],
+			minValues: 0,
+			maxValues: 25,
 		},
-		execute: (interaction: ChannelSelectMenuInteraction) => {
+		execute: async (interaction: ChannelSelectMenuInteraction) => {
+			const mentionableData = await command.methods.getMentionableFromInteraction(interaction);
+			mentionableData.mentionable.usageScope.channelScope = interaction.values;
+			await Mentionable.update(interaction.guildId!, mentionableData.role.id, mentionableData.mentionable);
+
 			interaction.deferUpdate();
+
 			return true;
 		}
+	};
+
+	public roleScope: ISelectMenuCollectionField<ComponentType.RoleSelect> = {
+		content: {
+			type:      ComponentType.RoleSelect,
+			customId:  componentIdPrefix + 'role-selection',
+			minValues: 0,
+			maxValues: 25,
+		},
+		execute: async (interaction: RoleSelectMenuInteraction) => {
+			const mentionableData = await command.methods.getMentionableFromInteraction(interaction);
+			mentionableData.mentionable.usageScope.roleScope = interaction.values;
+			await Mentionable.update(interaction.guildId!, mentionableData.role.id, mentionableData.mentionable);
+
+			interaction.deferUpdate();
+			return true;
+		},
 	};
 }
 class EmbedCollection extends BaseEmbedCollection {
@@ -316,6 +414,65 @@ class MethodCollection extends BaseMethodCollection {
 
 		return cooldown as CooldownDefinition<PeriodOfTime | null>;
 	}
+
+	public async getMentionableFromInteraction(interaction: AnySelectMenuInteraction | ButtonInteraction): Promise<{role: Role, mentionable: IMentionableItem}> {
+		if (!Object.keys(messageToInteractionLink).includes(interaction.message.id)) {
+			throw new Error('Unable to link message to interaction');
+		}
+
+		const role = messageToInteractionLink[interaction.message.id].options.getRole('role', true);
+		if (!role) {
+			throw new Error('Unable to get the role option from interaction');
+		}
+
+		const mentionable = await Mentionable.get(interaction.guildId!, role.id);
+		if (!mentionable) {
+			throw new Error('Unable to get the mentionable of the target role');
+		}
+
+		return {role: role as Role, mentionable: mentionable};
+	}
+
+	public async getSettingsActionRows(interaction: AnySelectMenuInteraction | ButtonInteraction, type: 'channel' | 'role'): Promise<ActionRowBuilder<ChannelSelectMenuBuilder | RoleSelectMenuBuilder>[]> {
+		const scopeTypeSelect = {...command.selectMenus.scopeType.content};
+		const scopeSelect = {...(type === 'channel') ? command.selectMenus.channelScope.content : command.selectMenus.roleScope.content};
+
+		const mentionable = (await this.getMentionableFromInteraction(interaction)).mentionable;
+
+		const scopeTypeValue = (type === 'channel') ? mentionable.usageScope.channelScopeType : mentionable.usageScope.roleScopeType;
+		const scopeSelectValue = (type === 'channel') ? mentionable.usageScope.channelScope : mentionable.usageScope.roleScope;
+
+		//? Set the default selection value based on scopetypeValue
+		for (const opt of scopeTypeSelect.options ?? []) {
+			opt.default = (opt.value === scopeTypeValue);
+		}
+
+		if (scopeTypeValue !== 'none') {
+			scopeSelect.disabled = false;
+			scopeSelect.defaultValues = scopeSelectValue;
+		} else {
+			scopeSelect.disabled = true;
+		}
+
+		ComponentValueStorage.setValue(interaction, scopeTypeSelect.customId, scopeTypeValue);
+		ComponentValueStorage.setValue(interaction, scopeSelect.customId, scopeSelectValue);
+
+		return [
+			new ActionRowBuilder().addComponents(command.selectMenus.buildOne(scopeTypeSelect)) as never,
+			new ActionRowBuilder().addComponents(command.selectMenus.buildOne(scopeSelect)) as never,
+			new ActionRowBuilder().addComponents(command.buttons.buildOne((type === 'channel') ? command.buttons.submitChannelScope.content : command.buttons.submitRoleScope.content)) as never
+		];
+	}
+
+	public getMentionableInfoResponse(mentionable: IMentionableItem, role: Role): InteractionReplyOptions {
+		return {
+			embeds:     command.embeds.mentionableInfo(mentionable, role),
+			components: [
+				new ActionRowBuilder().addComponents(command.buttons.getBuild(command.buttons.channelSettings, command.buttons.roleSettings)) as never,
+			],
+			flags: [MessageFlags.Ephemeral]
+		};
+	}
 	//#endregion
 
 	//#region Add
@@ -399,13 +556,14 @@ class MethodCollection extends BaseMethodCollection {
 			await Mentionable.update(mentionableDoc);
 		}
 
-		await interaction.reply({
-			embeds:     command.embeds.mentionableInfo(mentionable, role),
-			components: [
-				new ActionRowBuilder().addComponents(command.buttons.getBuild(command.buttons.channelSettings, command.buttons.roleSettings)) as never,
-			],
-			ephemeral: !GeneralData.development,
-		});
+		await interaction.reply(this.getMentionableInfoResponse(mentionable, role));
+
+		const replyMessageId = (await interaction.fetchReply()).id;
+		messageToInteractionLink[replyMessageId] = interaction;
+
+		setTimeout(() => {
+			delete messageToInteractionLink[replyMessageId];
+		}, 1000 * 60 * 15);
 
 		return true;
 	}
@@ -531,10 +689,10 @@ const command = new CommandInteractionData<ButtonCollection, SelectMenuCollectio
 		execute: async function (interaction: ChatInputCommandInteraction) {
 			const subCommand = interaction.options.getSubcommand();
 			switch (subCommand) {
-			case 'add': return await command.methods.addRole(interaction);
-			case 'edit': return await command.methods.editRole(interaction);
-			case 'remove': return await command.methods.removeRole(interaction);
-			default: break;
+				case 'add': return await command.methods.addRole(interaction);
+				case 'edit': return await command.methods.editRole(interaction);
+				case 'remove': return await command.methods.removeRole(interaction);
+				default: break;
 			}
 
 			//? if code reaches here, that means that all subcommands and groups fell through somehow...
