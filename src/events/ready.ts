@@ -9,6 +9,7 @@ import { Mentionable } from '../data/orm/mentionables'
 
 import { EmitError } from '.'
 
+
 // import ErrorHandler from '../handlers/errorHandler';
 
 const thisConsole = new ConsoleInstance()
@@ -81,12 +82,18 @@ export default {
 		// 	subCommand: 'edit',
 		// 	options:    [
 		// 		{name: 'role', value: {id: '1309653896788050043', name: '!q', hexColor: '#000000'}},
-		// 		{name: 'global-cooldown', value: '0'},
+		// 		// {name: 'global-cooldown', value: '0'},
 		// 		{name: 'channel-cooldown', value: '6127s'},
 		// 		{name: 'user-cooldown', value: '24d 23h 5m 32s'},
 		// 	]
 		// })
-		// mentionTest.execute()
+		// await mentionTest.execute()
+
+		// channel.send({
+		// 	content: '``` ```',
+		// 	embeds: [RoleCooldownCommand.embeds.scopeSettingInstructions('channel'), RoleCooldownCommand.embeds.scopeSettingInstructions('role')]
+		// });
+
 		// await new Promise<void>((resolve) => setTimeout(() => {resolve()}, 2000));
 		// mentionTest.execute();
 
