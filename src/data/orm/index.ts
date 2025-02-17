@@ -1,9 +1,6 @@
-import type { Document, Model} from 'mongoose';
-import { model, Schema } from 'mongoose';
-import { cons } from '../..';
-import { EmitError, eventConsole } from '../../events';
 import type { Guild } from 'discord.js';
-import { Base } from 'discord.js';
+import type { Document, Model } from 'mongoose';
+import { EmitError, eventConsole } from '../../events';
 
 export interface BaseDocument {
 	_id: string
@@ -30,7 +27,7 @@ export class ObjectRelationalMap {
 	 * @param guildId The GuildID of the server
 	 * @returns The Document if created successfully, null otherwise
 	*/
-	public static async create(model: typeof Model, guildId: string) {
+	public static async create(model: typeof Model, guildId: string): ReturnType<typeof model.create> {
 		return await model.create({_id: guildId}).catch(EmitError);
 	}
 
