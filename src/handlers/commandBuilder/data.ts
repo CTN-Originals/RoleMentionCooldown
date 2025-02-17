@@ -154,25 +154,39 @@ export type IButtonCollectionField = CommandInteractionContentInput<IButtonCompo
 export type IButtonCollection<T> = CheckFields<T, IButtonCollectionField>
 
 export type PickSelectMenuInputComponentTypeFromComponent<T extends ComponentType = ComponentType.StringSelect> = 
-T extends ComponentType.StringSelect ? IStringSelectComponentObject :
-T extends ComponentType.UserSelect ? IUserSelectComponentObject :
-T extends ComponentType.RoleSelect ? IRoleSelectComponentObject :
-T extends ComponentType.MentionableSelect ? IMentionableSelectComponentObject :
-T extends ComponentType.ChannelSelect ? IChannelSelectComponentObject : IAnySelectMenuComponentObject;
+	T extends ComponentType.StringSelect ? IStringSelectComponentObject :
+	T extends ComponentType.UserSelect ? IUserSelectComponentObject :
+	T extends ComponentType.RoleSelect ? IRoleSelectComponentObject :
+	T extends ComponentType.MentionableSelect ? IMentionableSelectComponentObject :
+	T extends ComponentType.ChannelSelect ? IChannelSelectComponentObject : IAnySelectMenuComponentObject;
 
 export type PickSelectMenuComponentTypeFromComponent<T extends ComponentType = ComponentType.StringSelect> = 
-T extends ComponentType.StringSelect ? StringSelectComponentObject :
-T extends ComponentType.UserSelect ? UserSelectComponentObject :
-T extends ComponentType.RoleSelect ? RoleSelectComponentObject :
-T extends ComponentType.MentionableSelect ? MentionableSelectComponentObject :
-T extends ComponentType.ChannelSelect ? ChannelSelectComponentObject : AnyComponentObject;
+	T extends ComponentType.StringSelect ? StringSelectComponentObject :
+	T extends ComponentType.UserSelect ? UserSelectComponentObject :
+	T extends ComponentType.RoleSelect ? RoleSelectComponentObject :
+	T extends ComponentType.MentionableSelect ? MentionableSelectComponentObject :
+	T extends ComponentType.ChannelSelect ? ChannelSelectComponentObject : AnyComponentObject;
 
 export type PickSelectMenuInteractionTypeFromComponent<T extends ComponentType = ComponentType.StringSelect> = 
-T extends ComponentType.StringSelect ? StringSelectMenuInteraction :
-T extends ComponentType.UserSelect ? UserSelectMenuInteraction :
-T extends ComponentType.RoleSelect ? RoleSelectMenuInteraction :
-T extends ComponentType.MentionableSelect ? MentionableSelectMenuInteraction :
-T extends ComponentType.ChannelSelect ? ChannelSelectMenuInteraction : AnySelectMenuInteraction;
+	T extends ComponentType.StringSelect ? StringSelectMenuInteraction :
+	T extends ComponentType.UserSelect ? UserSelectMenuInteraction :
+	T extends ComponentType.RoleSelect ? RoleSelectMenuInteraction :
+	T extends ComponentType.MentionableSelect ? MentionableSelectMenuInteraction :
+	T extends ComponentType.ChannelSelect ? ChannelSelectMenuInteraction : AnySelectMenuInteraction;
+
+export type PickSelectMenuBuilderTypeFromComponent<T extends ComponentType = ComponentType.StringSelect> = 
+	T extends ComponentType.StringSelect ? StringSelectMenuBuilder :
+	T extends ComponentType.UserSelect ? UserSelectMenuBuilder :
+	T extends ComponentType.RoleSelect ? RoleSelectMenuBuilder :
+	T extends ComponentType.MentionableSelect ? MentionableSelectMenuBuilder :
+	T extends ComponentType.ChannelSelect ? ChannelSelectMenuBuilder : AnySelectMenuComponentBuilder;
+
+export type PickSelectMenuBuilderTypeFromComponentObject<T extends IAnySelectMenuComponentObject = IStringSelectComponentObject> = 
+	T extends IStringSelectComponentObject ? StringSelectMenuBuilder :
+	T extends IUserSelectComponentObject ? UserSelectMenuBuilder :
+	T extends IRoleSelectComponentObject ? RoleSelectMenuBuilder :
+	T extends IMentionableSelectComponentObject ? MentionableSelectMenuBuilder :
+	T extends IChannelSelectComponentObject ? ChannelSelectMenuBuilder : IAnySelectMenuComponentObject;
 
 
 /** 
@@ -228,6 +242,7 @@ export class BaseSelectMenuCollection extends BaseComponentCollection<IAnySelect
 		T extends ChannelSelectMenuBuilder ? IChannelSelectComponentObject :
 		IAnySelectMenuComponentObject
 	): T {
+	// public buildOne<T extends AnySelectMenuComponentBuilder>(content: IAnySelectMenuComponentObject): PickSelectMenuBuilderTypeFromComponentObject<typeof content> {
 		switch (content.type) {
 			case ComponentType.StringSelect: 		{ return new StringSelectComponentObject(content).build() as ReturnType<typeof this.buildOne<T>>; }
 			case ComponentType.UserSelect: 			{ return new UserSelectComponentObject(content).build() as ReturnType<typeof this.buildOne<T>>; }
