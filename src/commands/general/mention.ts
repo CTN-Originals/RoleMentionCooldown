@@ -88,8 +88,8 @@ const command = new CommandInteractionData<ButtonCollection, SelectMenuCollectio
 
 			if (!mentionable) {
 				await interaction.reply({
-					embeds:    [command.embeds.roleNotRegistered(role.id)],
-					ephemeral: !GeneralData.development,
+					embeds: [command.embeds.roleNotRegistered(role.id)],
+					flags:  [((!GeneralData.development) ? MessageFlags.Ephemeral : MessageFlags.SuppressNotifications)],
 				});
 
 				command.methods.onUsedLog(interaction, role, `[fg=${ColorTheme.colors.red.asHex}]Rejected[/>][fg=${ColorTheme.colors.grey.asHex}] - Role is not registered[/>]`);
@@ -137,8 +137,8 @@ const command = new CommandInteractionData<ButtonCollection, SelectMenuCollectio
 
 			if (Mentionable.isOncooldown(mentionable, interaction.channelId, interaction.user.id) === true) {
 				await interaction.reply({
-					embeds:    [command.embeds.roleOnCooldown(role.id, mentionable, interaction)],
-					ephemeral: !GeneralData.development,
+					embeds: [command.embeds.roleOnCooldown(role.id, mentionable, interaction)],
+					flags:  [((!GeneralData.development) ? MessageFlags.Ephemeral : MessageFlags.SuppressNotifications)],
 				});
 
 				command.methods.onUsedLog(interaction, role, [

@@ -1,11 +1,11 @@
-import type { ChatInputCommandInteraction} from 'discord.js';
-import { InteractionContextType, ButtonInteraction, EmbedBuilder, PermissionFlagsBits } from 'discord.js';
+import type { ChatInputCommandInteraction } from 'discord.js';
+import { EmbedBuilder, InteractionContextType } from 'discord.js';
 
-import { hexToBit } from '../../utils';
 import { ColorTheme } from '../../data';
-import { validateEmbed } from '../../utils/embedUtils';
 import type { IButtonCollection, ISelectMenuCollection } from '../../handlers/commandBuilder';
 import { BaseButtonCollection, BaseEmbedCollection, BaseSelectMenuCollection, CommandInteractionData } from '../../handlers/commandBuilder';
+import { hexToBit } from '../../utils';
+import { validateEmbed } from '../../utils/embedUtils';
 
 
 class ButtonCollection extends BaseButtonCollection implements IButtonCollection<ButtonCollection> {}
@@ -32,8 +32,8 @@ const command = new CommandInteractionData<ButtonCollection, SelectMenuCollectio
 			const apiPing = interaction.client.ws.ping;
 
 			await interaction.reply({
-				embeds:    [validateEmbed(command.embeds.pingDisplay(commandPing, apiPing))],
-				ephemeral: true
+				embeds: [validateEmbed(command.embeds.pingDisplay(commandPing, apiPing))],
+				flags:  [((!GeneralData.development) ? MessageFlags.Ephemeral : MessageFlags.SuppressNotifications)]
 			});
 			
 			return `${commandPing}ms | ${apiPing}ms`;

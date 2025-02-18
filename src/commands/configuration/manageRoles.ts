@@ -405,8 +405,8 @@ class MethodCollection extends BaseMethodCollection {
 		for (const field in cooldown) {
 			if (typeof cooldown[field] === 'string') {
 				await interaction.reply({
-					embeds:    command.embeds.getCooldownInstructionEmbed(cooldownInput[field], `${field}-cooldown`, cooldown[field]),
-					ephemeral: !GeneralData.development
+					embeds: command.embeds.getCooldownInstructionEmbed(cooldownInput[field], `${field}-cooldown`, cooldown[field]),
+					flags:  [((!GeneralData.development) ? MessageFlags.Ephemeral : MessageFlags.SuppressNotifications)]
 				});
 				
 				return `${field}-cooldown: ${cooldown[field]}`;
@@ -496,8 +496,8 @@ class MethodCollection extends BaseMethodCollection {
 
 		if (existingMentionable !== null && existingMentionable !== undefined) {
 			await interaction.reply({
-				embeds:    command.embeds.mentionableAlreadyRegistered(role),
-				ephemeral: !GeneralData.development,
+				embeds: command.embeds.mentionableAlreadyRegistered(role),
+				flags:  [((!GeneralData.development) ? MessageFlags.Ephemeral : MessageFlags.SuppressNotifications)],
 			});
 
 			return 'Mentionable is already registered';
@@ -511,8 +511,8 @@ class MethodCollection extends BaseMethodCollection {
 
 		if (Object.values(cooldownInputs).every(cd => cd === null)) {
 			await interaction.reply({
-				embeds:    command.embeds.requireOneMinimumCooldown(),
-				ephemeral: !GeneralData.development,
+				embeds: command.embeds.requireOneMinimumCooldown(),
+				flags:  [((!GeneralData.development) ? MessageFlags.Ephemeral : MessageFlags.SuppressNotifications)],
 			});
 
 			return 'Require at least one cooldown input';
@@ -543,8 +543,8 @@ class MethodCollection extends BaseMethodCollection {
 
 		if (!mentionable) {
 			await interaction.reply({
-				embeds:    [command.embeds.targetRoleNotRegistered(role)],
-				ephemeral: !GeneralData.development,
+				embeds: [command.embeds.targetRoleNotRegistered(role)],
+				flags:  [((!GeneralData.development) ? MessageFlags.Ephemeral : MessageFlags.SuppressNotifications)],
 			});
 
 			return 'Target role not registered as mentionable';
@@ -583,7 +583,7 @@ class MethodCollection extends BaseMethodCollection {
 					description: `<@&${roleId}> is not included in the mention cooldown list.`,
 					color:       hexToBit(ColorTheme.embeds.notice)
 				}))],
-				ephemeral: true
+				flags: [((!GeneralData.development) ? MessageFlags.Ephemeral : MessageFlags.SuppressNotifications)]
 			});
 			return 'Role not present in list';
 		}
@@ -596,7 +596,7 @@ class MethodCollection extends BaseMethodCollection {
 					description: `Successfully removed <@&${roleId}> from the list.`,
 					color:       hexToBit(ColorTheme.embeds.reply)
 				}))],
-				ephemeral: !GeneralData.development
+				flags: [((!GeneralData.development) ? MessageFlags.Ephemeral : MessageFlags.SuppressNotifications)]
 			});
 		} else {
 			throw new Error(`"${interaction.guild.name}" Attempted to remove mentionable (${roleId}) and was unsuccessfull`);

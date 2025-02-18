@@ -1,12 +1,12 @@
-import type { Guild, ChatInputCommandInteraction} from 'discord.js';
+import type { ChatInputCommandInteraction, Guild } from 'discord.js';
 import { EmbedBuilder, InteractionContextType } from 'discord.js';
 import type { IButtonCollection, ISelectMenuCollection } from '../../handlers/commandBuilder';
 import { BaseButtonCollection, BaseEmbedCollection, BaseSelectMenuCollection, CommandInteractionData } from '../../handlers/commandBuilder';
 
-import { Mentionable } from '../../data/orm/mentionables';
 import { ColorTheme, GeneralData } from '../../data';
-import { validateEmbed } from '../../utils/embedUtils';
+import { Mentionable } from '../../data/orm/mentionables';
 import { getTimeDisplay, getTimestamp, hexToBit } from '../../utils';
+import { validateEmbed } from '../../utils/embedUtils';
 
 export type ListType = 'all'|'cooldowns';
 
@@ -23,21 +23,21 @@ class EmbedCollection extends BaseEmbedCollection {
 	
 		for (const roleId in mentionables) {
 			switch (type) {
-			case 'all': { //TODO get the highest cooldown time compared to each of the cooldown times and put that on up here
-				stats.push([
-					roleId,
-					`\`${getTimeDisplay(mentionables[roleId].cooldownTime.global)}\``
-				]);
-			} break;
-			case 'cooldowns': {
-				if (Mentionable.isOncooldown(mentionables[roleId])) {
+				case 'all': { //TODO get the highest cooldown time compared to each of the cooldown times and put that on up here
 					stats.push([
 						roleId,
-						`<t:${getTimestamp(Date.now() + Mentionable.remainingCooldown(mentionables[roleId]))}:R>`
+						`\`${getTimeDisplay(mentionables[roleId].cooldownTime.global)}\``
 					]);
-				}
-			} break;
-			default: break;
+				} break;
+				case 'cooldowns': {
+					if (Mentionable.isOncooldown(mentionables[roleId])) {
+						stats.push([
+							roleId,
+							`<t:${getTimestamp(Date.now() + Mentionable.remainingCooldown(mentionables[roleId]))}:R>`
+						]);
+					}
+				} break;
+				default: break;
 			}
 		}
 
@@ -46,13 +46,13 @@ class EmbedCollection extends BaseEmbedCollection {
 		}
 		else {
 			switch (type) {
-			case 'all':
-				stats.sort((a, b) => mentionables[a[0]].cooldownTime.global - mentionables[b[0]].cooldownTime.global);
-				break;
-			case 'cooldowns':
-				stats.sort((a, b) => (Date.now() + Mentionable.remainingCooldown(mentionables[a[0]])) - (Date.now() + Mentionable.remainingCooldown(mentionables[b[0]]))); 
-				break;
-			default: break;
+				case 'all':
+					stats.sort((a, b) => mentionables[a[0]].cooldownTime.global - mentionables[b[0]].cooldownTime.global);
+					break;
+				case 'cooldowns':
+					stats.sort((a, b) => (Date.now() + Mentionable.remainingCooldown(mentionables[a[0]])) - (Date.now() + Mentionable.remainingCooldown(mentionables[b[0]]))); 
+					break;
+				default: break;
 			}
 		}
 
@@ -101,8 +101,8 @@ const command = new CommandInteractionData<ButtonCollection, SelectMenuCollectio
 			const subCommand = interaction.options.getSubcommand() as ListType;
 			
 			await interaction.reply({
-				embeds:    [validateEmbed(await command.embeds.getCurrentCooldownsEmbed(interaction.guild, subCommand))],
-				ephemeral: !GeneralData.development
+				embeds: [validateEmbed(await command.embeds.getCurrentCooldownsEmbed(interaction.guild, subCommand))],
+				flags:  [((!GeneralData.development) ? MessageFlags.Ephemeral : MessageFlags.SuppressNotifications)]
 			});
 			return true;
 		},

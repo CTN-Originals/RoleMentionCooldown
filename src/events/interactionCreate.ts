@@ -1,4 +1,4 @@
-// eslint-disable-next-line @typescript-eslint/consistent-type-imports
+ 
 import {
 	AnySelectMenuInteraction,
 	APIApplicationCommandGuildInteraction,
@@ -137,9 +137,9 @@ export default {
 
 					if (!selfMember?.permissions.has(perms)) {
 						await interaction.reply({
-							content:   'I am lacking the required permission(s) to perform this action.',
-							embeds:    [validateEmbed(lackingPermissionEmbed(interaction, perms))],
-							ephemeral: !GeneralData.development
+							content: 'I am lacking the required permission(s) to perform this action.',
+							embeds:  [validateEmbed(lackingPermissionEmbed(interaction, perms))],
+							flags:   [((!GeneralData.development) ? MessageFlags.Ephemeral : MessageFlags.SuppressNotifications)]
 						});
 
 						response = 'Lacking the required permission(s) to perform this action';
@@ -172,8 +172,8 @@ export default {
 			}
 
 			const replyContent = {
-				content:   content,
-				ephemeral: true,
+				content: content,
+				flags:   [((!GeneralData.development) ? MessageFlags.Ephemeral : MessageFlags.SuppressNotifications)],
 			};
 			
 			if (interaction.isRepliable()) {
