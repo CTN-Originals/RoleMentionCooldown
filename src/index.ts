@@ -32,10 +32,10 @@ async function Awake() {
 		GeneralData.development && (GeneralData.production || GeneralData.beta)
 	) {
 		EmitError(new Error([
-			`More then one startup flags are set to true, these flags need to be exclusive`,
+			'More then one startup flags are set to true, these flags need to be exclusive',
 			`production (${GeneralData.production}), beta (${GeneralData.beta}), development (${GeneralData.development})`,
 		].join('\n')));
-		throw `Start-up flags are non-exclusive`;
+		throw 'Start-up flags are non-exclusive';
 	}
 
 	client.commands = new Collection();

@@ -1,4 +1,5 @@
-import { ApplicationCommandType, ApplicationIntegrationType, ContextMenuCommandBuilder, InteractionContextType, LocalizationMap, PermissionsBitField, PermissionsString } from "discord.js";
+import type { ApplicationIntegrationType, InteractionContextType, LocalizationMap, PermissionsString } from 'discord.js';
+import { ApplicationCommandType, ContextMenuCommandBuilder, PermissionsBitField } from 'discord.js';
 
 type RequiredBaseFields = 'name' | 'type';
 type OptionalBaseFields = 
@@ -28,7 +29,7 @@ export class ContextMenuCommandObject {
 	public integration_types?: ApplicationIntegrationType[];
 
 	/** The permissions that the bot requires to have to execute anything defined in this command */
-	public requiredPermissions?: PermissionsString[] = []
+	public requiredPermissions?: PermissionsString[] = [];
 
 	constructor(input: IContextMenuCommandObject) {
 		this.name = input.name;

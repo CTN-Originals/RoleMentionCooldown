@@ -1,8 +1,9 @@
-import { Guild } from "discord.js";
+import type { Guild } from 'discord.js';
 
-import { default as DataModel, GuildConfigData, IGuildConfigData } from './schemas/guildConfigData'
-import { ObjectRelationalMap } from ".";
-import { Model } from "mongoose";
+import type { IGuildConfigData } from './schemas/guildConfigData';
+import { default as DataModel, GuildConfigData } from './schemas/guildConfigData';
+import { ObjectRelationalMap } from '.';
+import { Model } from 'mongoose';
 
 export class GuildConfig {
 	/** Get the config object of a guild
@@ -18,7 +19,7 @@ export class GuildConfig {
 	 * @returns The guild config object
 	*/
 	public static async get(guildId: string): Promise<IGuildConfigData> {
-		return await this.getDocument(guildId) as Extract<typeof DataModel, IGuildConfigData>
+		return await this.getDocument(guildId) as Extract<typeof DataModel, IGuildConfigData>;
 	}
 
 	/**  Update a document
@@ -42,7 +43,7 @@ export class GuildConfig {
 	 * @param guildId The GuildID of the server
 	*/
 	public static async onGuildCreate(guild: Guild): Promise<void> {
-		await ObjectRelationalMap.onGuildCreate(DataModel, guild)
+		await ObjectRelationalMap.onGuildCreate(DataModel, guild);
 	}
 
 	/** Once the bot leaves a guild, see if we need to delete a document
@@ -50,6 +51,6 @@ export class GuildConfig {
 	 * @param guildId The GuildID of the server
 	*/
 	public static async onGuildDelete(guild: Guild): Promise<void> {
-		await ObjectRelationalMap.onGuildDelete(DataModel, guild)
+		await ObjectRelationalMap.onGuildDelete(DataModel, guild);
 	}
 }

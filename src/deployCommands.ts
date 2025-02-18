@@ -1,12 +1,14 @@
-import { Client, ContextMenuCommandBuilder, REST, Routes, SlashCommandBuilder } from 'discord.js';
+import type { Client, ContextMenuCommandBuilder, SlashCommandBuilder } from 'discord.js';
+import { REST, Routes } from 'discord.js';
 
 import 'dotenv/config';
 import * as fs from 'node:fs';
 import path = require('node:path');
 
 import { cons } from '.';
-import { GeneralData } from './data'
-import { CommandObject, ContextMenuCommandObject, IBaseInteractionType, ICommandObject, IContextMenuCommandObject } from './handlers/commandBuilder';
+import { GeneralData } from './data';
+import type { ICommandObject, IContextMenuCommandObject } from './handlers/commandBuilder';
+import { CommandObject, ContextMenuCommandObject, IBaseInteractionType } from './handlers/commandBuilder';
 
 export class DeployInstruction {
 	public guildId: string | undefined;
@@ -50,7 +52,7 @@ export async function doDeployCommands(client: Client, deployInstructions: Deplo
 
 	const rawCommandData: IRawCommandData[] = [
 		...client.commands.map(c => c.command.content),
-	]
+	];
 
 	const commandData: ICommandData[] = [];
 
@@ -66,8 +68,8 @@ export async function doDeployCommands(client: Client, deployInstructions: Deplo
 	if (fs.existsSync(commandDumpPath)) {
 		fs.writeFile(commandDumpPath, JSON.stringify(commandData), (err) => {
 			if (err) { console.error(err); }
-			console.log(`Successfully dumped commands json to ${commandDumpPath}`)
-		})
+			console.log(`Successfully dumped commands json to ${commandDumpPath}`);
+		});
 	}
 	
 	const args = process.argv.slice(3).join(' ').split('--').slice(1);
@@ -80,24 +82,24 @@ export async function doDeployCommands(client: Client, deployInstructions: Deplo
 			const key = partSplit[0];
 			const value = partSplit[1];
 			switch (key) { //TODO make this dynamic (get keys from the class)
-				case 'guild':
-				case 'guildID':
-				case 'guildId': {
-					deployInstruction.guildId = (value === 'dev' || value === 'DEV_GUILD_ID') ? process.env.DEV_GUILD_ID : value;
-				} break;
+			case 'guild':
+			case 'guildID':
+			case 'guildId': {
+				deployInstruction.guildId = (value === 'dev' || value === 'DEV_GUILD_ID') ? process.env.DEV_GUILD_ID : value;
+			} break;
 				
-				case 'deploy': deployInstruction.deploy = value.split(','); break;
-				case 'deployAll': deployInstruction.deployAll = (value == 'true'); break;
-				case 'deployAllGlobal': deployInstruction.deployAllGlobal = (value == 'true'); break;
+			case 'deploy': deployInstruction.deploy = value.split(','); break;
+			case 'deployAll': deployInstruction.deployAll = (value == 'true'); break;
+			case 'deployAllGlobal': deployInstruction.deployAllGlobal = (value == 'true'); break;
 	
-				case 'delete': deployInstruction.deleteCommands = value.split(','); break;
-				case 'deleteAll': deployInstruction.deleteAll = (value == 'true'); break;
+			case 'delete': deployInstruction.deleteCommands = value.split(','); break;
+			case 'deleteAll': deployInstruction.deleteAll = (value == 'true'); break;
 	
-				case 'deleteGlobal': deployInstruction.deleteGlobalCommands = value.split(','); break;
-				case 'deleteAllGlobal': deployInstruction.deleteAllGlobal = (value == 'true') ; break;
-				default: 
-					cons.log(`[fg=red]Unknown argument[/>]: ${part}`);
-					continue;
+			case 'deleteGlobal': deployInstruction.deleteGlobalCommands = value.split(','); break;
+			case 'deleteAllGlobal': deployInstruction.deleteAllGlobal = (value == 'true') ; break;
+			default: 
+				cons.log(`[fg=red]Unknown argument[/>]: ${part}`);
+				continue;
 			}
 
 			cons.log(`${key}: ${value}`);
@@ -174,16 +176,16 @@ async function deleteCommands(commands: string[]|boolean, guildID?: string) {
 			cons.log(`Deleting ${commands.length} command(s) for Guild: ${guildID}`);
 			for (const commandID of commands) {
 				await rest.delete(Routes.applicationGuildCommand(clientID, guildID, commandID))
-				.then(() => console.log(`Successfully registered ${commands.length} application commands for Guild: ${guildID}.`))
-				.catch((error) => console.log(error));
+					.then(() => console.log(`Successfully registered ${commands.length} application commands for Guild: ${guildID}.`))
+					.catch((error) => console.log(error));
 			}
 		}
 		else if (commands === true) {
 			console.log(`Deleting all guild commands for Guild: ${guildID}`);
 			// for guild-based commands
 			await rest.put(Routes.applicationGuildCommands(clientID, guildID), { body: [] })
-			.then(() => console.log('Successfully deleted all guild commands.'))
-			.catch(console.error);
+				.then(() => console.log('Successfully deleted all guild commands.'))
+				.catch(console.error);
 		}
 	}
 	else {
@@ -191,16 +193,16 @@ async function deleteCommands(commands: string[]|boolean, guildID?: string) {
 			cons.log(`Deleting ${commands.length} global command(s)`);
 			for (const commandID of commands) {
 				await rest.delete(Routes.applicationCommand(clientID, commandID))
-				.then(() => console.log(`Successfully deleted application command: ${commandID}.`))
-				.catch((error) => console.log(error));
+					.then(() => console.log(`Successfully deleted application command: ${commandID}.`))
+					.catch((error) => console.log(error));
 			}
 		}
 		else if (commands === true) {
 			cons.log('Deleting all global commands');
 			// for global commands
 			await rest.put(Routes.applicationCommands(clientID), { body: [] })
-			.then(() => console.log('Successfully deleted all global commands.'))
-			.catch(console.error);
+				.then(() => console.log('Successfully deleted all global commands.'))
+				.catch(console.error);
 		}
 	}
 }

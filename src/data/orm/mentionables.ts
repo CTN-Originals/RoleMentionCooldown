@@ -1,17 +1,16 @@
-import { EmitError, eventConsole } from "../../events";
-import { default as DataModel, IMentionableData, IMentionableItem, IMentionableStorage } from "./schemas/mentionableData";
-import { Guild, GuildMember, PermissionsBitField, Role } from "discord.js";
-import { ObjectRelationalMap } from ".";
-import { ColorTheme, GeneralData } from "..";
-import { clamp } from "../../utils";
-import { cons } from "../..";
+import type { Guild } from 'discord.js';
+import { ObjectRelationalMap } from '.';
+import { eventConsole } from '../../events';
+import { clamp } from '../../utils';
+import type { IMentionableData, IMentionableItem, IMentionableStorage } from './schemas/mentionableData';
+import { default as DataModel } from './schemas/mentionableData';
 
 type MentionableCache<T> = {[id: string]: T};
 
 export const ActiveCooldown = {
-	global: 'global',
+	global:  'global',
 	channel: 'channel',
-	user: 'user',
+	user:    'user',
 } as const;
 export type TActiveCooldown = keyof typeof ActiveCooldown;
 
@@ -30,7 +29,7 @@ export class Mentionable {
 	 * @param errorIfNull Should an error be logged if the document doesnt exist?
 	*/
 	public static async getDocument(guildId: string, errorIfNull: boolean = true) {
-		return await ObjectRelationalMap.getDocument<IMentionableData>(DataModel, guildId, errorIfNull)
+		return await ObjectRelationalMap.getDocument<IMentionableData>(DataModel, guildId, errorIfNull);
 	}
 
 	/** Get a list of all mentionables in a server
@@ -115,7 +114,7 @@ export class Mentionable {
 			}
 		}
 
-		return (lastUsed + cooldown) - Date.now()
+		return (lastUsed + cooldown) - Date.now();
 	}
 	
 	/** Check if the mentionable is currently on cooldown
@@ -138,12 +137,12 @@ export class Mentionable {
 
 		let channelCooldown: boolean = false;
 		if (Object.keys(mentionable.lastUsedData.channel).includes(channelId)) {
-			channelCooldown = this.isTimeWithinCooldown(mentionable.cooldownTime.channel, mentionable.lastUsedData.channel[channelId])
+			channelCooldown = this.isTimeWithinCooldown(mentionable.cooldownTime.channel, mentionable.lastUsedData.channel[channelId]);
 		}
 
 		let userCooldown: boolean = false;
 		if (Object.keys(mentionable.lastUsedData.user).includes(userId)) {
-			userCooldown = this.isTimeWithinCooldown(mentionable.cooldownTime.user, mentionable.lastUsedData.user[userId])
+			userCooldown = this.isTimeWithinCooldown(mentionable.cooldownTime.user, mentionable.lastUsedData.user[userId]);
 		}
 
 
@@ -182,7 +181,7 @@ export class Mentionable {
 			}
 		}
 
-		return highestCooldown
+		return highestCooldown;
 	}
 
 	/** Get the amount of time remaining on global cooldown
@@ -204,7 +203,7 @@ export class Mentionable {
 			return globalTime;
 		}
 
-		const activeCooldown = Mentionable.getActiveCooldown(mentionable, channelId, userId)
+		const activeCooldown = Mentionable.getActiveCooldown(mentionable, channelId, userId);
 		if (!activeCooldown) {
 			return 0;
 		}
@@ -230,7 +229,7 @@ export class Mentionable {
 	/** When the bot starts up, run this function for each guild
 	 *  @param guild The Guild to initialize
 	*/
-	public static async initialize(guild: Guild) {
+	public static async initialize(guild: Guild): Promise<void> {
 		Mentionable.hasChanged[guild.id] = true;
 		Mentionable.mentionablesCache[guild.id] = {};
 		// Mentionable.activeCooldowns[guild.id] = {};
@@ -250,17 +249,27 @@ export class Mentionable {
 
 		for (const id in mentionables) {
 			let mentionable: IOLDMentionableItem | IMentionableItem = mentionables[id];
+			const newMentionable = Mentionable.make();
+
 			if (Object.keys(mentionable).includes('cooldown')) {
 				mentionable = mentionable as unknown as IOLDMentionableItem;
 				
-				const newMentionable = Mentionable.make();
 				newMentionable.cooldownTime.global = mentionable.cooldown;
 				newMentionable.lastUsedData.global = mentionable.lastUsed;
-
+				
 				mentionables[id] = newMentionable;
+				mentionable = newMentionable; //? to make sure the next if statement doesnt trip up over the old_data (inscription ref?)
+				
+				eventConsole.log(`[fg=yellow]${guild.name}[/>] [fg=green]Reformatted from old format[/>]: ${id} To the new database format`);
+				
+				hasChanged = true;
+			}
 
-				eventConsole.log(`[fg=yellow]${guild.name}[/>] [fg=green]REFORMATTING[/>]: ${id} To the new database format`);
+			if (!Object.keys(mentionable).includes('usageScope')) {
+				mentionable['usageScope'] = newMentionable.usageScope;
+				mentionables[id] = mentionable as IMentionableItem;
 
+				eventConsole.log(`[fg=yellow]${guild.name}[/>] [fg=green]Added usage scope[/>]: ${id} To the new database format`);
 				hasChanged = true;
 			}
 		}
@@ -323,19 +332,19 @@ export class Mentionable {
 	*/
 	public static async update(doc: Awaited<ReturnType<typeof Mentionable.getDocument>>): ReturnType<typeof ObjectRelationalMap.update>;
 	/**  Update the mentionable document
-	 *!@note This does not update the changes made correctly often times
 	 * @param guildId The GuildID of the server the document is for
 	 * @returns Wether or not the data has been saved successfully
 	*/
-	public static async update(guildId: string): ReturnType<typeof ObjectRelationalMap.update>;
-	public static async update(id_doc: string|Awaited<ReturnType<typeof Mentionable.getDocument>>): ReturnType<typeof ObjectRelationalMap.update> {
+	public static async update(guildId: string, mentionableId: string, mentionable: IMentionableItem): ReturnType<typeof ObjectRelationalMap.update>;
+	public static async update(id_doc: string|Awaited<ReturnType<typeof Mentionable.getDocument>>, mentionableId?: string, mentionable?: IMentionableItem): ReturnType<typeof ObjectRelationalMap.update> {
 		if (typeof id_doc === 'string') {
 			id_doc = await Mentionable.getDocument(id_doc);
+			id_doc.mentionables[mentionableId!] = mentionable!;
 		}
 
 		Mentionable.hasChanged[id_doc._id] = true;
 
-		return await ObjectRelationalMap.update(DataModel, id_doc, ['mentionables'])
+		return await ObjectRelationalMap.update(DataModel, id_doc, ['mentionables']);
 	}
 
 	/** Make a new blank IMentionableItem object
@@ -345,14 +354,20 @@ export class Mentionable {
 	public static make() {
 		return {
 			cooldownTime: {
-				global: 0,
+				global:  0,
 				channel: 0,
-				user: 0,
+				user:    0,
 			},
 			lastUsedData: {
-				global: 0,
-				channel: {placeholder: 0},
-				user: {placeholder: 0}
+				global:  0,
+				channel: { placeholder: 0 },
+				user:    { placeholder: 0 }
+			},
+			usageScope: {
+				channelScopeType: 'none',
+				channelScope:     [],
+				roleScopeType:    'none',
+				roleScope:        []
 			}
 		} as IMentionableItem;
 	}
@@ -390,7 +405,7 @@ export class Mentionable {
 		const doc = await Mentionable.getDocument(guildId);
 		if (!doc || !Object.keys(doc.mentionables).includes(id)) { return false; }
 
-		delete doc.mentionables[id]
+		delete doc.mentionables[id];
 		return await Mentionable.update(doc);
 	}
 	//#endregion
@@ -433,8 +448,8 @@ export class Mentionable {
 		const time = new Date().getTime();
 
 		mentionable.lastUsedData.global = time;
-		mentionable.lastUsedData.channel[channelId] = time
-		mentionable.lastUsedData.user[userId] = time
+		mentionable.lastUsedData.channel[channelId] = time;
+		mentionable.lastUsedData.user[userId] = time;
 		// await Mentionable.startCooldown(guild, id, doc.mentionables[id]);
 		return await Mentionable.update(doc);
 	}

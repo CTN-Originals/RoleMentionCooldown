@@ -1,5 +1,10 @@
-import { LocalizationMap, SlashCommandSubcommandGroupBuilder, ApplicationCommandOption, ApplicationCommandOptionType, PermissionsString, PermissionsBitField } from "discord.js";
-import { AnyDiscordCommandOption, AnySlashCommandBuilder, LOG_CONDITION, TLogCondition } from ".";
+import type { LocalizationMap, SlashCommandSubcommandGroupBuilder, ApplicationCommandOption, PermissionsString} from 'discord.js';
+import { ApplicationCommandOptionType, PermissionsBitField } from 'discord.js';
+import type { AnyDiscordCommandOption, AnySlashCommandBuilder} from '.';
+import { LOG_LEVEL, TLogLevel } from '.';
+import type {
+	AnySlashCommandOption
+} from '.';
 import { 
 	AttachmentOptionObject,
 	BooleanOptionObject,
@@ -9,19 +14,18 @@ import {
 	NumberOptionObject,
 	RoleOptionObject,
 	StringOptionObject,
-	UserOptionObject,
-	AnySlashCommandOption
-} from ".";
-import { EmitError } from "../../events";
+	UserOptionObject
+} from '.';
+import { EmitError } from '../../events';
 
 const nameAllowedCharacters = [
 	'-', '_',
-	"a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z",
+	'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z',
 	'0','1','2','4','5','6','7','8','9'
 ];
 
 type RequiredBaseFields = 'name' | 'description';
-type OptionalBaseFields = 'name_localizations' | 'description_localizations' | 'logInteraction';
+type OptionalBaseFields = 'name_localizations' | 'description_localizations';
 
 export type CommandObjectInput<
     T extends BaseCommandObject,
@@ -38,22 +42,16 @@ export class BaseCommandObject {
 	 * @minmax 1-32 
 	 * @containing no capital letters, spaces, or symbols other than `-` and `_`
 	*/
-    public name: string;
-    /** The description of this command.
+	public name: string;
+	/** The description of this command.
 	 * @minmax 1-100
 	*/
-    public description: string;
+	public description: string;
 
 	/** The name localizations of this command. */
 	public name_localizations?: LocalizationMap;
 	/** The description localizations of this command. */
 	public description_localizations?: LocalizationMap;
-
-	/** Define when to log the interaction
-	 * @requires {@linkcode LOG_CONDITION} from {@linkcode src/handlers/commandBuilder/index.ts}
-	 * @example logInteraction = LOG_CONDITION.ON_FAIL | LOG_CONDITION.ON_ERROR;
-	*/
-	public logInteraction: TLogCondition = LOG_CONDITION.ALWAYS;
 
 	constructor(input: IBaseCommandObject) {
 		this.name = input.name;
@@ -98,24 +96,24 @@ export class BaseCommandObject {
 	protected resolveOptions<T extends Exclude<AnySlashCommandBuilder, SlashCommandSubcommandGroupBuilder>>(builder: T, options: ApplicationCommandOption[]): T {
 		for (const opt of options) {
 			switch (opt.type) {
-				case ApplicationCommandOptionType.String: 		builder.addStringOption(new StringOptionObject(opt).build()); break;
-				case ApplicationCommandOptionType.Integer: 		builder.addIntegerOption(new IntegerOptionObject(opt).build()); break;
-				case ApplicationCommandOptionType.Boolean: 		builder.addBooleanOption(new BooleanOptionObject(opt).build()); break;
-				case ApplicationCommandOptionType.User: 		builder.addUserOption(new UserOptionObject(opt).build()); break;
-				case ApplicationCommandOptionType.Channel: 		builder.addChannelOption(new ChannelOptionObject(opt).build()); break;
-				case ApplicationCommandOptionType.Role: 		builder.addRoleOption(new RoleOptionObject(opt).build()); break;
-				case ApplicationCommandOptionType.Mentionable: 	builder.addMentionableOption(new MentionableOptionObject(opt).build()); break;
-				case ApplicationCommandOptionType.Number: 		builder.addNumberOption(new NumberOptionObject(opt).build()); break;
-				case ApplicationCommandOptionType.Attachment: 	builder.addAttachmentOption(new AttachmentOptionObject(opt).build()); break;
-				default: break;
+			case ApplicationCommandOptionType.String: 		builder.addStringOption(new StringOptionObject(opt).build()); break;
+			case ApplicationCommandOptionType.Integer: 		builder.addIntegerOption(new IntegerOptionObject(opt).build()); break;
+			case ApplicationCommandOptionType.Boolean: 		builder.addBooleanOption(new BooleanOptionObject(opt).build()); break;
+			case ApplicationCommandOptionType.User: 		builder.addUserOption(new UserOptionObject(opt).build()); break;
+			case ApplicationCommandOptionType.Channel: 		builder.addChannelOption(new ChannelOptionObject(opt).build()); break;
+			case ApplicationCommandOptionType.Role: 		builder.addRoleOption(new RoleOptionObject(opt).build()); break;
+			case ApplicationCommandOptionType.Mentionable: 	builder.addMentionableOption(new MentionableOptionObject(opt).build()); break;
+			case ApplicationCommandOptionType.Number: 		builder.addNumberOption(new NumberOptionObject(opt).build()); break;
+			case ApplicationCommandOptionType.Attachment: 	builder.addAttachmentOption(new AttachmentOptionObject(opt).build()); break;
+			default: break;
 			}
 		}
 
-		return builder
+		return builder;
 	}
 
 	protected onError(message: string): string {
-		const err = new Error(message)
+		const err = new Error(message);
 		EmitError(err);
 		return err.message;
 	}
@@ -134,7 +132,7 @@ export type IBaseExecutableCommandObject = ExecutableCommandObjectInput<BaseExec
 //? This class is different from the one above as this can actually be executed, unlike subcommandGroup, this applies to command, and subcommand
 export class BaseExecutableCommandObject extends BaseCommandObject {
 	/** The permissions that the bot requires to have to execute anything defined in this command */
-	public requiredPermissions?: PermissionsString[] = []
+	public requiredPermissions?: PermissionsString[] = [];
 
 	public options: AnyDiscordCommandOption[] = [];
 
