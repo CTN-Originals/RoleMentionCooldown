@@ -48,6 +48,6 @@ async function registerCommand(client: Client, dir: string, file: string): Promi
 }
 
 // Get command files
-export function registerAllCommands(client: Client, dir: string): void {
-	getAllFilesInDir(client, registerCommand, dir);
+export async function registerAllCommands(client: Client, dir: string): Promise<void> {
+	await getAllFilesInDir(client, registerCommand, dir);
 }

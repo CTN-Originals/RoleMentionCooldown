@@ -1,4 +1,4 @@
-import type { InteractionContextType, ApplicationIntegrationType, Permissions} from 'discord.js';
+import type { ApplicationIntegrationType, InteractionContextType, Permissions } from 'discord.js';
 import { SlashCommandBuilder, SlashCommandSubcommandBuilder, SlashCommandSubcommandGroupBuilder } from 'discord.js';
 
 import type { CommandObjectInput, ExecutableCommandObjectInput } from '.';
@@ -39,7 +39,7 @@ export class CommandObject extends BaseExecutableCommandObject {
 		}
 	}
 
-	public build() {
+	public build(): SlashCommandBuilder {
 		const cmd = this.resolveOptions(this.buildBase(new SlashCommandBuilder()), this.options);
 
 		if (this.contexts) 						{ cmd.setContexts(this.contexts); }

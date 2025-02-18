@@ -22,6 +22,6 @@ async function registerEvent(client: Client, dir: string, file: string): Promise
 
 
 /** Get event files */
-export function registertAllEvents(client: Client, dir: string): void {
-	getAllFilesInDir(client, registerEvent, dir, ['index.js', 'index.ts']);
+export async function registertAllEvents(client: Client, dir: string): Promise<void> {
+	await getAllFilesInDir(client, registerEvent, dir, ['index.js', 'index.ts']);
 }
