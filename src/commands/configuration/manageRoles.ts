@@ -1,6 +1,6 @@
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-imports
-import { ActionRowBuilder, AnySelectMenuInteraction, ApplicationCommandOptionType, ButtonBuilder, ButtonInteraction, ChannelSelectMenuBuilder, ChannelSelectMenuInteraction, ChannelType, ChatInputCommandInteraction, ComponentType, EmbedBuilder, GuildMember, InteractionContextType, InteractionReplyOptions, MessageActionRowComponentBuilder, MessageFlags, PermissionFlagsBits, Role, RoleSelectMenuBuilder, RoleSelectMenuInteraction, SelectMenuComponentOptionData, StringSelectMenuBuilder, StringSelectMenuInteraction } from 'discord.js';
+ 
+import { ActionRowBuilder, AnySelectMenuInteraction, ApplicationCommandOptionType, ButtonBuilder, ButtonInteraction, ChannelSelectMenuBuilder, ChannelSelectMenuInteraction, ChannelType, ChatInputCommandInteraction, ComponentType, EmbedBuilder, EmbedField, GuildMember, InteractionContextType, InteractionReplyOptions, MessageActionRowComponentBuilder, MessageFlags, PermissionFlagsBits, Role, RoleSelectMenuBuilder, RoleSelectMenuInteraction, SelectMenuComponentOptionData, StringSelectMenuBuilder, StringSelectMenuInteraction } from 'discord.js';
 import type { IButtonCollection, ISelectMenuCollection } from '../../handlers/commandBuilder';
 import { BaseButtonCollection, BaseEmbedCollection, BaseSelectMenuCollection, CommandInteractionData, LOG_ENVIRONMENT, LOG_LEVEL } from '../../handlers/commandBuilder';
 
@@ -280,6 +280,21 @@ class EmbedCollection extends BaseEmbedCollection {
 		}))];
 	}
 
+	public getMentionableUsageScopeFields(mentionable: IMentionableItem): { channel: EmbedField, role: EmbedField } {
+		return {
+			channel: {
+				name:   `Channels - \`${mentionable.usageScope.channelScopeType}\``,
+				value:  (mentionable.usageScope.channelScopeType !== 'none') ? `\n<#${mentionable.usageScope.channelScope.join('> <#')}>` : '-',
+				inline: true
+			},
+			role: {
+				name:   `Roles - \`${mentionable.usageScope.roleScopeType}\``,
+				value:  (mentionable.usageScope.roleScopeType !== 'none') ? `\n<@&${mentionable.usageScope.roleScope.join('> <@&')}>` : '-',
+				inline: true
+			}
+		};
+	}
+
 	public mentionableInfo(mentionable: IMentionableItem, role: Role): EmbedBuilder {
 		const embed = new EmbedBuilder({
 			title:       `Role Cooldown info for \`@${role.name}\``,
@@ -297,15 +312,8 @@ class EmbedCollection extends BaseEmbedCollection {
 			});
 		}
 
-		embed.addFields({
-			name:   `Channels - \`${mentionable.usageScope.channelScopeType}\``,
-			value:  (mentionable.usageScope.channelScopeType !== 'none') ? `\n<#${mentionable.usageScope.channelScope.join('> <#')}>` : '-',
-			inline: true
-		}, {
-			name:   `Roles - \`${mentionable.usageScope.roleScopeType}\``,
-			value:  (mentionable.usageScope.roleScopeType !== 'none') ? `\n<@&${mentionable.usageScope.roleScope.join('> <@&')}>` : '-',
-			inline: true
-		});
+		const usageScopeFields = this.getMentionableUsageScopeFields(mentionable);
+		embed.addFields(usageScopeFields.channel, usageScopeFields.role);
 
 		return validateEmbed(embed);
 	}

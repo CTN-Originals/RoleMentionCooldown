@@ -1,12 +1,13 @@
-import type { ChatInputCommandInteraction, Role } from 'discord.js';
-import { ApplicationCommandOptionType, EmbedBuilder, InteractionContextType } from 'discord.js';
-import type { IButtonCollection, ISelectMenuCollection} from '../../handlers/commandBuilder';
-import { BaseButtonCollection, BaseEmbedCollection, BaseMethodCollection, BaseSelectMenuCollection, CommandInteractionData, LOG_LEVEL } from '../../handlers/commandBuilder';
-import { Mentionable } from '../../data/orm/mentionables';
-import { ColorTheme, GeneralData } from '../../data';
-import { getTimeDisplay, getTimestamp, hexToBit } from '../../utils';
-import type { IMentionableItem } from '../../data/orm/schemas/mentionableData';
+import { ApplicationCommandOptionType, ChatInputCommandInteraction, EmbedBuilder, InteractionContextType, MessageFlags, Role } from 'discord.js';
 import { cons } from '../..';
+import { ColorTheme, GeneralData } from '../../data';
+import { Mentionable } from '../../data/orm/mentionables';
+import type { IMentionableItem } from '../../data/orm/schemas/mentionableData';
+import type { IButtonCollection, ISelectMenuCollection } from '../../handlers/commandBuilder';
+import { BaseButtonCollection, BaseEmbedCollection, BaseMethodCollection, BaseSelectMenuCollection, CommandInteractionData, LOG_LEVEL } from '../../handlers/commandBuilder';
+import { getTimeDisplay, getTimestamp, hexToBit, includesAny } from '../../utils';
+
+import RoleCooldownCommand from '../configuration/manageRoles';
 
 class ButtonCollection extends BaseButtonCollection implements IButtonCollection<ButtonCollection> {}
 class SelectMenuCollection extends BaseSelectMenuCollection implements ISelectMenuCollection<SelectMenuCollection> {}
@@ -33,9 +34,22 @@ class EmbedCollection extends BaseEmbedCollection {
 			color: hexToBit(ColorTheme.embeds.notice)
 		});
 	}
+
+	public usageScopeConflict(mentionable: IMentionableItem, text: string): EmbedBuilder[] {
+		return [
+			new EmbedBuilder({
+				description: text,
+				color:       hexToBit(ColorTheme.embeds.notice)
+			}),
+			new EmbedBuilder({
+				fields: Object.values(RoleCooldownCommand.embeds.getMentionableUsageScopeFields(mentionable)),
+				color:  hexToBit(ColorTheme.embeds.info)
+			})
+		];
+	}
 }
 class MethodCollection extends BaseMethodCollection {
-	public onUsedLog(interaction: ChatInputCommandInteraction, role: Role, response: string) {
+	public onUsedLog(interaction: ChatInputCommandInteraction, role: Role, response: string): void {
 		cons.log([
 			`[fg=${ColorTheme.colors.yellow.asHex}]${interaction.guild!.name}[/>]:`,
 			`[fg=${ColorTheme.colors.cyan.asHex}]${interaction.user.username}[/>] mentioned`,
@@ -83,6 +97,42 @@ const command = new CommandInteractionData<ButtonCollection, SelectMenuCollectio
 				return 'Role is not registered as mentionable';
 			}
 
+			//#region Usage Scope
+			if (mentionable.usageScope.channelScopeType !== 'none') {
+				const scopeState = (mentionable.usageScope.channelScopeType === 'allow');
+				if (mentionable.usageScope.channelScope.includes(interaction.channelId) !== scopeState) {
+					await interaction.reply({
+						embeds: command.embeds.usageScopeConflict(mentionable, `The rolecooldown you selected (<@&${role.id}>) is not allowed to be used in this channel`),
+						flags:  [((!GeneralData.development) ? MessageFlags.Ephemeral : MessageFlags.SuppressNotifications)]
+					});
+
+					return 'Conflicting channel scope';
+				}
+			}
+			
+			if (mentionable.usageScope.roleScopeType !== 'none') {
+				const roles = interaction.member!.roles;
+
+				let roleList: string[] = [];
+				if (Array.isArray(roles)) {
+					roleList = roles;
+				} else {
+					roles.cache.each((_, key) => roleList.push(key));
+				}
+
+				const scopeState = (mentionable.usageScope.roleScopeType === 'allow');
+				if (includesAny(mentionable.usageScope.roleScope, roleList) !== scopeState) {
+					await interaction.reply({
+						embeds: command.embeds.usageScopeConflict(mentionable, `You do not have the correct roles to be able to use the rolecooldown that you selected (<@&${role.id}>)`),
+						flags:  [((!GeneralData.development) ? MessageFlags.Ephemeral : MessageFlags.SuppressNotifications)]
+					});
+
+					return 'Conflicting role scope';
+				}
+			}
+			//#endregion
+
+			//#region Cooldown
 			const activeCooldown = Mentionable.getActiveCooldown(mentionable, interaction.channelId, interaction.user.id);
 
 			if (Mentionable.isOncooldown(mentionable, interaction.channelId, interaction.user.id) === true) {
@@ -99,6 +149,7 @@ const command = new CommandInteractionData<ButtonCollection, SelectMenuCollectio
 
 				return 'Role is on cooldown';
 			}
+			//#endregion
 
 			await interaction.reply({
 				content:         `<@&${role.id}>${(message) ? ` ${message}` : ''}`,
