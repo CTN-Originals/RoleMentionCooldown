@@ -1,12 +1,12 @@
-import type { ChatInputCommandInteraction, APIEmbedField, StringSelectMenuInteraction, Client } from 'discord.js';
-import { EmbedBuilder, StringSelectMenuBuilder, ActionRowBuilder, InteractionContextType, ComponentType } from 'discord.js';
+import type { APIEmbedField, ChatInputCommandInteraction, Client, StringSelectMenuInteraction } from 'discord.js';
+import { ActionRowBuilder, ComponentType, EmbedBuilder, InteractionContextType, MessageFlags, StringSelectMenuBuilder } from 'discord.js';
 import type { AnyDiscordCommandOption, CommandObject, IButtonCollection, ISelectMenuCollection, ISelectMenuCollectionField } from '../../handlers/commandBuilder';
 import { BaseButtonCollection, BaseEmbedCollection, BaseMethodCollection, BaseSelectMenuCollection, CommandInteractionData, IBaseInteractionType } from '../../handlers/commandBuilder';
 
-import { hexToBit } from '../../utils';
-import { ColorTheme, GeneralData } from '../../data';
-import { validateEmbed } from '../../utils/embedUtils';
 import { client } from '../..';
+import { ColorTheme, GeneralData } from '../../data';
+import { hexToBit } from '../../utils';
+import { validateEmbed } from '../../utils/embedUtils';
 
 type CommandInfo = {
 	name: string;
@@ -176,7 +176,7 @@ const command = new CommandInteractionData<ButtonCollection, SelectMenuCollectio
 			await interaction.reply({
 				embeds:     [command.embeds.getHelpEmbed(commandInfo)],
 				components: [row],
-				ephemeral:  !(GeneralData.development)
+				flags:      [((!GeneralData.development) ? MessageFlags.Ephemeral : MessageFlags.SuppressNotifications)]
 			});
 			
 			return true;

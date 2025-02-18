@@ -10,7 +10,9 @@ import {
 	EmbedBuilder,
 	Events,
 	Interaction,
+	InteractionReplyOptions,
 	InteractionType,
+	MessageFlags,
 	PermissionsBitField
 } from 'discord.js';
 
@@ -171,7 +173,7 @@ export default {
 				content += '\n```ts\n' + errorObject.formatError({shortenPaths: true, colorize: false}) + '\n```';
 			}
 
-			const replyContent = {
+			const replyContent: InteractionReplyOptions = {
 				content: content,
 				flags:   [((!GeneralData.development) ? MessageFlags.Ephemeral : MessageFlags.SuppressNotifications)],
 			};

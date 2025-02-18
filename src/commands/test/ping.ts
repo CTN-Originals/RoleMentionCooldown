@@ -1,7 +1,7 @@
 import type { ChatInputCommandInteraction } from 'discord.js';
-import { EmbedBuilder, InteractionContextType } from 'discord.js';
+import { EmbedBuilder, InteractionContextType, MessageFlags } from 'discord.js';
 
-import { ColorTheme } from '../../data';
+import { ColorTheme, GeneralData } from '../../data';
 import type { IButtonCollection, ISelectMenuCollection } from '../../handlers/commandBuilder';
 import { BaseButtonCollection, BaseEmbedCollection, BaseSelectMenuCollection, CommandInteractionData } from '../../handlers/commandBuilder';
 import { hexToBit } from '../../utils';
