@@ -18,7 +18,8 @@ const compat = new FlatCompat({
 const config = [
 	{
 		ignores: [
-			'src/events/ready.ts'
+			'src/events/ready.ts',
+			'dist/**'
 		],
 	},
 	eslint.configs.recommended,

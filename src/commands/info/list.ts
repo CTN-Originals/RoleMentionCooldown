@@ -1,5 +1,5 @@
 import type { ChatInputCommandInteraction, Guild } from 'discord.js';
-import { EmbedBuilder, InteractionContextType } from 'discord.js';
+import { EmbedBuilder, InteractionContextType, MessageFlags } from 'discord.js';
 import type { IButtonCollection, ISelectMenuCollection } from '../../handlers/commandBuilder';
 import { BaseButtonCollection, BaseEmbedCollection, BaseSelectMenuCollection, CommandInteractionData } from '../../handlers/commandBuilder';
 
