@@ -6,13 +6,13 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 
 import { cons } from '.';
-import { GeneralData } from './data';
+import { ColorTheme, GeneralData } from './data';
 import type { ICommandObject, IContextMenuCommandObject } from './handlers/commandBuilder';
 import { CommandObject, ContextMenuCommandObject } from './handlers/commandBuilder';
 
 //? Should the commands actually be deployed
 //* For testing, this can be true so that the bot wont hit a rate limit
-const DRY_RUN: boolean = (GeneralData.development && false); //? 2 conditions incase i ever forget to reset this to false and ship to production
+let dryRun: boolean = (GeneralData.development && false); //? 2 conditions incase i ever forget to reset this to false and ship to production
 
 export class DeployInstruction {
 	public guildId: string | undefined;
@@ -46,12 +46,15 @@ const rest = new REST({ version: '9' }).setToken(process.env.TOKEN!);
 type IRawCommandData = (ICommandObject | IContextMenuCommandObject);
 type ICommandData = (SlashCommandBuilder | ContextMenuCommandBuilder);
 export async function doDeployCommands(client: Client, deployInstructions: DeployInstruction[] = []): Promise<boolean> {
-	cons.log('Deploying commands...');
-	if (DRY_RUN) {
+	const args = process.argv.slice(3).join(' ').split('--').slice(1).map(arg => arg.trim());
+	
+	if (args.includes('dry-run')) {
+		dryRun = true;
+		args.splice(args.indexOf('dry-run'), 1);
 		cons.log('[fg=red]DRY RUN[/>]');
 	}
-	// getCommandFiles('commands');
-	// console.log(guildId);
+	
+	cons.log('Deploying commands...');
 	
 	//> deploy commands: --guildId=1234567890 deploy=ping,help --guild=0987654321 deployAll=true
 	//> deleting all commands: --guild=12345 delete=0987654321,43723374678 --guild=1234567890 deleteAll=true
@@ -61,10 +64,14 @@ export async function doDeployCommands(client: Client, deployInstructions: Deplo
 		...client.commands.map(c => c.command.content),
 	];
 
+	// console.log(rawCommandData);
+
 	const commandData: ICommandData[] = [];
 
+	cons.log('\n[fg=grey]-- Commands --[/>]');
 	for (const cmd of rawCommandData) {
-		cons.log(cmd.name);
+		cons.log(`[fg=${ColorTheme.colors.yellow.asHex}]${cmd.name}[/>]`);
+
 		if (Object.keys(cmd).includes('description')) { //- its a chat command
 			commandData.push(new CommandObject(cmd as ICommandObject).build());
 		} else {
@@ -80,10 +87,9 @@ export async function doDeployCommands(client: Client, deployInstructions: Deplo
 		});
 	}
 	
-	const args = process.argv.slice(3).join(' ').split('--').slice(1);
-	
+	cons.log('\n[fg=grey]-- Instructions --[/>]');
 	for (const arg of args) {
-		const instruction = arg.split(' ');
+		const instruction = arg.trim().split(' ');
 		const deployInstruction: Partial<DeployInstruction> = {};
 		for (const part of instruction) {
 			const partSplit = part.trim().split('=');
@@ -156,6 +162,14 @@ export async function doDeployCommands(client: Client, deployInstructions: Deplo
 		}
 	}
 
+	if (dryRun) {
+		await new Promise<void>((resolve) => {
+			setTimeout(() => {
+				console.log('timeout');
+				resolve();
+			}, 1000 * 60 * 60); // keep alive
+		});
+	}
 	return true;
 }
 
@@ -163,14 +177,14 @@ export async function doDeployCommands(client: Client, deployInstructions: Deplo
 async function deployCommands(commands: ICommandData[], guildID?: string): Promise<void> {
 	if (guildID) {
 		cons.log(`Deploying ${commands.length} command(s) for Guild: ${guildID}`);
-		if (DRY_RUN) { return; }
+		if (dryRun) { return; }
 		await rest.put(Routes.applicationGuildCommands(clientID, guildID), { body: commands }).then(() =>
 			console.log(`Successfully registered ${commands.length} application commands for Guild: ${guildID}.`)
 		).catch((error) => console.log(error));
 	}
 	else {
 		cons.log('No Guild ID provided, registering commands Globally.');
-		if (DRY_RUN) { return; }
+		if (dryRun) { return; }
 		await rest.put(Routes.applicationCommands(clientID), { body: commands }).then(() =>
 			console.log(`Successfully registered ${commands.length} application commands Globally.`)
 		).catch((error) => console.log(error));
@@ -185,7 +199,7 @@ async function deleteCommands(commands: string[]|boolean, guildID?: string): Pro
 		if (commands instanceof Array) {
 			cons.log(`Deleting ${commands.length} command(s) for Guild: ${guildID}`);
 			for (const commandID of commands) {
-				if (DRY_RUN) { continue; }
+				if (dryRun) { continue; }
 				await rest.delete(Routes.applicationGuildCommand(clientID, guildID, commandID))
 					.then(() => console.log(`Successfully registered ${commands.length} application commands for Guild: ${guildID}.`))
 					.catch((error) => console.log(error));
@@ -194,7 +208,7 @@ async function deleteCommands(commands: string[]|boolean, guildID?: string): Pro
 		else if (commands === true) {
 			console.log(`Deleting all guild commands for Guild: ${guildID}`);
 			// for guild-based commands
-			if (DRY_RUN) { return; }
+			if (dryRun) { return; }
 			await rest.put(Routes.applicationGuildCommands(clientID, guildID), { body: [] })
 				.then(() => console.log('Successfully deleted all guild commands.'))
 				.catch(console.error);
@@ -204,7 +218,7 @@ async function deleteCommands(commands: string[]|boolean, guildID?: string): Pro
 		if (commands instanceof Array) {
 			cons.log(`Deleting ${commands.length} global command(s)`);
 			for (const commandID of commands) {
-				if (DRY_RUN) { continue; }
+				if (dryRun) { continue; }
 				await rest.delete(Routes.applicationCommand(clientID, commandID))
 					.then(() => console.log(`Successfully deleted application command: ${commandID}.`))
 					.catch((error) => console.log(error));
@@ -213,7 +227,7 @@ async function deleteCommands(commands: string[]|boolean, guildID?: string): Pro
 		else if (commands === true) {
 			cons.log('Deleting all global commands');
 			// for global commands
-			if (DRY_RUN) { return; }
+			if (dryRun) { return; }
 			await rest.put(Routes.applicationCommands(clientID), { body: [] })
 				.then(() => console.log('Successfully deleted all global commands.'))
 				.catch(console.error);
