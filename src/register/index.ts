@@ -15,7 +15,7 @@ export async function getAllFilesInDir(client: Client, callback: (client: Client
 		// Check if the file is a folder
 		else if (file.match(/[a-zA-Z0-9 -_]+/i)) {
 			if (file == 'archive') { continue; } //* Skip the archive folder
-			getAllFilesInDir(client, callback, dir + '/' + file);
+			await getAllFilesInDir(client, callback, dir + '/' + file);
 		}
 	}
 }
