@@ -106,6 +106,7 @@ const command = new CommandInteractionData<ButtonCollection, SelectMenuCollectio
 						flags:  [((!GeneralData.development) ? MessageFlags.Ephemeral : MessageFlags.SuppressNotifications)]
 					});
 
+					command.methods.onUsedLog(interaction, role, `[fg=${ColorTheme.colors.red.asHex}]Rejected[/>][fg=${ColorTheme.colors.grey.asHex}] - Conflicting channel scope[/>]`);
 					return 'Conflicting channel scope';
 				}
 			}
@@ -127,6 +128,7 @@ const command = new CommandInteractionData<ButtonCollection, SelectMenuCollectio
 						flags:  [((!GeneralData.development) ? MessageFlags.Ephemeral : MessageFlags.SuppressNotifications)]
 					});
 
+					command.methods.onUsedLog(interaction, role, `[fg=${ColorTheme.colors.red.asHex}]Rejected[/>][fg=${ColorTheme.colors.grey.asHex}] - Conflicting role scope[/>]`);
 					return 'Conflicting role scope';
 				}
 			}
