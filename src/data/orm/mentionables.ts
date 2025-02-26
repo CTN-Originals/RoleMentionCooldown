@@ -28,7 +28,7 @@ export class Mentionable {
 	 * @param guildId The ID of the guild
 	 * @param errorIfNull Should an error be logged if the document doesnt exist?
 	*/
-	public static async getDocument(guildId: string, errorIfNull: boolean = true) {
+	public static async getDocument(guildId: string, errorIfNull: boolean = true): Promise<IMentionableData> {
 		return await ObjectRelationalMap.getDocument<IMentionableData>(DataModel, guildId, errorIfNull);
 	}
 
@@ -239,7 +239,7 @@ export class Mentionable {
 		// const mentionables = await Mentionable.getAll(guild.id);
 		// Mentionable.getAll(guild.id);
 
-		//#region TMP remove block next patch
+		//#region TMP remove block after stable update
 		type IOLDMentionableItem = {
 			cooldown: number,
 			lastUsed: number, //? the milisecond time code of when the mentionable was last mentioned
@@ -279,7 +279,11 @@ export class Mentionable {
 		}
 		//#endregion
 
-		// //#region TMP reset role mentionable setting
+		for (const id in mentionables) {
+			await Mentionable.cleanData(guild.id, id);
+		}
+
+		// // #region TMP reset role mentionable setting
 		// //!! after its been pushed to beta and release, remove this the next patch
 		// const selfMember: GuildMember = guild.members.me!;
 		// const perm = new PermissionsBitField('ManageRoles');
@@ -351,7 +355,7 @@ export class Mentionable {
 	 * @note All values will be set to 0
 	 * @note the channels and users objects both start with a placeholder item in them to prevent them from vanishing on the database
 	*/
-	public static make() {
+	public static make(): IMentionableItem {
 		return {
 			cooldownTime: {
 				global:  0,
@@ -408,6 +412,36 @@ export class Mentionable {
 		delete doc.mentionables[id];
 		return await Mentionable.update(doc);
 	}
+
+	/**
+	 * Clean up the internal mentionable data, 
+	 * like the `channel` and `user` keys in {@link IMentionableItem.lastUsedData} 
+	 * if the time value is past the {@link IMentionableItem.cooldownTime}, the field will be deleted
+	 * Once this is done, the mentionable will also be updated
+	 * @returns The cleaned up mentionable item
+	*/
+	public static async cleanData(guildId: string, id: string): Promise<IMentionableItem> {
+		const doc: IMentionableData = await Mentionable.getDocument(guildId);
+		const mentionable = doc.mentionables[id];
+
+		Object.keys(mentionable.lastUsedData).forEach((key) => {
+			if (typeof mentionable.lastUsedData[key] !== 'object') { return; } //? currently, this should just skip 'global'
+
+			for (const field in mentionable.lastUsedData[key]) {
+				if (field === 'placeholder') { continue; }
+
+				const value = mentionable.lastUsedData[key][field];
+	
+				if (!Mentionable.isTimeWithinCooldown(mentionable.cooldownTime[key], value)) {
+					delete mentionable.lastUsedData[key][field];
+				}
+			}
+		});
+
+		await Mentionable.update(doc);
+
+		return mentionable;
+	}
 	//#endregion
 
 
@@ -440,18 +474,17 @@ export class Mentionable {
 	 * @returns Wether or not the data has been saved successfully
 	*/
 	public static async onUsed(guild: Guild, id: string, channelId: string, userId: string): Promise<boolean> {
-		const doc = await Mentionable.getDocument(guild.id);
-		const mentionable = doc.mentionables[id];
+		const mentionable = await Mentionable.cleanData(guild.id, id);;
 
-		if (!doc || !mentionable) { return false; }
+		if (!mentionable) { return false; }
 
 		const time = new Date().getTime();
 
 		mentionable.lastUsedData.global = time;
 		mentionable.lastUsedData.channel[channelId] = time;
 		mentionable.lastUsedData.user[userId] = time;
-		// await Mentionable.startCooldown(guild, id, doc.mentionables[id]);
-		return await Mentionable.update(doc);
+
+		return await Mentionable.update(guild.id, id, mentionable);
 	}
 	//#endregion
 }
