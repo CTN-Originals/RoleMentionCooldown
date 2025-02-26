@@ -1,9 +1,9 @@
-import { Client, WebhookClient } from "discord.js";
+import { Client, WebhookClient } from 'discord.js';
 
-import { Color, ConsoleInstance, defaultThemeProfile, Theme } from "better-console-utilities";
+import { Color, ConsoleInstance, defaultThemeProfile, Theme } from 'better-console-utilities';
 
-import { logWebhook, cons } from "..";
-import { GeneralData } from "../data";
+import { logWebhook, cons } from '..';
+import { GeneralData } from '../data';
 
 // const thisCons = new ConsoleInstance();
 const rootPath = process.cwd();
@@ -59,7 +59,7 @@ export class ErrorObject {
 	}
 
 	formatError(stackOptions?: Partial<IStackOptions>): string {
-		let formattedError = [
+		const formattedError = [
 			`Error: ${this.errorType}`,
 			`Message: ${this.errorMessage}`,
 			`Stack:\n${this.formatStack(stackOptions)}`
@@ -70,21 +70,21 @@ export class ErrorObject {
 
 	formatStack(inputOptions?: Partial<IStackOptions>): string {
 		const options: IStackOptions = {
-			removeRootPath: inputOptions?.removeRootPath ?? true,
-			shortenPaths: inputOptions?.shortenPaths ?? false,
-			ignoreInternals: inputOptions?.ignoreInternals ?? false,
-			colorize: inputOptions?.colorize ?? false,
+			removeRootPath:     inputOptions?.removeRootPath ?? true,
+			shortenPaths:       inputOptions?.shortenPaths ?? false,
+			ignoreInternals:    inputOptions?.ignoreInternals ?? false,
+			colorize:           inputOptions?.colorize ?? false,
 			excludeDirectories: inputOptions?.excludeDirectories ?? [],
-			inlineSeperator: inputOptions?.inlineSeperator ?? ' ',
-			linePrefix: inputOptions?.linePrefix ?? '    ',
+			inlineSeperator:    inputOptions?.inlineSeperator ?? ' ',
+			linePrefix:         inputOptions?.linePrefix ?? '    ',
 		};
 		let formattedStack = '';
 		
 		if (options.removeRootPath && rootPath) {
-			this.errorStack = this.errorStack.replaceAll(rootPath + '\\', ``);
+			this.errorStack = this.errorStack.replaceAll(rootPath + '\\', '');
 		}
 		
-		let messageLineCount = this.errorMessage.split('\n').length;
+		const messageLineCount = this.errorMessage.split('\n').length;
 		const stackArray = this.errorStack.split('\n');
 		stackArray.splice(0, messageLineCount); //? Remove the lines that contain the error message
 		stackArray.forEach(stackLine => {

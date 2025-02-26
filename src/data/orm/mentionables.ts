@@ -1,10 +1,19 @@
-import { EmitError, eventConsole } from "../../events";
-import { default as DataModel, IMentionableData, IMentionableItem, IMentionableStorage } from "./schemas/mentionableData";
-import { Guild, GuildMember, PermissionsBitField, Role } from "discord.js";
-import { ObjectRelationalMap } from ".";
-import { ColorTheme, GeneralData } from "..";
+import type { Guild } from 'discord.js';
+import { ObjectRelationalMap } from '.';
+import { eventConsole } from '../../events';
+import { clamp } from '../../utils';
+import type { IMentionableData, IMentionableItem, IMentionableStorage } from './schemas/mentionableData';
+import { default as DataModel } from './schemas/mentionableData';
 
 type MentionableCache<T> = {[id: string]: T};
+
+export const ActiveCooldown = {
+	global:  'global',
+	channel: 'channel',
+	user:    'user',
+} as const;
+export type TActiveCooldown = keyof typeof ActiveCooldown;
+
 export class Mentionable {
 	/** true if the anything has updated sins getAll() was last called */
 	public static hasChanged: MentionableCache<boolean> = {};
@@ -13,19 +22,14 @@ export class Mentionable {
 	 * @note This is to save a bit of performance as the getAll function might be called for each message sent in any server.
 	*/
 	public static mentionablesCache: MentionableCache<IMentionableStorage> = {};
-
-	/** Stores an array of mentionables that are currently on cooldown 
-	 * @deprecated Check if mentionable is on cooldown by calling {@link Mentionable.isOncooldown()}
-	*/
-	public static activeCooldowns: MentionableCache<IMentionableStorage> = {};
 	
 	//#region Getters
 	/** Get the whole document of a guild
 	 * @param guildId The ID of the guild
 	 * @param errorIfNull Should an error be logged if the document doesnt exist?
 	*/
-	public static async getDocument(guildId: string, errorIfNull: boolean = true) {
-		return await ObjectRelationalMap.getDocument<IMentionableData>(DataModel, guildId, errorIfNull)
+	public static async getDocument(guildId: string, errorIfNull: boolean = true): Promise<IMentionableData> {
+		return await ObjectRelationalMap.getDocument<IMentionableData>(DataModel, guildId, errorIfNull);
 	}
 
 	/** Get a list of all mentionables in a server
@@ -53,21 +57,161 @@ export class Mentionable {
 		if (list === null) { return null; }
 		return list[id];
 	}
+
+	/** Check if the mentionable is currently on cooldown
+	 * @param cooldown The cooldown time
+	 * @param lastUsed The time to compare with the cooldown
+	 * @note both inputs can be null and will be read as 0 if null
+	 * @returns true if the cooldown + lastUsed time is greater then/equal to the current time, false otherwise
+	 * @example (cooldown + lastUsed >= Date.now())
+	*/
+	private static isTimeWithinCooldown(cooldown: number | null, lastUsed: number | null): boolean {
+		return ((cooldown ?? 0) + (lastUsed ?? 0) >= Date.now());
+	}
+
+	/** Get the amount of cooldown time (in milliseconds) remaining
+	 * @param cooldown The cooldown time
+	 * @param lastUsed The time to compare with the cooldown
+	 * @note both inputs can be null and will be read as 0 if null
+	 * @returns The amount of cooldown time remaining (can be a negative)
+	 * @example (lastUsed + cooldown) - Date.now()
+	*/
+	public static remainingCooldownTime(cooldown: number | null, lastUsed: number | null): number;
+	/** Get the amount of cooldown time (in milliseconds) remaining
+	 * @param mentionable The mentionable to get the data from
+	 * @param field The field of the mentionable to check
+	 * @returns The amount of cooldown time remaining (can be a negative)
+	 * @example (lastUsed + cooldown) - Date.now()
+	*/
+	public static remainingCooldownTime(mentionable: IMentionableItem, field: Extract<TActiveCooldown, 'global'>): number;
+	/** Get the amount of cooldown time (in milliseconds) remaining
+	 * @param mentionable The mentionable to get the data from
+	 * @param field The field of the mentionable to check
+	 * @param id The channel/user ID if field is not "global"
+	 * @returns The amount of cooldown time remaining (can be a negative)
+	 * @example (lastUsed + cooldown) - Date.now()
+	*/
+	public static remainingCooldownTime(mentionable: IMentionableItem, field: Extract<TActiveCooldown, 'channel' | 'user'>, id: string): number;
+	public static remainingCooldownTime(cooldown_mentionable: (number | null) | IMentionableItem, lastUsed_field: (number | null) | TActiveCooldown, id?: string): number {
+		let cooldown = 0;
+		let lastUsed = 0;
+
+		if ((typeof cooldown_mentionable === 'number' || cooldown_mentionable === null) && (typeof lastUsed_field === 'number' || lastUsed_field === null)) {
+			cooldown = (cooldown_mentionable ?? 0);
+			lastUsed = (lastUsed_field ?? 0);
+		}
+		else if (cooldown_mentionable !== null && typeof lastUsed_field === 'string') {
+			const mentionable = cooldown_mentionable as IMentionableItem;
+			const field = lastUsed_field as TActiveCooldown;
+
+			cooldown = mentionable.cooldownTime[field];
+
+			if (field === ActiveCooldown.global) {
+				lastUsed = mentionable.lastUsedData[field];
+			}
+			else if (Object.keys(mentionable.lastUsedData[field]).includes(id!)) {
+				lastUsed = mentionable.lastUsedData[field][id!];
+			}
+		}
+
+		return (lastUsed + cooldown) - Date.now();
+	}
 	
 	/** Check if the mentionable is currently on cooldown
 	 * @param mentionable The mentionable object
 	 * @returns true if the mentionable is currently on cooldown, false otherwise
 	*/
-	public static isOncooldown(mentionable: IMentionableItem): boolean {
-		return (mentionable.cooldown + mentionable.lastUsed >= Date.now())
+	public static isOncooldown(mentionable: IMentionableItem): boolean;
+	/** Check if the mentionable is currently on cooldown
+	 * @param mentionable The mentionable object
+	 * @param channelId The ID of the channel to check the cooldown for
+	 * @param userId The ID of the user to check the cooldown for
+	 * @returns true if the mentionable is currently on cooldown, false otherwise
+	*/
+	public static isOncooldown(mentionable: IMentionableItem, channelId: string, userId: string): boolean;
+	public static isOncooldown(mentionable: IMentionableItem, channelId?: string, userId?: string): boolean {
+		const globalCooldown: boolean = this.isTimeWithinCooldown(mentionable.cooldownTime.global, mentionable.lastUsedData.global);
+		if (globalCooldown || (!channelId || !userId || (!channelId && !userId))) {
+			return globalCooldown;
+		}
+
+		let channelCooldown: boolean = false;
+		if (Object.keys(mentionable.lastUsedData.channel).includes(channelId)) {
+			channelCooldown = this.isTimeWithinCooldown(mentionable.cooldownTime.channel, mentionable.lastUsedData.channel[channelId]);
+		}
+
+		let userCooldown: boolean = false;
+		if (Object.keys(mentionable.lastUsedData.user).includes(userId)) {
+			userCooldown = this.isTimeWithinCooldown(mentionable.cooldownTime.user, mentionable.lastUsedData.user[userId]);
+		}
+
+
+		return (channelCooldown || userCooldown);
 	}
 
-	/** Get the remaining time in milliseconds of the cooldown
+	/** Get the cooldown type that takes the longest overall to complete
 	 * @param mentionable The mentionable object
-	 * @returns The remaining cooldown time
+	 * @param channelId The ID of the channel to check the cooldown for
+	 * @param userId The ID of the user to check the cooldown for
+	 * @returns The highest active cooldown if any, null otherwise
 	*/
-	public static remainingCooldown(mentionable: IMentionableItem): number {
-		return (mentionable.lastUsed + mentionable.cooldown) - Date.now()
+	public static getActiveCooldown(mentionable: IMentionableItem, channelId: string, userId: string): TActiveCooldown | null {
+		if (Mentionable.isOncooldown(mentionable, channelId, userId) === false) {
+			return null;
+		}
+
+		let highestCooldown: TActiveCooldown | null = null;
+		let highestTime = 0;
+		
+		for (const cooldownType of Object.keys(ActiveCooldown) as TActiveCooldown[]) {
+			let remainingTime = 0;
+
+			if (cooldownType === ActiveCooldown.global) {
+				remainingTime = Mentionable.remainingCooldownTime(mentionable, cooldownType);
+			} else {
+				const typeId = (cooldownType === ActiveCooldown.channel) ? channelId : userId;
+				if (Object.keys(mentionable.lastUsedData[cooldownType]).includes(typeId)) {
+					remainingTime = Mentionable.remainingCooldownTime(mentionable, cooldownType, typeId);
+				}
+			}
+
+			if (remainingTime > highestTime) {
+				highestTime = remainingTime;
+				highestCooldown = cooldownType as TActiveCooldown;
+			}
+		}
+
+		return highestCooldown;
+	}
+
+	/** Get the amount of time remaining on global cooldown
+	 * @param mentionable The mentionable object
+	 * @returns The amount of cooldown time remaining
+	*/
+	public static remainingCooldown(mentionable: IMentionableItem): number;
+	/** Get the amount of time remaining on the longest active cooldown, if any
+	 * @param mentionable The mentionable object
+	 * @param channelId The ID of the channel to check the cooldown for
+	 * @param userId The ID of the user to check the cooldown for
+	 * @returns The amount of cooldown time remaining
+	*/
+	public static remainingCooldown(mentionable: IMentionableItem, channelId: string, userId: string): number;
+	public static remainingCooldown(mentionable: IMentionableItem, channelId?: string, userId?: string): number {
+		const globalTime = clamp(Mentionable.remainingCooldownTime(mentionable.cooldownTime.global, mentionable.lastUsedData.global), 0);
+		
+		if (!channelId || !userId || (!channelId && !userId)) {
+			return globalTime;
+		}
+
+		const activeCooldown = Mentionable.getActiveCooldown(mentionable, channelId, userId);
+		if (!activeCooldown) {
+			return 0;
+		}
+		else if (activeCooldown === ActiveCooldown.global) {
+			return globalTime;
+		}
+
+		return Mentionable.remainingCooldownTime(mentionable.cooldownTime[activeCooldown], mentionable.lastUsedData[activeCooldown][(activeCooldown == 'channel') ? channelId : userId]);
 	}
 	//#endregion
 	
@@ -85,35 +229,80 @@ export class Mentionable {
 	/** When the bot starts up, run this function for each guild
 	 *  @param guild The Guild to initialize
 	*/
-	public static async initialize(guild: Guild) {
+	public static async initialize(guild: Guild): Promise<void> {
 		Mentionable.hasChanged[guild.id] = true;
 		Mentionable.mentionablesCache[guild.id] = {};
 		// Mentionable.activeCooldowns[guild.id] = {};
 		
-		// const mentionableDoc = await Mentionable.getDocument(guild.id, false);
-		const mentionables = await Mentionable.getAll(guild.id);
+		const mentionableDoc = await Mentionable.getDocument(guild.id, false);
+		const mentionables = mentionableDoc.mentionables;
+		// const mentionables = await Mentionable.getAll(guild.id);
 		// Mentionable.getAll(guild.id);
 
-		//#region TMP reset role mentionable setting
-		//!! after its been pushed to beta and release, remove this the next patch
-		const selfMember: GuildMember = guild.members.me!;
-		const perm = new PermissionsBitField('ManageRoles');
-		if (selfMember.permissions.has(perm)) {
-			for (const roleId in mentionables) {
-				const role = guild.roles.cache.find(r => r.id == roleId);
-				if (!role) {
-					EmitError(new Error(`Unable to find role (${roleId})`));
-					continue;
-				}
+		//#region TMP remove block after stable update
+		type IOLDMentionableItem = {
+			cooldown: number,
+			lastUsed: number, //? the milisecond time code of when the mentionable was last mentioned
+		}
 
-				if (role.mentionable) {
-					await role.setMentionable(false);
-					eventConsole.log(`[fg=yellow]${guild.name}[/>] [fg=red]RESETTING[/>]: [fg=${(role.hexColor != '#000000') ? role.hexColor : ColorTheme.colors.grey.asHex}]${role.name}[/>] to not mentionable`);
-				}
+		let hasChanged = false;
+
+		for (const id in mentionables) {
+			let mentionable: IOLDMentionableItem | IMentionableItem = mentionables[id];
+			const newMentionable = Mentionable.make();
+
+			if (Object.keys(mentionable).includes('cooldown')) {
+				mentionable = mentionable as unknown as IOLDMentionableItem;
+				
+				newMentionable.cooldownTime.global = mentionable.cooldown;
+				newMentionable.lastUsedData.global = mentionable.lastUsed;
+				
+				mentionables[id] = newMentionable;
+				mentionable = newMentionable; //? to make sure the next if statement doesnt trip up over the old_data (inscription ref?)
+				
+				eventConsole.log(`[fg=yellow]${guild.name}[/>] [fg=green]Reformatted from old format[/>]: ${id} To the new database format`);
+				
+				hasChanged = true;
 			}
 
+			if (!Object.keys(mentionable).includes('usageScope')) {
+				mentionable['usageScope'] = newMentionable.usageScope;
+				mentionables[id] = mentionable as IMentionableItem;
+
+				eventConsole.log(`[fg=yellow]${guild.name}[/>] [fg=green]Added usage scope[/>]: ${id} To the new database format`);
+				hasChanged = true;
+			}
+		}
+
+		if (hasChanged) {
+			Mentionable.update(mentionableDoc);
 		}
 		//#endregion
+
+		for (const id in mentionables) {
+			await Mentionable.cleanData(guild.id, id);
+		}
+
+		// // #region TMP reset role mentionable setting
+		// //!! after its been pushed to beta and release, remove this the next patch
+		// const selfMember: GuildMember = guild.members.me!;
+		// const perm = new PermissionsBitField('ManageRoles');
+		// if (selfMember.permissions.has(perm)) {
+		// 	for (const roleId in mentionables) {
+		// 		const role = guild.roles.cache.find(r => r.id == roleId);
+		// 		if (!role) {
+		// 			EmitError(new Error(`Unable to find role (${roleId})`));
+		// 			continue;
+		// 		}
+
+		// 		if (role.mentionable) {
+		// 			await role.setMentionable(false);
+		// 			eventConsole.log(`[fg=yellow]${guild.name}[/>] [fg=red]RESETTING[/>]: [fg=${(role.hexColor != '#000000') ? role.hexColor : ColorTheme.colors.grey.asHex}]${role.name}[/>] to not mentionable`);
+		// 		}
+		// 	}
+
+		// }
+		// //#endregion
 		
 		// for (const roleId in mentionables) {
 		// 	if (roleId == 'placeholder') { continue; } //?? this used to be a thing, keeping it for some reason... i wanna i guess....
@@ -150,14 +339,41 @@ export class Mentionable {
 	 * @param guildId The GuildID of the server the document is for
 	 * @returns Wether or not the data has been saved successfully
 	*/
-	public static async update(guildId: string): ReturnType<typeof ObjectRelationalMap.update>;
-	public static async update(id_doc: string|Awaited<ReturnType<typeof Mentionable.getDocument>>): ReturnType<typeof ObjectRelationalMap.update> {
-		if (typeof id_doc === 'string')
-			Mentionable.hasChanged[id_doc] = true;
-		else
-			Mentionable.hasChanged[id_doc._id] = true;
-		
-		return await ObjectRelationalMap.update(DataModel, id_doc, ['mentionables'])
+	public static async update(guildId: string, mentionableId: string, mentionable: IMentionableItem): ReturnType<typeof ObjectRelationalMap.update>;
+	public static async update(id_doc: string|Awaited<ReturnType<typeof Mentionable.getDocument>>, mentionableId?: string, mentionable?: IMentionableItem): ReturnType<typeof ObjectRelationalMap.update> {
+		if (typeof id_doc === 'string') {
+			id_doc = await Mentionable.getDocument(id_doc);
+			id_doc.mentionables[mentionableId!] = mentionable!;
+		}
+
+		Mentionable.hasChanged[id_doc._id] = true;
+
+		return await ObjectRelationalMap.update(DataModel, id_doc, ['mentionables']);
+	}
+
+	/** Make a new blank IMentionableItem object
+	 * @note All values will be set to 0
+	 * @note the channels and users objects both start with a placeholder item in them to prevent them from vanishing on the database
+	*/
+	public static make(): IMentionableItem {
+		return {
+			cooldownTime: {
+				global:  0,
+				channel: 0,
+				user:    0,
+			},
+			lastUsedData: {
+				global:  0,
+				channel: { placeholder: 0 },
+				user:    { placeholder: 0 }
+			},
+			usageScope: {
+				channelScopeType: 'none',
+				channelScope:     [],
+				roleScopeType:    'none',
+				roleScope:        []
+			}
+		} as IMentionableItem;
 	}
 
 	/** Register a new mentionable
@@ -193,57 +409,38 @@ export class Mentionable {
 		const doc = await Mentionable.getDocument(guildId);
 		if (!doc || !Object.keys(doc.mentionables).includes(id)) { return false; }
 
-		delete doc.mentionables[id]
+		delete doc.mentionables[id];
 		return await Mentionable.update(doc);
 	}
 
-	/** Start the cooldown for a mentionable
-	 * @param guild The guild that the mentionable is in
-	 * @param  id The ID of the mentionable
-	 * @param mentionable The mentionable object
-	 * @returns true if the cooldown has been started successfully, false otherwise
-	 * @deprecated Doesnt do anything anymore after we stoped using role.setMentionable() and {@link Mentionable.activeCooldowns} was depricated.
+	/**
+	 * Clean up the internal mentionable data, 
+	 * like the `channel` and `user` keys in {@link IMentionableItem.lastUsedData} 
+	 * if the time value is past the {@link IMentionableItem.cooldownTime}, the field will be deleted
+	 * Once this is done, the mentionable will also be updated
+	 * @returns The cleaned up mentionable item
 	*/
-	public static async startCooldown(guild: Guild, id: string, mentionable?: IMentionableItem|null): Promise<boolean> {
-		// const role = guild.roles.cache.find(r => r.id == id);
-		// if (!role) {
-		// 	EmitError(new Error(`Unable to find role (${id})`));
-		// 	return false;
-		// }
+	public static async cleanData(guildId: string, id: string): Promise<IMentionableItem> {
+		const doc: IMentionableData = await Mentionable.getDocument(guildId);
+		const mentionable = doc.mentionables[id];
 
-		// if (mentionable === undefined) {
-		// 	mentionable = await Mentionable.get(guild.id, id);
-		// }
-		// if (!mentionable) { return false; }
+		Object.keys(mentionable.lastUsedData).forEach((key) => {
+			if (typeof mentionable.lastUsedData[key] !== 'object') { return; } //? currently, this should just skip 'global'
 
-		// await role.setMentionable(false, `${process.env.APP_NAME} - Used`);
-		// Mentionable.activeCooldowns[guild.id][id] = mentionable;
+			for (const field in mentionable.lastUsedData[key]) {
+				if (field === 'placeholder') { continue; }
 
-		return true;
-	}
+				const value = mentionable.lastUsedData[key][field];
+	
+				if (!Mentionable.isTimeWithinCooldown(mentionable.cooldownTime[key], value)) {
+					delete mentionable.lastUsedData[key][field];
+				}
+			}
+		});
 
-	/** Check all the active cooldowns for a guild and end them if they are expired
-	 * @param guild The guild to check the cooldowns for
-	 * @deprecated Roles do not have to be set to mentionable anymore and therefor do not need to be managed after a cooldown expires
-	*/
-	public static async validateGuildCooldowns(guild: Guild) {
-		// for (const roleId in Mentionable.activeCooldowns[guild.id]) {
-		// 	const item = Mentionable.activeCooldowns[guild.id][roleId];
-		// 	if (!Mentionable.isOncooldown(item)) {
-		// 		//? delete now as it doesnt matter if the role exists or not, it should not trigger again
-		// 		delete Mentionable.activeCooldowns[guild.id][roleId]; 
+		await Mentionable.update(doc);
 
-		// 		//?? Do we still need everything after this line after migrating to the /mention command?
-		// 		//?? onCooldownExpired doesnt do anything anymore now that we dont have to set the role to mentionable anymore
-		// 		const role = guild.roles.cache.find(r => r.id == roleId);
-		// 		if (!role) {
-		// 			EmitError(new Error(`Unable to find role (${roleId})`));
-		// 			continue;
-		// 		}
-
-		// 		Mentionable.onCooldownExpired(role);
-		// 	}
-		// }
+		return mentionable;
 	}
 	//#endregion
 
@@ -272,29 +469,22 @@ export class Mentionable {
 	/** Once a mentionable is used. Updates its last used time and starts the cooldown 
 	 * @param guild The guild that the mentionable is in
 	 * @param id The ID of the mentionable
+	 * @param channelId The channel ID that the mentionable was used in
+	 * @param userId The user ID of the user that used the mentionable
 	 * @returns Wether or not the data has been saved successfully
 	*/
-	public static async onUsed(guild: Guild, id: string): Promise<boolean> {
-		const doc = await Mentionable.getDocument(guild.id);
-		if (!doc || !doc.mentionables[id]) { return false; }
+	public static async onUsed(guild: Guild, id: string, channelId: string, userId: string): Promise<boolean> {
+		const mentionable = await Mentionable.cleanData(guild.id, id);;
 
-		doc.mentionables[id].lastUsed = new Date().getTime();
-		// await Mentionable.startCooldown(guild, id, doc.mentionables[id]);
-		return await Mentionable.update(doc);
-	}
+		if (!mentionable) { return false; }
 
-	/** Once a cooldown of a mentionable expires. Update the role to allow everyone to mention this role again.
-	 * @param role The role of the expired mentionable
-	 * @returns Wether or not the role has been updated successfully
-	 * @deprecated Stoped using role.setMentionable while migrating to /mention
-	*/
-	public static async onCooldownExpired(role: Role): Promise<boolean> {
-		// await role.setMentionable(true, `${process.env.APP_NAME} - Cooldown Expired`).catch((e: Error) => {
-		// 	e.message = `Failed to update role to mentionable after expired cooldown\n${e.message}`
-		// 	EmitError(e); //! if this is reached, there is a role stuck on not mentionable
-		// 	return false;
-		// });
-		return true;
+		const time = new Date().getTime();
+
+		mentionable.lastUsedData.global = time;
+		mentionable.lastUsedData.channel[channelId] = time;
+		mentionable.lastUsedData.user[userId] = time;
+
+		return await Mentionable.update(guild.id, id, mentionable);
 	}
 	//#endregion
 }

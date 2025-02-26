@@ -1,8 +1,8 @@
-import { ConsoleInstance } from "better-console-utilities";
+import { ConsoleInstance } from 'better-console-utilities';
 
-import { ErrorObject } from "../handlers/errorHandler";
-import errorEvent from "../events/error";
-import { EventEmitter } from "events";
+import type { ErrorObject } from '../handlers/errorHandler';
+import errorEvent from '../events/error';
+import { EventEmitter } from 'events';
 
 export const eventConsole = new ConsoleInstance();
 export const customEvents = new EventEmitter();
@@ -18,7 +18,7 @@ export async function EmitError(error: Error, ...args: any): Promise<ErrorObject
  * @returns The error message
 */
 export function onError(message: string): string {
-	const err = new Error(message)
+	const err = new Error(message);
 	EmitError(err);
 	return err.message;
 }

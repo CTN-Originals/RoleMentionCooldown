@@ -1,9 +1,11 @@
-import { ChatInputCommandInteraction, InteractionContextType, ButtonInteraction, EmbedBuilder, PermissionFlagsBits } from "discord.js";
+import type { ChatInputCommandInteraction } from 'discord.js';
+import { EmbedBuilder, InteractionContextType, MessageFlags } from 'discord.js';
 
-import { hexToBit } from "../../utils";
-import { ColorTheme } from "../../data";
-import { validateEmbed } from "../../utils/embedUtils";
-import { BaseButtonCollection, BaseEmbedCollection, BaseSelectMenuCollection, CommandInteractionData, IButtonCollection, ISelectMenuCollection } from "../../handlers/commandBuilder";
+import { ColorTheme, GeneralData } from '../../data';
+import type { IButtonCollection, ISelectMenuCollection } from '../../handlers/commandBuilder';
+import { BaseButtonCollection, BaseEmbedCollection, BaseSelectMenuCollection, CommandInteractionData } from '../../handlers/commandBuilder';
+import { hexToBit } from '../../utils';
+import { validateEmbed } from '../../utils/embedUtils';
 
 
 class ButtonCollection extends BaseButtonCollection implements IButtonCollection<ButtonCollection> {}
@@ -11,19 +13,19 @@ class SelectMenuCollection extends BaseSelectMenuCollection implements ISelectMe
 class EmbedCollection extends BaseEmbedCollection {
 	public pingDisplay(commandPing: number, apiPing: number) {
 		return new EmbedBuilder({
-			title: "Pong!",
+			title:       'Pong!',
 			description: `Command Latency: \`${commandPing}ms\`\nAPI Latency: \`${apiPing}ms\``,
-			color: hexToBit(ColorTheme.embeds.reply)
-		})
+			color:       hexToBit(ColorTheme.embeds.reply)
+		});
 	}
 }
 
 const command = new CommandInteractionData<ButtonCollection, SelectMenuCollection, EmbedCollection>({
 	command: {
 		content: {
-			name: 'ping',
+			name:        'ping',
 			description: 'Replies with latency stats',
-			contexts: [InteractionContextType.Guild],
+			contexts:    [InteractionContextType.Guild, InteractionContextType.BotDM],
 		},
 		execute: async function (interaction: ChatInputCommandInteraction) {
 			const commandPing = Date.now() - interaction.createdTimestamp;
@@ -31,15 +33,15 @@ const command = new CommandInteractionData<ButtonCollection, SelectMenuCollectio
 
 			await interaction.reply({
 				embeds: [validateEmbed(command.embeds.pingDisplay(commandPing, apiPing))],
-				ephemeral: true
+				flags:  [((!GeneralData.development) ? MessageFlags.Ephemeral : MessageFlags.SuppressNotifications)]
 			});
 			
 			return `${commandPing}ms | ${apiPing}ms`;
 		},
 	},
-	buttons: new ButtonCollection(),
+	buttons:     new ButtonCollection(),
 	selectMenus: new SelectMenuCollection(),
-	embeds: new EmbedCollection()
+	embeds:      new EmbedCollection()
 });
 
 export default command;

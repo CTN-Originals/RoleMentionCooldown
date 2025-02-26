@@ -1,5 +1,5 @@
 //#region Imports
-import {
+import type {
 	ApplicationCommandAttachmentOption,
 	ApplicationCommandBooleanOption,
 	ApplicationCommandChannelOption,
@@ -10,8 +10,6 @@ import {
 	ApplicationCommandUserOption,
 	ButtonBuilder,
 	ChannelSelectMenuBuilder,
-	ComponentType,
-	LocalizationMap,
 	MentionableSelectMenuBuilder,
 	MessageContextMenuCommandInteraction,
 	RoleSelectMenuBuilder,
@@ -21,7 +19,11 @@ import {
 	StringSelectMenuBuilder,
 	UserContextMenuCommandInteraction,
 	UserSelectMenuBuilder
-} from "discord.js";
+} from 'discord.js';
+import {
+	ComponentType,
+	LocalizationMap
+} from 'discord.js';
 
 import {
 	CommandObjectInput,
@@ -29,8 +31,10 @@ import {
 	BaseExecutableCommandObject,
 	ExecutableCommandObjectInput,
 	IBaseExecutableCommandObject,
-} from "./base";
+} from './base';
 
+import type {
+	IAnyInteractionField} from './data';
 import {
 	CommandInteractionData,
 	IBaseInteractionType,
@@ -45,11 +49,10 @@ import {
 	BaseSelectMenuCollection,
 	BaseEmbedCollection,
 	BaseMethodCollection,
-	IAnyInteractionField,
 	CommandInteractionContent,
 	ICommandObjectContent,
 	IContextMenuObjectContent,
-} from "./data";
+} from './data';
 
 import {
 	CommandObject,
@@ -58,12 +61,12 @@ import {
 	ISubCommandObject,
 	SubCommandObject,
 	ICommandObject,
-} from "./command";
+} from './command';
 
 import {
 	IContextMenuCommandObject,
 	ContextMenuCommandObject,
-} from "./contextMenus";
+} from './contextMenus';
 
 import { 
 	AnySlashCommandOption,
@@ -77,8 +80,14 @@ import {
 	StringOptionObject,
 	UserOptionObject,
 	BaseOptionObject,
-} from "./options";
+} from './options';
 
+import type {
+	IChannelSelectComponentObject,
+	IMentionableSelectComponentObject,
+	IRoleSelectComponentObject,
+	IStringSelectComponentObject,
+	IUserSelectComponentObject} from './components';
 import {
 	ButtonComponentObject,
 	IButtonComponentObject,
@@ -87,15 +96,10 @@ import {
 	RoleSelectComponentObject,
 	StringSelectComponentObject,
 	UserSelectComponentObject,
-	IChannelSelectComponentObject,
-	IMentionableSelectComponentObject,
-	IRoleSelectComponentObject,
-	IStringSelectComponentObject,
-	IUserSelectComponentObject,
 	ChannelSelectComponentObject
-} from "./components";
+} from './components';
 
-import { includesAny } from "../../utils";
+import { includesAny } from '../../utils';
 
 //#endregion
 
@@ -154,7 +158,7 @@ export {
 	RoleSelectComponentObject,
 	StringSelectComponentObject,
 	UserSelectComponentObject
-}
+};
 
 export type AnySlashCommandBuilder =
  | SlashCommandBuilder
@@ -216,11 +220,36 @@ export type AnySelectMenuComponentObject = Exclude<AnyComponentObject, ButtonCom
 export type IAnySelectMenuComponentObject = Exclude<IAnyComponentObject, IButtonComponentObject>;
 
 export type AnyContextMenuInteraction = MessageContextMenuCommandInteraction | UserContextMenuCommandInteraction;
+
+export const LOG_LEVEL = {
+	/** Always log */
+	ALWAYS:  0,
+	/** Only log when the command was executed successfully */
+	SUCCESS: 1 << 1,
+	/** Only log when the command was rejected for any reason */
+	FAIL:    1 << 2,
+	/** Only log when the command threw and error */
+	ERROR:   1 << 3,
+	/** Never log */
+	NEVER:   -1,
+} as const;
+export type TLogLevel = typeof LOG_LEVEL[keyof typeof LOG_LEVEL];
+
+/** Define which environment the bot needs to be in to output a log */
+export const LOG_ENVIRONMENT = {
+	/** Always log */
+	ALL:         0,
+	DEVELOPMENT: 1 << 1,
+	BETA:        1 << 2,
+	PRODUCTION:  1 << 3,
+} as const;
+export type TLogEnvironment = typeof LOG_ENVIRONMENT[keyof typeof LOG_ENVIRONMENT];
+
 //#endregion
 
 export function getInteractionObject(content: IAnyInteractionField | IAnyInteractionObject): AnyInteractionObject | void {
 	if (Object.keys(content).includes('content')) {
-		content = content as IAnyInteractionField
+		content = content as IAnyInteractionField;
 		content = content.content;
 	}
 
@@ -236,11 +265,11 @@ export function getInteractionObject(content: IAnyInteractionField | IAnyInterac
 				return new ButtonComponentObject(content as IButtonComponentObject);
 			} else {
 				switch (content['type'] as Omit<ComponentType, ComponentType.Button | ComponentType.ActionRow>) {
-					case ComponentType.StringSelect: 		{ return new StringSelectComponentObject(content as any); }
-					case ComponentType.UserSelect: 			{ return new UserSelectComponentObject(content as any); }
-					case ComponentType.RoleSelect: 			{ return new RoleSelectComponentObject(content as any); }
-					case ComponentType.MentionableSelect: 	{ return new MentionableSelectComponentObject(content as any); }
-					case ComponentType.ChannelSelect: 		{ return new ChannelSelectComponentObject(content as any); }
+				case ComponentType.StringSelect: 		{ return new StringSelectComponentObject(content as any); }
+				case ComponentType.UserSelect: 			{ return new UserSelectComponentObject(content as any); }
+				case ComponentType.RoleSelect: 			{ return new RoleSelectComponentObject(content as any); }
+				case ComponentType.MentionableSelect: 	{ return new MentionableSelectComponentObject(content as any); }
+				case ComponentType.ChannelSelect: 		{ return new ChannelSelectComponentObject(content as any); }
 				}
 			}
 		}

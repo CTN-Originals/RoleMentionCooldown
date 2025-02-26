@@ -1,7 +1,7 @@
-import { Document, model, Model, Schema } from "mongoose";
-import { cons } from "../..";
-import { EmitError, eventConsole } from "../../events";
-import { Base, Guild } from "discord.js";
+import type { Guild } from 'discord.js';
+import type { Document, Model } from 'mongoose';
+import { EmitError, eventConsole } from '../../events';
+import { IMentionableData } from './schemas/mentionableData';
 
 export interface BaseDocument {
 	_id: string
@@ -28,7 +28,7 @@ export class ObjectRelationalMap {
 	 * @param guildId The GuildID of the server
 	 * @returns The Document if created successfully, null otherwise
 	*/
-	public static async create(model: typeof Model, guildId: string) {
+	public static async create(model: typeof Model, guildId: string): Promise<IMentionableData> {
 		return await model.create({_id: guildId}).catch(EmitError);
 	}
 
@@ -57,16 +57,16 @@ export class ObjectRelationalMap {
 		}
 
 		if (!doc) {
-			throw new Error(`Unable to find document to update`);
+			throw new Error('Unable to find document to update');
 		}
 
 		for (const field of markModified) {
 			doc.markModified(field);
 		}
 
-		await doc.save()
+		await doc.save();
 
-		return true
+		return true;
 	}
 	
 	/** Once the bot enters a new guild, see if we need to create a new document
@@ -88,7 +88,7 @@ export class ObjectRelationalMap {
 	public static async onGuildDelete(model: typeof Model, guild: Guild): Promise<void> {
 		const doc = await this.getDocument(model, guild.id, false);
 		if (doc != null) {
-			await doc.deleteOne({_id: guild.id})
+			await doc.deleteOne({_id: guild.id});
 			eventConsole.log(`[fg=red]Deleted[/>] ${model.modelName} document for ${guild.id}`);
 		}
 	}

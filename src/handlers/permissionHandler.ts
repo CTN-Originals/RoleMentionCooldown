@@ -1,5 +1,5 @@
-import { Guild, GuildMember, User } from "discord.js";
-import { GuildConfig } from "../data/orm/guildConfig";
+import type { Guild, GuildMember, User } from 'discord.js';
+import { GuildConfig } from '../data/orm/guildConfig';
 
 export enum GuildMemberType {
 	Member = 'Member',
@@ -47,9 +47,9 @@ export class UserPermissions {
 	};
 
 	private async getMember(): Promise<GuildMember> {
-		const member = await this.guild.members.fetch({user: this.user.id})
+		const member = await this.guild.members.fetch({user: this.user.id});
 		if (member === undefined) {
-			throw new Error(`User (${this.user.id}) could not be found in member list of guild (${this.guild.id})`)
+			throw new Error(`User (${this.user.id}) could not be found in member list of guild (${this.guild.id})`);
 		}
 		return member;
 	}
@@ -65,7 +65,7 @@ export class UserPermissions {
 		if (this.guild.ownerId == this.user.id) 
 			return GuildMemberType.Owner;
 
-		if ((await this.getMember()).permissions.has("Administrator")) 
+		if ((await this.getMember()).permissions.has('Administrator')) 
 			return GuildMemberType.Admin;
 
 		return GuildMemberType.Member;

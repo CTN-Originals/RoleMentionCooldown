@@ -1,10 +1,12 @@
-import { EmbedBuilder, Guild, ChatInputCommandInteraction, InteractionContextType } from "discord.js";
-import { BaseButtonCollection, BaseEmbedCollection, BaseSelectMenuCollection, CommandInteractionData, IButtonCollection, ISelectMenuCollection } from "../../handlers/commandBuilder";
+import type { ChatInputCommandInteraction, Guild } from 'discord.js';
+import { EmbedBuilder, InteractionContextType, MessageFlags } from 'discord.js';
+import type { IButtonCollection, ISelectMenuCollection } from '../../handlers/commandBuilder';
+import { BaseButtonCollection, BaseEmbedCollection, BaseSelectMenuCollection, CommandInteractionData } from '../../handlers/commandBuilder';
 
-import { Mentionable } from "../../data/orm/mentionables";
-import { ColorTheme, GeneralData } from '../../data'
-import { validateEmbed } from "../../utils/embedUtils";
-import { getTimeDisplay, getTimestamp, hexToBit } from "../../utils";
+import { ColorTheme, GeneralData } from '../../data';
+import { Mentionable } from '../../data/orm/mentionables';
+import { getTimeDisplay, getTimestamp, hexToBit } from '../../utils';
+import { validateEmbed } from '../../utils/embedUtils';
 
 export type ListType = 'all'|'cooldowns';
 
@@ -13,26 +15,26 @@ class ButtonCollection extends BaseButtonCollection implements IButtonCollection
 class SelectMenuCollection extends BaseSelectMenuCollection implements ISelectMenuCollection<SelectMenuCollection> {}
 class EmbedCollection extends BaseEmbedCollection {
 	public async getCurrentCooldownsEmbed(guild: Guild, type: ListType): Promise<EmbedBuilder> {
-		let stats: [string, string][] = []
+		const stats: [string, string][] = [];
 		const mentionables = await Mentionable.getAll(guild.id);
 		if (!mentionables) {
-			throw new Error(`Could not find the mentionables of guild ${guild.id ?? undefined}`)
+			throw new Error(`Could not find the mentionables of guild ${guild.id ?? undefined}`);
 		}
 	
 		for (const roleId in mentionables) {
 			switch (type) {
-				case 'all': {
+				case 'all': { //TODO get the highest cooldown time compared to each of the cooldown times and put that on up here
 					stats.push([
 						roleId,
-						`\`${getTimeDisplay(mentionables[roleId].cooldown)}\``
-					])
+						`\`${getTimeDisplay(mentionables[roleId].cooldownTime.global)}\``
+					]);
 				} break;
 				case 'cooldowns': {
 					if (Mentionable.isOncooldown(mentionables[roleId])) {
 						stats.push([
 							roleId,
 							`<t:${getTimestamp(Date.now() + Mentionable.remainingCooldown(mentionables[roleId]))}:R>`
-						])
+						]);
 					}
 				} break;
 				default: break;
@@ -44,70 +46,70 @@ class EmbedCollection extends BaseEmbedCollection {
 		}
 		else {
 			switch (type) {
-				case 'all': 
-					stats.sort((a, b) => mentionables[a[0]].cooldown - mentionables[b[0]].cooldown);
-				break;
+				case 'all':
+					stats.sort((a, b) => mentionables[a[0]].cooldownTime.global - mentionables[b[0]].cooldownTime.global);
+					break;
 				case 'cooldowns':
 					stats.sort((a, b) => (Date.now() + Mentionable.remainingCooldown(mentionables[a[0]])) - (Date.now() + Mentionable.remainingCooldown(mentionables[b[0]]))); 
-				break;
+					break;
 				default: break;
 			}
 		}
 
 		return new EmbedBuilder({
-			title: 'Role Mention Cooldowns',
+			title:       'Role Mention Cooldowns',
 			description: [
-				`**NOTE**: I had a mojor update recently,`,
-				`it updated the way users can use role mentions.`,
-				`Instead of user being able to mention a role via message`,
-				`they now need to use the new \`/mention\` command`,
-				`and enter the role they like to be mention in the command option.`,
-				``,
+				'**NOTE**: I had a mojor update recently,',
+				'it updated the way users can use role mentions.',
+				'Instead of being able to mention a role in the message content',
+				'you now need to use the new `/mention` command',
+				'and enter the role you would like to be mentioned in the command options.',
+				'',
 				`If you have any questions about this, please join the [support server](${GeneralData.supportServerInvite}).`
 			].join('\n'),
 			fields: [
-				{name: `Role`, value: stats.map(s => (s[0] === '-') ? s[0] : `<@&${s[0]}>`).join('\n'), inline: true},
-				{name: `Cooldown`, value: stats.map(s => s[1]).join('\n'), inline: true},
+				{name: 'Role', value: stats.map(s => (s[0] === '-') ? s[0] : `<@&${s[0]}>`).join('\n'), inline: true},
+				{name: 'Cooldown', value: stats.map(s => s[1]).join('\n'), inline: true},
 			],
 			color: hexToBit(ColorTheme.embeds.info.asHex),
-		})
+		});
 	}
 }
 
 const command = new CommandInteractionData<ButtonCollection, SelectMenuCollection, EmbedCollection>({
 	command: {
 		content: {
-			name: 'list',
+			name:        'list',
 			description: 'Displays a list of mentionables',
-			contexts: [InteractionContextType.Guild],
+			contexts:    [InteractionContextType.Guild],
 			subcommands: [
 				{
-					name: 'all',
+					name:        'all',
 					description: 'Display a list of all registered mentionable roles along with their cooldown',
 				},
 				{
-					name: 'cooldowns',
+					name:        'cooldowns',
 					description: 'Display a list of all roles currently on cooldown along with their remaining cooldown time',
 				}
 			]
 		},
 		execute: async function (interaction: ChatInputCommandInteraction) {
 			if (!interaction.guild) {
-				throw new Error(`Interaction did not contain a guild`);
+				throw new Error('Interaction did not contain a guild');
 			}
 
 			const subCommand = interaction.options.getSubcommand() as ListType;
 			
 			await interaction.reply({
 				embeds: [validateEmbed(await command.embeds.getCurrentCooldownsEmbed(interaction.guild, subCommand))],
-				ephemeral: !GeneralData.development
-			})
+				flags:  [((!GeneralData.development) ? MessageFlags.Ephemeral : MessageFlags.SuppressNotifications)]
+			});
 			return true;
 		},
 	},
-	buttons: new ButtonCollection(),
+	buttons:     new ButtonCollection(),
 	selectMenus: new SelectMenuCollection(),
-	embeds: new EmbedCollection()
+	embeds:      new EmbedCollection()
 });
 
 export default command;

@@ -1,91 +1,357 @@
 
-import { ChatInputCommandInteraction, EmbedBuilder, InteractionContextType, ApplicationCommandOptionType, PermissionFlagsBits, GuildMember, Role } from "discord.js";
-import { BaseButtonCollection, BaseEmbedCollection, BaseSelectMenuCollection, CommandInteractionData, IButtonCollection, ISelectMenuCollection } from "../../handlers/commandBuilder";
+ 
+import { ActionRowBuilder, AnySelectMenuInteraction, ApplicationCommandOptionType, ButtonBuilder, ButtonInteraction, ChannelSelectMenuBuilder, ChannelSelectMenuInteraction, ChannelType, ChatInputCommandInteraction, ComponentType, EmbedBuilder, EmbedField, GuildMember, InteractionContextType, InteractionReplyOptions, MessageActionRowComponentBuilder, MessageFlags, PermissionFlagsBits, Role, RoleSelectMenuBuilder, RoleSelectMenuInteraction, SelectMenuComponentOptionData, StringSelectMenuBuilder, StringSelectMenuInteraction } from 'discord.js';
+import type { IButtonCollection, ISelectMenuCollection } from '../../handlers/commandBuilder';
+import { BaseButtonCollection, BaseEmbedCollection, BaseSelectMenuCollection, CommandInteractionData, LOG_ENVIRONMENT, LOG_LEVEL } from '../../handlers/commandBuilder';
 
-import { ColorTheme, GeneralData } from '../../data'
-import { hexToBit, PeriodOfTime, includesAny } from "../../utils";
-import { Mentionable } from "../../data/orm/mentionables";
-import { ConsoleInstance } from "better-console-utilities";
-import { validateEmbed } from "../../utils/embedUtils";
-import { BaseMethodCollection } from "../../handlers/commandBuilder/data";
-
-const thisConsole = new ConsoleInstance();
+import { ButtonStyle } from 'discord.js';
+import { ColorTheme, GeneralData } from '../../data';
+import { ActiveCooldown, Mentionable } from '../../data/orm/mentionables';
+import type { CooldownDefinition, IMentionableItem, TUsageScopeType } from '../../data/orm/schemas/mentionableData';
+import { UsageScopeType } from '../../data/orm/schemas/mentionableData';
+import type { IButtonCollectionField, ISelectMenuCollectionField } from '../../handlers/commandBuilder/data';
+import { BaseMethodCollection } from '../../handlers/commandBuilder/data';
+import { ComponentValueStorage } from '../../handlers/componentValueStorage';
+import { getTimeDisplay, hexToBit, includesAny, PeriodOfTime } from '../../utils';
+import { validateEmbed } from '../../utils/embedUtils';
 
 const timeframes = ['s', 'm', 'h', 'd'];
 
-class ButtonCollection extends BaseButtonCollection implements IButtonCollection<ButtonCollection> {}
-class SelectMenuCollection extends BaseSelectMenuCollection implements ISelectMenuCollection<SelectMenuCollection> {}
+const componentIdPrefix = 'rolecooldown-edit_';
+
+const messageToInteractionLink: { [messageId: string]: ChatInputCommandInteraction } = {};
+
+class ButtonCollection extends BaseButtonCollection implements IButtonCollection<ButtonCollection> {
+	//#region Settings Buttons
+	public channelSettings: IButtonCollectionField = {
+		logEnvironment: LOG_ENVIRONMENT.PRODUCTION | LOG_ENVIRONMENT.BETA,
+		content:        {
+			customId: componentIdPrefix + 'channel-settings',
+			label:    'Channel Settings',
+			style:    ButtonStyle.Primary
+		},
+		execute: async (interaction: ButtonInteraction) => {
+			await interaction.update({
+				embeds:     [...interaction.message.embeds, command.embeds.scopeSettingInstructions('channel')],
+				components: await command.methods.getSettingsActionRows(interaction, 'channel'),
+			});
+			
+			return true;
+		}
+	};
+	public roleSettings: IButtonCollectionField = {
+		logEnvironment: LOG_ENVIRONMENT.PRODUCTION | LOG_ENVIRONMENT.BETA,
+		content:        {
+			customId: componentIdPrefix + 'role-settings',
+			label:    'Role Settings',
+			style:    ButtonStyle.Primary,
+		},
+		execute: async (interaction: ButtonInteraction) => {
+			await interaction.update({
+				embeds:     [...interaction.message.embeds, command.embeds.scopeSettingInstructions('role')],
+				components: await command.methods.getSettingsActionRows(interaction, 'role'),
+			});
+
+			return true;
+		}
+	};
+	//#endregion
+
+	public submitScopeSettings: IButtonCollectionField = { //? More like a back button then a submit
+		logEnvironment: LOG_ENVIRONMENT.PRODUCTION | LOG_ENVIRONMENT.BETA,
+		content:        {
+			customId: componentIdPrefix + 'submit_scope-settings',
+			label:    'Back',
+			style:    ButtonStyle.Success
+		},
+		execute: async (interaction: ButtonInteraction) => {
+			const mentionableData = await command.methods.getMentionableFromInteraction(interaction);
+			const response = command.methods.getMentionableInfoResponse(mentionableData.mentionable, mentionableData.role);
+
+			await interaction.update({
+				embeds:     response.embeds,
+				components: response.components
+			});
+
+			return true;
+		}
+	};
+}
+class SelectMenuCollection extends BaseSelectMenuCollection implements ISelectMenuCollection<SelectMenuCollection> {
+	public scopeType: ISelectMenuCollectionField<ComponentType.StringSelect> = {
+		logEnvironment: LOG_ENVIRONMENT.PRODUCTION | LOG_ENVIRONMENT.BETA,
+		content:        {
+			type:     ComponentType.StringSelect,
+			customId: componentIdPrefix + 'scope-type',
+			options:  Object.values(UsageScopeType).map((scope): SelectMenuComponentOptionData => {return {
+				label: scope[0].toUpperCase() + scope.slice(1),
+				value: scope,
+			};}),
+			placeholder: 'Wether to allow or deny usage',
+		},
+		execute: async (interaction: StringSelectMenuInteraction) => {
+			const mentionableData = await command.methods.getMentionableFromInteraction(interaction);
+
+			for (const row of interaction.message.components) {
+				for (const comp of row.components) {
+					if (comp.customId === command.selectMenus.channelScope.content.customId) {
+						mentionableData.mentionable.usageScope.channelScopeType = interaction.values[0] as TUsageScopeType;
+						await Mentionable.update(interaction.guildId!, mentionableData.role.id, mentionableData.mentionable);
+
+						await interaction.update({
+							embeds: [
+								command.embeds.mentionableInfo(mentionableData.mentionable, mentionableData.role),
+								command.embeds.scopeSettingInstructions('channel')
+							],
+							components: await command.methods.getSettingsActionRows(interaction, 'channel')
+						});
+						return true;
+					}
+					else if (comp.customId === command.selectMenus.roleScope.content.customId) {
+						mentionableData.mentionable.usageScope.roleScopeType = interaction.values[0] as TUsageScopeType;
+						await Mentionable.update(interaction.guildId!, mentionableData.role.id, mentionableData.mentionable);
+
+						await interaction.update({
+							embeds: [
+								command.embeds.mentionableInfo(mentionableData.mentionable, mentionableData.role),
+								command.embeds.scopeSettingInstructions('role')
+							],
+							components: await command.methods.getSettingsActionRows(interaction, 'role')
+						});
+						return true;
+					}
+				}
+			}
+
+			interaction.deferUpdate();
+
+			return true;
+		}
+	};
+	
+	public channelScope: ISelectMenuCollectionField<ComponentType.ChannelSelect> = {
+		logEnvironment: LOG_ENVIRONMENT.PRODUCTION | LOG_ENVIRONMENT.BETA,
+		content:        {
+			type:         ComponentType.ChannelSelect,
+			customId:     componentIdPrefix + 'channel-selection',
+			channelTypes: [
+				ChannelType.AnnouncementThread,
+				ChannelType.GuildAnnouncement,
+				ChannelType.GuildCategory,
+				ChannelType.GuildText,
+				ChannelType.PrivateThread,
+				ChannelType.PublicThread,
+				ChannelType.GuildVoice,
+			],
+			minValues: 0,
+			maxValues: 25,
+		},
+		execute: async (interaction: ChannelSelectMenuInteraction) => {
+			const mentionableData = await command.methods.getMentionableFromInteraction(interaction);
+			mentionableData.mentionable.usageScope.channelScope = interaction.values;
+			await Mentionable.update(interaction.guildId!, mentionableData.role.id, mentionableData.mentionable);
+
+			await interaction.update({ embeds: [
+				command.embeds.mentionableInfo(mentionableData.mentionable, mentionableData.role),
+				command.embeds.scopeSettingInstructions('channel')
+			] });
+
+			return true;
+		}
+	};
+
+	public roleScope: ISelectMenuCollectionField<ComponentType.RoleSelect> = {
+		content: {
+			type:      ComponentType.RoleSelect,
+			customId:  componentIdPrefix + 'role-selection',
+			minValues: 0,
+			maxValues: 25,
+		},
+		execute: async (interaction: RoleSelectMenuInteraction) => {
+			const mentionableData = await command.methods.getMentionableFromInteraction(interaction);
+			mentionableData.mentionable.usageScope.roleScope = interaction.values;
+			await Mentionable.update(interaction.guildId!, mentionableData.role.id, mentionableData.mentionable);
+
+			await interaction.update({
+				embeds: [
+					command.embeds.mentionableInfo(mentionableData.mentionable, mentionableData.role),
+					command.embeds.scopeSettingInstructions('role')
+				]
+			});
+
+			return true;
+		},
+	};
+}
 class EmbedCollection extends BaseEmbedCollection {
-	public getCooldownInstructionEmbed(cooldownInput: string, message?: string): EmbedBuilder {
+	public getCooldownInstructionEmbed(cooldownInput: string, field: string, message?: string): EmbedBuilder[] {
+		return [
+			new EmbedBuilder({
+				title:       `Invalid Cooldown Input: \`${cooldownInput}\``,
+				description: [
+					`The cooldown option (\`${field}\`) you have entered is incorrect.${(message !== undefined) ? `\n${message}` : ''}`,
+				].join('\n'),
+				footer: {text: 'Press "Arrow-Up" key to retry'},
+				color:  hexToBit(ColorTheme.embeds.notice)
+			}),
+			new EmbedBuilder({
+				title:       'Cooldown Instructions',
+				description: [
+					'The cooldown input should be seperated with spaces for each timeframe entered.',
+					'',
+					'Each timeframe should end in any of these letters:',
+					'`s` = `seconds`',
+					'`m` = `minutes`',
+					'`h` = `hours`',
+					'`d` = `days`',
+					'',
+					'**Examples**:',
+					'`8s 69m 28h 1d` = `2d 05:09:08`',
+					'`600s` = `0d 00:10:00`'
+				].join('\n'),
+				color: hexToBit(ColorTheme.embeds.info)
+			})
+		];
+	}
+
+	public registeredNewRole(roleId: string, cooldown: PeriodOfTime): EmbedBuilder {
 		return new EmbedBuilder({
-			title: `Invalid Cooldown Input: \`${cooldownInput}\``,
+			title:       'Registered New Role Cooldown',
 			description: [
-				`**Reason**:`,
-				`The cooldown you have entered is incorrect.${(message !== undefined) ? `\n${message}` : ''}`,
-				``,
-				`**Cooldown Instructions**:`,
-				`The cooldown input should be seperated with spaces for each timeframe entered.`,
-				``,
-				`Each timeframe should end in any of these letters:`,
-				`\`s\` = \`seconds\``,
-				`\`m\` = \`minutes\``,
-				`\`h\` = \`hours\``,
-				`\`d\` = \`days\``,
-				``,
-				`**Examples**:`,
-				`\`8s 69m 28h 1d\` = \`2d 05:09:08\``,
-				`\`600s\` = \`0d 00:10:00\``
+				'**Note:** For users to mention this role,',
+				'they have to use the `/mention` command ',
+				'followed by the `role` they like to mention.',
+			].join('\n'),
+			fields: [
+				{name: 'role', value: `<@&${roleId}>`, inline: true},
+				{name: 'cooldown', value: `\`${cooldown.toString()}\``, inline: true},
+				{name: '\u200B', value: '\u200B', inline: true},
+			],
+			color: hexToBit(ColorTheme.embeds.reply),
+		});
+	}
+
+	public targetRoleTooHigh(botMember: GuildMember, role: Role): EmbedBuilder {
+		return new EmbedBuilder({
+			title:       'Unable to add role',
+			description: [
+				`My highest role (<@&${botMember?.roles.highest.id}>)`,
+				`is positioned below the role you tried to add (<@&${role.id}>)`,
+				'I can not manage roles that are placed above my own.\n',
+				'If you still like to add this role to this list,',
+				`you have to raise my highest role (<@&${botMember?.roles.highest.id}>)`,
+				`above the role you want to add (<@&${role.id}>) or vise versa.`,
 			].join('\n'),
 			color: hexToBit(ColorTheme.embeds.notice)
 		});
 	}
 
-	public registeredNewRole(roleId: string, cooldown: PeriodOfTime) {
+	public targetRoleNotRegistered(role: Role): EmbedBuilder {
 		return new EmbedBuilder({
-			title: "Registered New Role Cooldown",
 			description: [
-				`**Note:** For users to mention this role,`,
-				`they have to use the \`/mention\` command `,
-				`followed by the \`role\` they like to mention.`,
-			].join('\n'),
-			fields: [
-				{name: 'role', value: `<@&${roleId}>`, inline: true},
-				{name: 'cooldown', value: `\`${cooldown.toString()}\``, inline: true},
-				{name: '\u200B', value: `\u200B`, inline: true},
-			],
-			color: hexToBit(ColorTheme.embeds.reply),
-		})
-	}
-
-	public targetRoleTooHigh(botMember: GuildMember, role: Role) {
-		return new EmbedBuilder({
-			title: 'Unable to add role',
-			description: [
-				`My highest role (<@&${botMember?.roles.highest.id}>)`,
-				`is positioned below the role you tried to add (<@&${role.id}>)`,
-				`I can not manage roles that are placed above my own.\n`,
-				`If you still like to add this role to this list,`,
-				`you have to raise my highest role (<@&${botMember?.roles.highest.id}>)`,
-				`above the role you want to add (<@&${role.id}>) or vise versa.`,
+				`The role you entered (<@&${role.id}>) is not registered as a rolecooldown.`,
+				'Please first register this role for a cooldown with the following command:',
+				`\`\`\`/rolecooldown add role:<@&${role.id}>\`\`\``
 			].join('\n'),
 			color: hexToBit(ColorTheme.embeds.notice)
-		})
+		});
+	}
+
+	public mentionableAlreadyRegistered(role: Role): EmbedBuilder[] {
+		return [validateEmbed(new EmbedBuilder({
+			description: [
+				`The role you entered (<@&${role.id}>) is already registered.`,
+				'Please use the following command instead:',
+				`\`\`\`/rolecooldown edit role:<@&${role.id}>\`\`\``
+			].join('\n'),
+			color: hexToBit(ColorTheme.embeds.notice)
+		}))];
+	}
+
+	public requireOneMinimumCooldown(): EmbedBuilder[] {
+		return [validateEmbed(new EmbedBuilder({
+			description: [
+				'This command requires at least one cooldown input',
+				'Please fill out at least one of the following options:',
+				Object.values(ActiveCooldown).map(cd => `- \`${cd}-cooldown\``).join('\n')
+			].join('\n'),
+			footer: {text: 'Press "Arrow-Up" key to retry'},
+			color:  hexToBit(ColorTheme.embeds.notice)
+		}))];
+	}
+
+	public getMentionableUsageScopeFields(mentionable: IMentionableItem): { channel: EmbedField, role: EmbedField } {
+		return {
+			channel: {
+				name:   `Channels - \`${mentionable.usageScope.channelScopeType}\``,
+				value:  (mentionable.usageScope.channelScopeType !== 'none') ? `\n<#${mentionable.usageScope.channelScope.join('> <#')}>` : '-',
+				inline: true
+			},
+			role: {
+				name:   `Roles - \`${mentionable.usageScope.roleScopeType}\``,
+				value:  (mentionable.usageScope.roleScopeType !== 'none') ? `\n<@&${mentionable.usageScope.roleScope.join('> <@&')}>` : '-',
+				inline: true
+			}
+		};
+	}
+
+	public mentionableInfo(mentionable: IMentionableItem, role: Role): EmbedBuilder {
+		const embed = new EmbedBuilder({
+			title:       `Role Cooldown info for \`@${role.name}\``,
+			description: 'If you want to edit the cooldown times, you need to execute this command again and fill out the command options',
+			fields:      [],
+			color:       hexToBit(ColorTheme.embeds.reply)
+		});
+
+		for (const cooldownType in mentionable.cooldownTime) {
+			const timeValue = mentionable.cooldownTime[cooldownType];
+			embed.addFields({
+				name:   `${cooldownType}`,
+				value:  `${(timeValue === 0) ? '``` - ```' : getTimeDisplay(timeValue, true)}`,
+				inline: true
+			});
+		}
+
+		const usageScopeFields = this.getMentionableUsageScopeFields(mentionable);
+		embed.addFields(usageScopeFields.channel, usageScopeFields.role);
+
+		return validateEmbed(embed);
+	}
+
+	public scopeSettingInstructions(type: 'channel' | 'role'): EmbedBuilder {
+		const cType = type[0].toUpperCase() + type.slice(1);
+		return new EmbedBuilder({
+			title:       `${cType} Setting Instructions`,
+			description: [
+				`The top/first select menu has 3 options (${command.selectMenus.scopeType.content.options?.map(opt => `\`${opt.label}\``).join(' ')})`,
+				`The bottom/second select menu will accept up to \`25\` ${type}s`,
+				'',
+				'**Scope Type options**:',
+				`- \`None\`: This option will cause the ${type} scope setting to be ignored and allow the rolecooldown to be used ${(type === 'channel') ? 'everywhere' : 'by anyone'}`,
+				`- \`Allow\`: This option will only allow the rolecooldown to be used ${(type === 'channel') ? 'in' : 'by a member that has any of'} the ${type}s you picked`,
+				`- \`Deny\`: This option will deny the usage of the rolecooldown ${(type === 'channel') ? 'in' : 'by members that have any of'} the ${type}s you picked`,
+			].join('\n'),
+			color: hexToBit(ColorTheme.embeds.info)
+		});
 	}
 }
 class MethodCollection extends BaseMethodCollection {
+	//#region Utility Methods
 	/** Validate the cooldown input that the user has provided
 	 * @param input The cooldown input the user has provided
 	 * @returns If valid, the PeriodOfTime object. If invalid, a message explaining why it is invalid
 	*/
-	public validateCooldownInput(input: string): PeriodOfTime | string {
-		//- no timeframe letters included
-		if (!includesAny(input, timeframes)) {
-			if (input.split(' ').length == 1 && input.split('').every((n => '1234567890'.includes(n)))) { //- is the input just a single number
-				input += 's' //? convert it to seconds for ease of use
-			}
-			else {
-				return 'Some/All timeframes entered did not end in any of the timeframe letters.';
-			}
+	private validateCooldownInput(input: string): PeriodOfTime | string {
+		//? help out the user a bit and prevent the time from being 0 ms if they enter the full word time frame (yes, this happend before)
+		input = input
+			.replaceAll('seconds', 's').replaceAll('second', 's').replaceAll('sec', 's')
+			.replaceAll('minutes', 'm').replaceAll('minute', 'm').replaceAll('min', 'm')
+			.replaceAll('hours', 'h').replaceAll('hour', 'h')
+			.replaceAll('days', 'd').replaceAll('day', 'd');
+
+		//- no timeframe letters included but only single value
+		if (!includesAny(input, timeframes) && input.split(' ').length == 1 && input.split('').every((n => '1234567890'.includes(n)))) {
+			input += 's'; //? convert it to seconds for ease of use
 		}
 
 		//- not seperated by spaces
@@ -102,96 +368,210 @@ class MethodCollection extends BaseMethodCollection {
 		
 		//- input includes unknow character(s)
 		for (const timeframe of input.split(' ')) {
-			const end = timeframe[timeframe.length - 1]
-			if (!timeframes.includes(end)) {
-				return `\`${timeframe}\` contains unknown timeframe suffix: \`${end}\``;
+			const suffix = timeframe.replace(parseFloat(timeframe).toString(), '');
+			if (!timeframes.includes(suffix)) {
+				return `\`${timeframe}\` contains unknown timeframe suffix: \`${suffix}\``;
 			}
+		}
+
+		//- no timeframe letters included
+		if (!includesAny(input, timeframes)) {
+			return 'Some/All timeframes entered did not end in any of the timeframe letters.';
 		}
 		
 		const cooldown = new PeriodOfTime(input);
 
 		//- cooldown returned as 0
-		if (cooldown.time === 0) {
-			return 'The cooldown time resulted to be `0` from the input that was given.\nThis usually happens when the input contains unexpected characters.'
+		if ((cooldown.time === 0 && cooldown.input !== '0s') || Number.isNaN(cooldown.time)) {
+			return 'The cooldown time resulted to be `0` from the input that was given.\nThis usually happens when the input contains unexpected characters.';
 		}
 
 		return cooldown;
 	}
 
-	/** Check of the given role is lower then the bots highest role and is there fore editable */
-	public async validateRolePosition(interaction: ChatInputCommandInteraction, role: Role): Promise<boolean> {
-		const botMember = interaction.guild!.members.me!;
-		if (!botMember?.roles.highest.position || botMember?.roles.highest.position < role.position) {
-			await interaction.reply({
-				embeds: [validateEmbed(command.embeds.targetRoleTooHigh(botMember, role))],
-				ephemeral: true
-			});
+	private async getCooldownObject(interaction: ChatInputCommandInteraction): Promise<CooldownDefinition<PeriodOfTime | null> | string> {
+		const cooldownInput: CooldownDefinition<string|null> = {
+			global:  interaction.options.getString('global-cooldown'),
+			channel: interaction.options.getString('channel-cooldown'),
+			user:    interaction.options.getString('user-cooldown'),
+		};
 
-			return false
+		const cooldown: CooldownDefinition<PeriodOfTime | null | string> = {
+			global:  (cooldownInput.global !== null) ? this.validateCooldownInput(cooldownInput.global) : null,
+			channel: (cooldownInput.channel !== null) ? this.validateCooldownInput(cooldownInput.channel) : null,
+			user:    (cooldownInput.user !== null) ? this.validateCooldownInput(cooldownInput.user) : null,
+		};
+
+		for (const field in cooldown) {
+			if (typeof cooldown[field] === 'string') {
+				await interaction.reply({
+					embeds: command.embeds.getCooldownInstructionEmbed(cooldownInput[field], `${field}-cooldown`, cooldown[field]),
+					flags:  [((!GeneralData.development) ? MessageFlags.Ephemeral : MessageFlags.SuppressNotifications)]
+				});
+				
+				return `${field}-cooldown: ${cooldown[field]}`;
+			}
 		}
 
-		return true
+		return cooldown as CooldownDefinition<PeriodOfTime | null>;
 	}
 
-	public async addRole(interaction: ChatInputCommandInteraction) {
-		if (!interaction.guild) {
-			throw new Error(`Interaction did not contain guild`)
+	public async getMentionableFromInteraction(interaction: AnySelectMenuInteraction | ButtonInteraction): Promise<{role: Role, mentionable: IMentionableItem}> {
+		if (!Object.keys(messageToInteractionLink).includes(interaction.message.id)) {
+			throw new Error('Unable to link message to interaction');
 		}
-		const roleId = interaction.options.get('role', true).value;
-		
-		let cooldownInput = interaction.options.getString('cooldown', true);
 
-		//? help out the user a bit and prevent the time from being 0 ms if they enter the full word time frame (yes, this happend before)
-		cooldownInput = cooldownInput
-		.replaceAll('seconds', 's').replaceAll('second', 's').replaceAll('sec', 's')
-		.replaceAll('minutes', 'm').replaceAll('minute', 'm').replaceAll('min', 'm')
-		.replaceAll('hours', 'h').replaceAll('hour', 'h')
-		.replaceAll('days', 'd').replaceAll('day', 'd');
-
-		const cooldown = this.validateCooldownInput(cooldownInput)
-		
-		//? if cooldown is a string, the input was invalid and coolodwn contains the message why it is invalid
-		if (typeof cooldown === 'string') { 
-			await interaction.reply({
-				embeds: [command.embeds.getCooldownInstructionEmbed(cooldownInput, cooldown)],
-				ephemeral: true
-			});
-
-			return cooldown; //`Invalid cooldown input`
-		}
-		
-		const role = interaction.guild.roles.cache.find(r => r.id == roleId);
+		const role = messageToInteractionLink[interaction.message.id].options.getRole('role', true);
 		if (!role) {
-			throw new Error(`Unable to find role (${roleId})`);
-		}
-		
-		if (!await this.validateRolePosition(interaction, role)) {
-			return `Selected role is above my highest role`
+			throw new Error('Unable to get the role option from interaction');
 		}
 
-		const res = await Mentionable.add(interaction.guild?.id, roleId as string, {
-			cooldown: cooldown.time,
-			lastUsed: -1
-		})
+		const mentionable = await Mentionable.get(interaction.guildId!, role.id);
+		if (!mentionable) {
+			throw new Error('Unable to get the mentionable of the target role');
+		}
 
-		if (res) {
-			// thisConsole.log(`[fg=green]${interaction.guild.name}[/>] Added new mentionable ${roleId}: ${res}`)
+		return {role: role as Role, mentionable: mentionable};
+	}
 
-			// await role.setMentionable(true, 'RoleMentionCooldown - Registered'); //? set the role to mentionable so its able to be used
-			await interaction.reply({
-				embeds: [validateEmbed(command.embeds.registeredNewRole(roleId as string, cooldown))],
-				ephemeral: !GeneralData.development
-			});
+	public async getSettingsActionRows(interaction: AnySelectMenuInteraction | ButtonInteraction, type: 'channel' | 'role'): Promise<ActionRowBuilder<MessageActionRowComponentBuilder>[]> {
+		const scopeTypeSelect = {...command.selectMenus.scopeType.content};
+		const scopeSelect = {...(type === 'channel') ? command.selectMenus.channelScope.content : command.selectMenus.roleScope.content};
+
+		const mentionable = (await this.getMentionableFromInteraction(interaction)).mentionable;
+
+		const scopeTypeValue = (type === 'channel') ? mentionable.usageScope.channelScopeType : mentionable.usageScope.roleScopeType;
+		const scopeSelectValue = (type === 'channel') ? mentionable.usageScope.channelScope : mentionable.usageScope.roleScope;
+
+		//? Set the default selection value based on scopetypeValue
+		for (const opt of scopeTypeSelect.options ?? []) {
+			opt.default = (opt.value === scopeTypeValue);
+		}
+
+		if (scopeTypeValue !== 'none') {
+			scopeSelect.disabled = false;
+			scopeSelect.defaultValues = scopeSelectValue;
 		} else {
-			throw new Error(`"${interaction.guild.name}" Attempted to add new mentionable (${roleId}) and was unsuccessfull`)
+			scopeSelect.disabled = true;
 		}
+
+		ComponentValueStorage.setValue(interaction, scopeTypeSelect.customId, scopeTypeValue);
+		ComponentValueStorage.setValue(interaction, scopeSelect.customId, scopeSelectValue);
+
+		return [
+			new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(command.selectMenus.buildOne<StringSelectMenuBuilder>(scopeTypeSelect)),
+			new ActionRowBuilder<ChannelSelectMenuBuilder | RoleSelectMenuBuilder>().addComponents(command.selectMenus.buildOne<ChannelSelectMenuBuilder | RoleSelectMenuBuilder>(scopeSelect)),
+			new ActionRowBuilder<ButtonBuilder>().addComponents(command.buttons.buildOne(command.buttons.submitScopeSettings.content))
+		];
+	}
+
+	public getMentionableInfoResponse(mentionable: IMentionableItem, role: Role): InteractionReplyOptions {
+		return {
+			embeds:     [command.embeds.mentionableInfo(mentionable, role)],
+			components: [
+				new ActionRowBuilder().addComponents(command.buttons.getBuild(command.buttons.channelSettings, command.buttons.roleSettings)) as never,
+			],
+			flags: [MessageFlags.Ephemeral]
+		};
+	}
+
+	private async sendMentionableConfigMenu(interaction: ChatInputCommandInteraction, mentionable: IMentionableItem, role: Role): Promise<true> {
+		await interaction.reply(this.getMentionableInfoResponse(mentionable, role));
+
+		const replyMessageId = (await interaction.fetchReply()).id;
+		messageToInteractionLink[replyMessageId] = interaction;
+
+		setTimeout(() => {
+			delete messageToInteractionLink[replyMessageId];
+		}, 1000 * 60 * 15);
 
 		return true;
 	}
+	//#endregion
 
-	public async removeRole(interaction: ChatInputCommandInteraction) {
+	//#region Add
+	public async addRole(interaction: ChatInputCommandInteraction): Promise<string | true> {
+		const role = interaction.options.getRole('role', true) as Role;
+		const existingMentionable = await Mentionable.get(interaction.guildId!, role.id);
+
+		if (existingMentionable !== null && existingMentionable !== undefined) {
+			await interaction.reply({
+				embeds: command.embeds.mentionableAlreadyRegistered(role),
+				flags:  [((!GeneralData.development) ? MessageFlags.Ephemeral : MessageFlags.SuppressNotifications)],
+			});
+
+			return 'Mentionable is already registered';
+		}
+		
+		const cooldownInputs = await this.getCooldownObject(interaction);
+		if (typeof cooldownInputs === 'string') { 
+			//- if cooldown is a string, the input was invalid and coolodwn contains the message why it is invalid
+			return cooldownInputs;
+		}
+
+		if (Object.values(cooldownInputs).every(cd => cd === null)) {
+			await interaction.reply({
+				embeds: command.embeds.requireOneMinimumCooldown(),
+				flags:  [((!GeneralData.development) ? MessageFlags.Ephemeral : MessageFlags.SuppressNotifications)],
+			});
+
+			return 'Require at least one cooldown input';
+		}
+		
+		const newMentionable: IMentionableItem = Mentionable.make();
+
+		for (const cooldownField in cooldownInputs) {
+			if (cooldownInputs[(cooldownField as keyof CooldownDefinition<PeriodOfTime>)] === null) { continue; }
+			newMentionable.cooldownTime[(cooldownField as keyof CooldownDefinition<unknown>)] = cooldownInputs[(cooldownField as keyof CooldownDefinition<PeriodOfTime>)]!.time;
+		}
+
+		const res = await Mentionable.add(interaction.guildId!, role.id, newMentionable);
+
+		if (!res) {
+			throw new Error(`"${interaction.guild!.name}" Attempted to add new mentionable (${role}) unsuccessfully`);
+		}
+
+		return await this.sendMentionableConfigMenu(interaction, newMentionable, role);
+	}
+	//#endregion
+
+	//#region Edit
+	public async editRole(interaction: ChatInputCommandInteraction): Promise<string | true> {
+		const role = interaction.options.getRole('role', true) as Role;
+		const mentionableDoc = await Mentionable.getDocument(interaction.guildId!);
+		const mentionable = mentionableDoc.mentionables[role.id];
+
+		if (!mentionable) {
+			await interaction.reply({
+				embeds: [command.embeds.targetRoleNotRegistered(role)],
+				flags:  [((!GeneralData.development) ? MessageFlags.Ephemeral : MessageFlags.SuppressNotifications)],
+			});
+
+			return 'Target role not registered as mentionable';
+		}
+
+		const cooldownInputs = await this.getCooldownObject(interaction);
+		if (typeof cooldownInputs === 'string') {
+			return cooldownInputs;
+		}
+		
+		if (!Object.values(cooldownInputs).every(cd => cd === null)) {
+			for (const cooldownField in cooldownInputs) {
+				if (cooldownInputs[(cooldownField as keyof CooldownDefinition<PeriodOfTime>)] === null) { continue; }
+				mentionable.cooldownTime[(cooldownField as keyof CooldownDefinition<unknown>)] = cooldownInputs[(cooldownField as keyof CooldownDefinition<PeriodOfTime>)]!.time;
+			}
+
+			await Mentionable.update(mentionableDoc);
+		}
+
+		return await this.sendMentionableConfigMenu(interaction, mentionable, role);
+	}
+	//#endregion
+
+	//#region Remove
+	public async removeRole(interaction: ChatInputCommandInteraction): Promise<string | true> {
 		if (!interaction.guild) {
-			throw new Error(`Interaction did not contain guild`)
+			throw new Error('Interaction did not contain guild');
 		}
 		
 		const roleId = interaction.options.get('role', true).value;
@@ -201,79 +581,105 @@ class MethodCollection extends BaseMethodCollection {
 			await interaction.reply({
 				embeds: [validateEmbed(new EmbedBuilder({
 					description: `<@&${roleId}> is not included in the mention cooldown list.`,
-					color: hexToBit(ColorTheme.embeds.notice)
+					color:       hexToBit(ColorTheme.embeds.notice)
 				}))],
-				ephemeral: true
+				flags: [((!GeneralData.development) ? MessageFlags.Ephemeral : MessageFlags.SuppressNotifications)]
 			});
 			return 'Role not present in list';
 		}
 
-		const role = interaction.guild.roles.cache.find(r => r.id == roleId);
-		if (!role) {
-			throw new Error(`Unable to find role (${roleId})`);
-		}
-
-		if (!await this.validateRolePosition(interaction, role)) {
-			return `Selected role is above my highest role`
-		}
-
-		const res = await Mentionable.remove(interaction.guild?.id, roleId as string)
+		const res = await Mentionable.remove(interaction.guild?.id, roleId as string);
 
 		if (res) {
-			thisConsole.log(`[fg=green]${interaction.guild.name}[/>] Removed mentionable ${roleId}: ${res}`)
-			
-			// await role.setMentionable(false, 'RoleMentionCooldown - Removed'); //? set the role to mentionable so its able to be used
 			await interaction.reply({
 				embeds: [validateEmbed(new EmbedBuilder({
-					description: `Successfully removed <@&${roleId}> from the list.\nDisabled the ability to mention <@&${roleId}> for everyone.`,
-					color: hexToBit(ColorTheme.embeds.reply)
+					description: `Successfully removed <@&${roleId}> from the list.`,
+					color:       hexToBit(ColorTheme.embeds.reply)
 				}))],
-				ephemeral: true
+				flags: [((!GeneralData.development) ? MessageFlags.Ephemeral : MessageFlags.SuppressNotifications)]
 			});
 		} else {
-			throw new Error(`"${interaction.guild.name}" Attempted to remove mentionable (${roleId}) and was unsuccessfull`)
+			throw new Error(`"${interaction.guild.name}" Attempted to remove mentionable (${roleId}) and was unsuccessfull`);
 		}
 
-		return true
+		return true;
 	}
+	//#endregion
 }
 
 const command = new CommandInteractionData<ButtonCollection, SelectMenuCollection, EmbedCollection, MethodCollection>({
 	command: {
-		content: {
-			name: 'rolecooldown',
-			description: 'Manage role cooldowns',
-			contexts: [InteractionContextType.Guild],
+		logLevel:       LOG_LEVEL.FAIL | LOG_LEVEL.ERROR,
+		logEnvironment: LOG_ENVIRONMENT.BETA,
+		content:        {
+			name:                       'rolecooldown',
+			description:                'Manage role cooldowns',
+			contexts:                   [InteractionContextType.Guild],
 			default_member_permissions: (PermissionFlagsBits.ManageRoles).toString(),
-			subcommands: [
+			subcommands:                [
 				{
-					name: 'add',
-					description: 'Add a new role to the list, or edit an existing one',
-					options: [
+					name:        'add',
+					description: 'Add a new role cooldown',
+					options:     [
 						{
-							type: ApplicationCommandOptionType.Role,
-							name: 'role',
+							type:        ApplicationCommandOptionType.Role,
+							name:        'role',
 							description: 'The role to add',
-							required: true,
+							required:    true,
 						},
 						{
-							type: ApplicationCommandOptionType.String,
-							name: 'cooldown',
-							description: 'The cooldown to apply to the this once its used (seperate with spaces). 8s 69m 28h 1d = 2d 05:09:08',
-							minLength: 2,
-							required: true,
-						}
+							type:        ApplicationCommandOptionType.String,
+							name:        'global-cooldown',
+							description: 'The cooldown that applies to everyone (overrides user/channel cooldown if its greater)',
+						},
+						{
+							type:        ApplicationCommandOptionType.String,
+							name:        'channel-cooldown',
+							description: 'The cooldown that applies to the channel that the rolemention was used in',
+						},
+						{
+							type:        ApplicationCommandOptionType.String,
+							name:        'user-cooldown',
+							description: 'The cooldown that applies to the user that used the rolemention',
+						},
 					]
 				},
 				{
-					name: 'remove',
-					description: 'Remove a role from the list',
-					options: [
+					name:        'edit',
+					description: 'Edit an existing role cooldown (Omit cooldown options to preserve the current cooldown)',
+					options:     [
 						{
-							type: ApplicationCommandOptionType.Role,
-							name: 'role',
+							type:        ApplicationCommandOptionType.Role,
+							name:        'role',
+							description: 'The role to edit',
+							required:    true
+						},
+						{
+							type:        ApplicationCommandOptionType.String,
+							name:        'global-cooldown',
+							description: 'The cooldown that applies to everyone (overrides user/channel cooldown if its greater)',
+						},
+						{
+							type:        ApplicationCommandOptionType.String,
+							name:        'channel-cooldown',
+							description: 'The cooldown that applies to the channel that the rolemention was used in',
+						},
+						{
+							type:        ApplicationCommandOptionType.String,
+							name:        'user-cooldown',
+							description: 'The cooldown that applies to the user that used the rolemention',
+						},
+					]
+				},
+				{
+					name:        'remove',
+					description: 'Remove a role from the list',
+					options:     [
+						{
+							type:        ApplicationCommandOptionType.Role,
+							name:        'role',
 							description: 'The role to remove',
-							required: true
+							required:    true
 						}
 					]
 				}
@@ -283,6 +689,7 @@ const command = new CommandInteractionData<ButtonCollection, SelectMenuCollectio
 			const subCommand = interaction.options.getSubcommand();
 			switch (subCommand) {
 				case 'add': return await command.methods.addRole(interaction);
+				case 'edit': return await command.methods.editRole(interaction);
 				case 'remove': return await command.methods.removeRole(interaction);
 				default: break;
 			}
@@ -291,10 +698,10 @@ const command = new CommandInteractionData<ButtonCollection, SelectMenuCollectio
 			throw new Error(`Unknown command command:${interaction.commandName} sub:${subCommand}`);
 		},
 	},
-	buttons: new ButtonCollection(),
+	buttons:     new ButtonCollection(),
 	selectMenus: new SelectMenuCollection(),
-	embeds: new EmbedCollection(),
-	methods: new MethodCollection()
+	embeds:      new EmbedCollection(),
+	methods:     new MethodCollection()
 });
 
 export default command;

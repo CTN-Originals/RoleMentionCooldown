@@ -1,10 +1,10 @@
 //? This script takes care of updating all the bot lists this server is registered on
 //? lists like top.gg or discordlist.gg
 
-import axios from "axios";
-import { EmitError } from "../events";
-import { ColorTheme, GeneralData } from "../data";
-import { client, cons } from "..";
+import axios from 'axios';
+import { EmitError } from '../events';
+import { ColorTheme, GeneralData } from '../data';
+import { client, cons } from '..';
 
 type IListDefinition = Pick<ListDefinition, 'domain' | 'suffix' | 'urlFormat' | 'guildCountKey'> & Partial<Pick<ListDefinition, 'userCountKey'>>;
 class ListDefinition {
@@ -44,7 +44,7 @@ class ListDefinition {
 			return 'Missing Autherization token';
 		}
 
-		let data = {
+		const data = {
 			[this.guildCountKey]: guildCount
 		};
 		
@@ -52,28 +52,28 @@ class ListDefinition {
 			data[this.userCountKey] = userCount;
 		}
 
-		let config = {
-			method: 'post',
+		const config = {
+			method:        'post',
 			maxBodyLength: Infinity,
-			url: this.url,
-			headers: { 
+			url:           this.url,
+			headers:       { 
 				'Authorization': auth,
-				'Content-Type': 'application/json'
+				'Content-Type':  'application/json'
 			},
-			data : JSON.stringify(data)
+			data: JSON.stringify(data)
 		};
 
 		axios.request(config)
-		.then((response) => {
-			if (GeneralData.development) {
-				console.log('\n' + this.domain)
-				console.log(JSON.stringify(response.data));
-			}
-		})
-		.catch((error) => {
-			console.log(this.domain);
-			EmitError(error);
-		});
+			.then((response) => {
+				if (GeneralData.development) {
+					console.log('\n' + this.domain);
+					console.log(JSON.stringify(response.data));
+				}
+			})
+			.catch((error) => {
+				console.log(this.domain);
+				EmitError(error);
+			});
 
 		return true; //? even though the request might have failed, return true as we are not awaiting the request to save load times
 	}
@@ -81,42 +81,42 @@ class ListDefinition {
 
 const listDefinitions: IListDefinition[] = [
 	{
-		domain: 'top',
-		suffix: 'gg',
-		urlFormat: 'https://top.gg/api/bots/<bot_id>/stats',
+		domain:        'top',
+		suffix:        'gg',
+		urlFormat:     'https://top.gg/api/bots/<bot_id>/stats',
 		guildCountKey: 'server_count',
 	},
 	{
-		domain: 'discordlist',
-		suffix: 'gg',
-		urlFormat: 'https://api.discordlist.gg/v0/bots/<bot_id>/guilds',
+		domain:        'discordlist',
+		suffix:        'gg',
+		urlFormat:     'https://api.discordlist.gg/v0/bots/<bot_id>/guilds',
 		guildCountKey: 'count',
 	},
 	{
-		domain: 'discordbotlist',
-		suffix: 'com',
-		urlFormat: 'https://discordbotlist.com/api/v1/bots/<bot_id>/stats',
+		domain:        'discordbotlist',
+		suffix:        'com',
+		urlFormat:     'https://discordbotlist.com/api/v1/bots/<bot_id>/stats',
 		guildCountKey: 'guilds',
-		userCountKey: 'users'
+		userCountKey:  'users'
 	},
 	{
-		domain: 'botlist',
-		suffix: 'me',
-		urlFormat: 'https://api.botlist.me/api/v1/bots/<bot_id>/stats',
+		domain:        'botlist',
+		suffix:        'me',
+		urlFormat:     'https://api.botlist.me/api/v1/bots/<bot_id>/stats',
 		guildCountKey: 'server_count',
 	},
 	{
-		domain: 'discords',
-		suffix: 'com',
-		urlFormat: 'https://discords.com/bots/api/bot/<bot_id>/setservers',
+		domain:        'discords',
+		suffix:        'com',
+		urlFormat:     'https://discords.com/bots/api/bot/<bot_id>/setservers',
 		guildCountKey: 'server_count',
 	},
-]
+];
 
 const updateCooldown = 1000 * 60 * 60;
 let awaitingCooldown = false;
 let lastUpdate = -1; //TODO Make this an entry in the database so the value is remembered between startups
-const getCurrentCooldown = () => { return (lastUpdate + updateCooldown) - Date.now(); }
+const getCurrentCooldown = () => { return (lastUpdate + updateCooldown) - Date.now(); };
 
 export async function UpdateBotListStats() {
 	//? Prevent rate limits
@@ -129,7 +129,7 @@ export async function UpdateBotListStats() {
 			setTimeout(() => {
 				ExecuteUpdate();
 				awaitingCooldown = false;
-			}, currentCooldown)
+			}, currentCooldown);
 		}
 	}
 }
