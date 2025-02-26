@@ -90,7 +90,7 @@ export class ComponentValueStorage {
 				const message = await interaction.fetchReply();
 
 				if (message && message.editable) {
-					message.edit({
+					await interaction.editReply({
 						content:    message.content,
 						embeds:     message.embeds,
 						components: []
