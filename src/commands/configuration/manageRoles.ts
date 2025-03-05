@@ -609,8 +609,8 @@ class MethodCollection extends BaseMethodCollection {
 
 const command = new CommandInteractionData<ButtonCollection, SelectMenuCollection, EmbedCollection, MethodCollection>({
 	command: {
-		logLevel:       LOG_LEVEL.FAIL | LOG_LEVEL.ERROR,
-		logEnvironment: LOG_ENVIRONMENT.BETA,
+		logLevel:       LOG_LEVEL.ALWAYS,
+		logEnvironment: LOG_ENVIRONMENT.BETA | LOG_ENVIRONMENT.PRODUCTION,
 		content:        {
 			name:                       'rolecooldown',
 			description:                'Manage role cooldowns',
